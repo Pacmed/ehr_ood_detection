@@ -20,8 +20,8 @@ class NoveltyAnalyzer:
     def _impute_and_scale(self):
         pipe = pipeline.Pipeline([('scaler', StandardScaler()),
                                   ('imputer', SimpleImputer(missing_values=np.nan,
-                                                      strategy='mean', verbose=0,
-                                                      copy=True))])
+                                                            strategy='mean', verbose=0,
+                                                            copy=True))])
         pipe.fit(self.train_data)
 
         self.train_data = pipe.transform(self.train_data)
@@ -55,8 +55,27 @@ class NoveltyAnalyzer:
             plt.savefig(save_dir, dpi=100)
         plt.show()
 
+
 def split_by_ood_name(df: pd.DataFrame, ood_name: str, ood_value):
     """Split a dataframe by OOD column name and corresponding OOD value."""
     ood_df = df[df[ood_name] == ood_value]
     non_ood_df = df[~(df[ood_name] == ood_value)]
     return ood_df, non_ood_df
+
+
+MIMIC_OOD_MAPPINGS = {'Emergency/\nUrgent admissions': ('ADMISSION_TYPE', 'EMERGENCY'),
+                      'Elective admissions': ('ADMISSION_TYPE', 'ELECTIVE'),
+                      # 'Ethnicity: Asian': ('Ethnicity', 1)
+                      'Ethnicity: Black/African American': ('Ethnicity', 2),
+                      # 'Ethnicity: Hispanic/Latino': ('Ethnicity', 3),
+                      'Ethnicity: White': ('Ethnicity', 4),
+                      'Female': ('GENDER', 'F'),
+                      'Male': ('GENDER', 'M'),
+                      'Thyroid disorders': ('Thyroid disorders', True),
+                      'Acute and unspecified renal failure': (
+                          'Acute and unspecified renal failure', True),
+                      # 'Pancreatic disorders \n(not diabetes)': (
+                      # 'Pancreatic disorders (not diabetes)', True),
+                      'Epilepsy; convulsions': ('Epilepsy; convulsions', True),
+                      'Hypertension with complications \n and secondary hypertension': (
+                          'Hypertension with complications and secondary hypertension', True)}
