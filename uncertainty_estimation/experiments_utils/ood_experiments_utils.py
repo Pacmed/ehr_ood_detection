@@ -43,7 +43,7 @@ class NoveltyAnalyzer:
         return (self.ood_novelty > reconstr_lim).mean()
 
     def plot_dists(self, ood_name="OOD", save_dir=None):
-        plt.figure(figsize=(8, 8))
+        plt.figure(figsize=(6, 6))
         min_quantile = min(self.ood_novelty.min(), self.id_novelty.min())
         max_quantile = np.quantile(self.ood_novelty, 0.98)
         sns.distplot(self.ood_novelty.clip(min_quantile, max_quantile), label=ood_name)
@@ -53,7 +53,8 @@ class NoveltyAnalyzer:
         plt.xlim(min_quantile, max_quantile)
         if save_dir:
             plt.savefig(save_dir, dpi=100)
-        plt.show()
+        #plt.show(block=False)
+        plt.close()
 
 
 def split_by_ood_name(df: pd.DataFrame, ood_name: str, ood_value):
