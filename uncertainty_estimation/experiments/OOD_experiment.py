@@ -5,10 +5,12 @@ import pickle
 from uncertainty_estimation.models.novelty_estimator_wrapper import NoveltyEstimator
 from sklearn import svm
 from sklearn.decomposition import PCA
-from sklearn import neighbors
 
 from uncertainty_estimation.models.autoencoder import AE
 import uncertainty_estimation.experiments_utils.ood_experiments_utils as ood_utils
+import seaborn as sns
+
+sns.set_palette("Set1", 6)
 
 processed_folder = "/data/processed/benchmark/inhospitalmortality/not_scaled"
 val_data = pd.read_csv(os.path.join(processed_folder, 'val_data_processed_w_static.csv'),
@@ -30,14 +32,13 @@ ae = NoveltyEstimator(AE, dict(
     batch_size=256,
     learning_rate=0.001), dict(n_epochs=30), 'AE')
 
-pca = NoveltyEstimator(PCA, dict(n_components=3), {}, 'sklearn')
+pca = NoveltyEstimator(PCA, dict(n_components=2), {}, 'sklearn')
 svm = NoveltyEstimator(svm.OneClassSVM, {}, {}, 'sklearn')
 
-lof = NoveltyEstimator(neighbors.LocalOutlierFactor, dict(novelty=True), {}, 'sklearn')
-
 if __name__ == '__main__':
-    for ne in [ae, pca, lof, svm]:
+    for ne in [ae, pca, svm]:
         print(ne.model_type.__name__)
+
         print("Newborns")
         newborns = other_data[other_data["ADMISSION_TYPE"] == 'NEWBORN']
         nov_an = ood_utils.NoveltyAnalyzer(ne, train_data[feature_names],
@@ -46,7 +47,9 @@ if __name__ == '__main__':
         nov_an.calculate_novelty()
         print("Recalled OOD fraction is {:.2f}".format(nov_an.get_ood_recall()))
         print("OOD detection AUC is {:.2f}".format(nov_an.get_ood_detection_auc()))
-
+        nov_an.plot_dists(ood_name='Newborn', save_dir=os.path.join('plots', 'newborn' + '_' +
+                                                                    ne.model_type.__name__ +
+                                                                    ".png"))
         for ood_name, (column_name, ood_value) in ood_utils.MIMIC_OOD_MAPPINGS.items():
             # Split all data splits into OOD and 'Non-OOD' data.
             train_ood, train_non_ood = ood_utils.split_by_ood_name(train_data, column_name,
@@ -67,5 +70,13 @@ if __name__ == '__main__':
                                                all_ood[feature_names], impute_and_scale=True)
 
             nov_an.calculate_novelty()
+            nov_an.plot_dists(ood_name=ood_name,
+                              save_dir=os.path.join('plots',
+                                                    ood_name.replace('/',
+                                                                     '_').replace('\n',
+                                                                                  '_').replace(' ',
+                                                                                               '_') + '_' +
+                                                    ne.model_type.__name__ +
+                                                    ".png"))
             print("Recalled OOD fraction is {:.2f}".format(nov_an.get_ood_recall()))
             print("OOD detection AUC is {:.2f}".format(nov_an.get_ood_detection_auc()))
