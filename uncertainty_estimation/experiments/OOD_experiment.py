@@ -88,7 +88,8 @@ if __name__ == '__main__':
                                                     ood_name.replace('/',
                                                                      '_').replace('\n',
                                                                                   '_').replace(' ',
-                                                                                               '_') + '_' +
+                                                                                               '_')
+                                                    + '_' +
                                                     ne.model_type.__name__ +
                                                     ".png"))
 
