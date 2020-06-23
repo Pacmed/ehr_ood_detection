@@ -9,11 +9,11 @@ from sklearn.decomposition import PCA
 
 from uncertainty_estimation.models.autoencoder import AE
 import uncertainty_estimation.experiments_utils.ood_experiments_utils as ood_utils
-import uncertainty_estimation.experiments_utils.vis_utils as vis_utils
 import seaborn as sns
 
 sns.set_palette("Set1", 6)
 
+# loading the data
 processed_folder = "/data/processed/benchmark/inhospitalmortality/not_scaled"
 val_data = pd.read_csv(os.path.join(processed_folder, 'val_data_processed_w_static.csv'),
                        index_col=0)
@@ -27,13 +27,7 @@ other_data = pd.read_csv(os.path.join(processed_folder, 'other_data_processed_w_
 with open('../experiments_utils/MIMIC_feature_names.pkl', 'rb') as f:
     feature_names = pickle.load(f)
 
-for f in feature_names:
-    if 'count' in f or 'std' in f:
-        val_data[f] = val_data[f].fillna(0)
-        train_data[f] = train_data[f].fillna(0)
-        test_data[f] = test_data[f].fillna(0)
-        other_data[f] = other_data[f].fillna(0)
-
+# the three novelty estimation methods we try
 ae = NoveltyEstimator(AE, dict(
     input_dim=len(feature_names),
     hidden_dims=[5],
@@ -46,11 +40,14 @@ svm = NoveltyEstimator(svm.OneClassSVM, {}, {}, 'sklearn')
 
 if __name__ == '__main__':
     ood_detect_aucs, ood_recall = defaultdict(dict), defaultdict(dict)
+    # loop over the different methods
     for ne in [ae, pca, svm]:
         print(ne.model_type.__name__)
 
+        # Do experiment on newborns
         print("Newborns")
         newborns = other_data[other_data["ADMISSION_TYPE"] == 'NEWBORN']
+
         nov_an = ood_utils.NoveltyAnalyzer(ne, train_data[feature_names],
                                            test_data[feature_names],
                                            newborns[feature_names], impute_and_scale=True)
@@ -60,9 +57,11 @@ if __name__ == '__main__':
         nov_an.plot_dists(ood_name='Newborn', save_dir=os.path.join('plots', 'newborn' + '_' +
                                                                     ne.model_type.__name__ +
                                                                     ".png"))
+
         ood_recall["Newborn"][ne.model_type.__name__] = nov_an.get_ood_detection_auc()
         ood_detect_aucs["Newborn"][ne.model_type.__name__] = nov_an.get_ood_recall()
 
+        # Do experiments on the other OOD groups
         for ood_name, (column_name, ood_value) in ood_utils.MIMIC_OOD_MAPPINGS.items():
             # Split all data splits into OOD and 'Non-OOD' data.
             train_ood, train_non_ood = ood_utils.split_by_ood_name(train_data, column_name,
@@ -73,8 +72,9 @@ if __name__ == '__main__':
             # Group all OOD splits together.
             all_ood = pd.concat([train_ood, test_ood, val_ood])
             print("\n" + ood_name)
-            min_size = min(len(all_ood), len(test_non_ood))
 
+            # Make i.d. test data and ood data of same size.
+            min_size = min(len(all_ood), len(test_non_ood))
             test_non_ood = test_non_ood.sample(min_size)
             all_ood = all_ood.sample(min_size)
 
@@ -91,15 +91,17 @@ if __name__ == '__main__':
                                                                                                '_') + '_' +
                                                     ne.model_type.__name__ +
                                                     ".png"))
-            print("Recalled OOD fraction is {:.2f}".format(nov_an.get_ood_recall()))
+
             ood_detect_aucs[ood_name][ne.model_type.__name__] = nov_an.get_ood_detection_auc()
             ood_recall[ood_name][ne.model_type.__name__] = nov_an.get_ood_recall()
+            print("Recalled OOD fraction is {:.2f}".format(nov_an.get_ood_recall()))
             print("OOD detection AUC is {:.2f}".format(nov_an.get_ood_detection_auc()))
-    vis_utils.barplot_from_nested_dict(ood_recall, xlim=(0.0, 1.0), figsize=(7, 8),
+
+    ood_utils.barplot_from_nested_dict(ood_recall, xlim=(0.0, 1.0), figsize=(7, 8),
                                        title="OOD recall",
                                        legend=True,
                                        save_dir=os.path.join('plots', 'OOD_recall.png'))
-    vis_utils.barplot_from_nested_dict(ood_detect_aucs, xlim=(0.4, 1.0), figsize=(7, 8),
+    ood_utils.barplot_from_nested_dict(ood_detect_aucs, xlim=(0.4, 1.0), figsize=(7, 8),
                                        title="OOD detection AUC",
                                        legend=True,
                                        save_dir=os.path.join('plots', 'OOD_detect_auc.png'))
