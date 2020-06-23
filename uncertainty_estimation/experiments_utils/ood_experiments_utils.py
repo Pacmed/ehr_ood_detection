@@ -53,7 +53,6 @@ class NoveltyAnalyzer:
         plt.xlim(min_quantile, max_quantile)
         if save_dir:
             plt.savefig(save_dir, dpi=100)
-        #plt.show(block=False)
         plt.close()
 
 
@@ -64,6 +63,7 @@ def split_by_ood_name(df: pd.DataFrame, ood_name: str, ood_value):
     return ood_df, non_ood_df
 
 
+# I commented out groups that are too small
 MIMIC_OOD_MAPPINGS = {'Emergency/\nUrgent admissions': ('ADMISSION_TYPE', 'EMERGENCY'),
                       'Elective admissions': ('ADMISSION_TYPE', 'ELECTIVE'),
                       # 'Ethnicity: Asian': ('Ethnicity', 1)
