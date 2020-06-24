@@ -8,6 +8,7 @@ from sklearn import svm
 from sklearn.decomposition import PCA
 
 from uncertainty_estimation.models.autoencoder import AE
+from uncertainty_estimation.models.vae import VAE
 import uncertainty_estimation.experiments_utils.ood_experiments_utils as ood_utils
 import seaborn as sns
 
@@ -30,10 +31,17 @@ with open('../experiments_utils/MIMIC_feature_names.pkl', 'rb') as f:
 # the three novelty estimation methods we try
 ae = NoveltyEstimator(AE, dict(
     input_dim=len(feature_names),
-    hidden_dims=[5],
-    latent_dim=2,
+    hidden_dims=[30,20],
+    latent_dim=5,
     batch_size=256,
-    learning_rate=0.001), dict(n_epochs=30), 'AE')
+    learning_rate=0.0001), dict(n_epochs=100), 'AE')
+
+vae = NoveltyEstimator(VAE, dict(
+    input_dim=len(feature_names),
+    hidden_dims=[30,20],
+    latent_dim=5,
+    batch_size=256,
+    learning_rate=0.0001), dict(n_epochs=100), 'AE')
 
 pca = NoveltyEstimator(PCA, dict(n_components=2), {}, 'sklearn')
 svm = NoveltyEstimator(svm.OneClassSVM, {}, {}, 'sklearn')
@@ -41,7 +49,7 @@ svm = NoveltyEstimator(svm.OneClassSVM, {}, {}, 'sklearn')
 if __name__ == '__main__':
     ood_detect_aucs, ood_recall = defaultdict(dict), defaultdict(dict)
     # loop over the different methods
-    for ne in [ae, pca, svm]:
+    for ne in [vae, ae, pca, svm]:#, pca, svm]:
         print(ne.model_type.__name__)
 
         # Do experiment on newborns
