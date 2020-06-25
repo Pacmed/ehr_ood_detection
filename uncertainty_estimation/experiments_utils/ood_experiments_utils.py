@@ -14,8 +14,10 @@ from typing import Tuple
 def barplot_from_nested_dict(nested_dict: dict, xlim: Tuple[float, float],
                              figsize: Tuple[float, float], title: str, save_dir: str,
                              nested_std_dict: dict = None,
-                             remove_yticks: bool = False, legend: bool = True, orient: str =
-                             'index', kind: str = 'barh'):
+                             remove_yticks: bool = False, legend: bool = True,
+                             legend_loc: str = 'lower right', orient: str =
+                             'index', kind: str = 'barh', vline: float = None,
+                             hline: float = None):
     """Plot and save a grouped barplot from a nested dictionary.
 
     Parameters
@@ -34,26 +36,45 @@ def barplot_from_nested_dict(nested_dict: dict, xlim: Tuple[float, float],
         Where to save the file.
     remove_yticks: bool
         Whether to remove the yticks.
+    legend: bool
+        Whether to include a legend.
+    legend_loc: str
+        Where to include the legend
+    orient: str ('columns', 'index')
+        How to parse the df
+    kind: str  ('barh', 'bar')
+        What kind of barplot.
+    vline: float
+        If given, where to include a vertical line.
+    hline: float
+        If given, where to include a horizontal line.
     """
     sns.set_palette("Set1", 10)
     sns.set_style('whitegrid')
     df = pd.DataFrame.from_dict(nested_dict,
-                                orient=orient)  # .iloc[::-1]
+                                orient=orient)
     if nested_std_dict:
         std_df = pd.DataFrame.from_dict(nested_std_dict,
-                                        orient=orient)  # .iloc[::-1]
+                                        orient=orient)
         df.plot(kind=kind, alpha=0.9, yerr=std_df, figsize=figsize, fontsize=12,
                 title=title, xlim=xlim, legend=False)
     else:
         df.plot(kind=kind, alpha=0.9, figsize=figsize, fontsize=12,
                 title=title, xlim=xlim, legend=False)
     if legend:
-        plt.legend(loc='lower right')
+        plt.legend(loc=legend_loc)
     if remove_yticks:
         plt.yticks([], [])
-    plt.savefig(save_dir, dpi=300,
-                bbox_inches='tight', pad=0)
-    plt.close()
+    if vline:
+        plt.axvline(vline, linestyle='--')
+    if hline:
+        plt.axhline(hline, linestyle='--')
+    if save_dir:
+        plt.savefig(save_dir, dpi=300,
+                    bbox_inches='tight', pad=0)
+        plt.close()
+    else:
+        plt.show()
 
 
 class NoveltyAnalyzer:
@@ -92,8 +113,6 @@ class NoveltyAnalyzer:
 
         self.train_data = self.pipe.transform(self.train_data)
         self.test_data = self.pipe.transform(self.test_data)
-        if self.ood_data:
-            self.ood_data = self.pipe.transform(self.ood_data)
 
     def set_ood_and_calc(self, new_ood_data):
         if self.impute_and_scale:
