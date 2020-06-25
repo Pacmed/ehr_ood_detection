@@ -2,9 +2,10 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
+from sklearn.impute import KNNImputer
 from sklearn import pipeline
 from sklearn.preprocessing import StandardScaler
-from sklearn.impute import SimpleImputer
+
 from sklearn.metrics import roc_auc_score
 
 from typing import Tuple
@@ -13,7 +14,8 @@ from typing import Tuple
 def barplot_from_nested_dict(nested_dict: dict, xlim: Tuple[float, float],
                              figsize: Tuple[float, float], title: str, save_dir: str,
                              nested_std_dict: dict = None,
-                             remove_yticks: bool = False, legend: bool = True):
+                             remove_yticks: bool = False, legend: bool = True, orient: str =
+                             'index', kind: str = 'barh'):
     """Plot and save a grouped barplot from a nested dictionary.
 
     Parameters
@@ -36,14 +38,14 @@ def barplot_from_nested_dict(nested_dict: dict, xlim: Tuple[float, float],
     sns.set_palette("Set1", 10)
     sns.set_style('whitegrid')
     df = pd.DataFrame.from_dict(nested_dict,
-                                orient='index').iloc[::-1]
+                                orient=orient)  # .iloc[::-1]
     if nested_std_dict:
         std_df = pd.DataFrame.from_dict(nested_std_dict,
-                                        orient='index')  # .iloc[::-1]
-        df.plot(kind='barh', alpha=0.9, xerr=std_df, figsize=figsize, fontsize=12,
+                                        orient=orient)  # .iloc[::-1]
+        df.plot(kind=kind, alpha=0.9, yerr=std_df, figsize=figsize, fontsize=12,
                 title=title, xlim=xlim, legend=False)
     else:
-        df.plot(kind='barh', alpha=0.9, figsize=figsize, fontsize=12,
+        df.plot(kind=kind, alpha=0.9, figsize=figsize, fontsize=12,
                 title=title, xlim=xlim, legend=False)
     if legend:
         plt.legend(loc='lower right')
@@ -71,31 +73,36 @@ class NoveltyAnalyzer:
         Whether to impute and scale the data before fitting the novelty estimator.
     """
 
-    def __init__(self, novelty_estimator, train_data, test_data, ood_data,
+    def __init__(self, novelty_estimator, train_data, test_data, ood_data=None,
                  impute_and_scale=True):
         self.ne = novelty_estimator
         self.train_data = train_data
         self.test_data = test_data
         self.ood_data = ood_data
-        if impute_and_scale:
+        self.trained = False
+        self.impute_and_scale = impute_and_scale
+        if self.impute_and_scale:
             self._impute_and_scale()
 
     def _impute_and_scale(self):
         """Impute and scale, using the train data to fit the (mean) imputer and scaler."""
-        pipe = pipeline.Pipeline([('scaler', StandardScaler()),
-                                  ('imputer', SimpleImputer(missing_values=np.nan,
-                                                            strategy='mean', verbose=0,
-                                                            copy=True))])
-        pipe.fit(self.train_data)
+        self.pipe = pipeline.Pipeline([('scaler', StandardScaler()),
+                                       ('imputer', KNNImputer(n_neighbors=5, copy=True))])
+        self.pipe.fit(self.train_data[:500])
 
-        self.train_data = pipe.transform(self.train_data)
-        self.test_data = pipe.transform(self.test_data)
-        self.ood_data = pipe.transform(self.ood_data)
+        self.train_data = self.pipe.transform(self.train_data)
+        self.test_data = self.pipe.transform(self.test_data)
+        if self.ood_data:
+            self.ood_data = self.pipe.transform(self.ood_data)
+
+    def set_ood_and_calc(self, new_ood_data):
+        if self.impute_and_scale:
+            self.ood_data = self.pipe.transform(new_ood_data)
+            self.ood_novelty = self.ne.get_novelty_score(self.ood_data)
 
     def calculate_novelty(self):
         """Calculate the novelty on the OOD data and the i.d. test data."""
         self.ne.train(self.train_data)
-        self.ood_novelty = self.ne.get_novelty_score(self.ood_data)
         self.id_novelty = self.ne.get_novelty_score(self.test_data)
 
     def get_ood_detection_auc(self):

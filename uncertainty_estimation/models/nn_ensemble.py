@@ -85,7 +85,7 @@ class NNEnsemble:
             self.models[ensemble_member](X_test_tensor)).detach().squeeze().numpy()
         return np.stack([1 - predictions, predictions], axis=1)
 
-    def get_std(self, X_test: np.ndarray, ensemble_member: int = 0) -> np.ndarray:
+    def get_std(self, X_test: np.ndarray) -> np.ndarray:
         """Return the variance of the probabilities p(y=1|X).
 
         Parameters
@@ -100,9 +100,11 @@ class NNEnsemble:
         type:np.ndarray
             The variance over the predicted probabilities.
         """
+        predictions = []
         X_test_tensor = torch.tensor(X_test).float()
-        self.models[ensemble_member].eval()
-        predictions = torch.sigmoid(
-            self.models[ensemble_member](X_test_tensor)).detach().squeeze().numpy()
+        for i in range(self.n_models):
+            self.models[i].eval()
+            predictions.append(torch.sigmoid(
+                self.models[i](X_test_tensor)).detach().squeeze().numpy())
         std_predictions = np.std(np.array(predictions), axis=0)
         return std_predictions
