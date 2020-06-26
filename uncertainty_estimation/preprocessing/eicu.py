@@ -36,6 +36,9 @@ from scipy.stats import skew
 TimeSeriesFeatures = Dict[str, Union[int, float]]
 
 # CONST
+STATIC_VARS = [
+	"admissionheight", "admissionweight", "age", "ethnicity", "gender", "unitdischargestatus"
+]
 TIME_SERIES_VARS = [
 	"FiO2", "Heart Rate", "Invasive BP Diastolic", "Invasive BP Systolic", "O2 Saturation", "Respiratory Rate",
 	"Temperature (C)", "glucose", "Motor", "Eyes", "MAP (mmHg)", "GCS Total", "Verbal", "pH"
@@ -57,16 +60,30 @@ def engineer_features(data_path: str, diagnoses_path: str, output_dir: str):
 
 	"""
 	all_data = read_all_data(data_path)
-	...
+	engineered_data = pd.DataFrame(columns=["patientunitstayid"] + STATIC_VARS)
+	engineered_data = engineered_data.set_index("patientunitstayid")
 
-	# 1. Delete redundant columns
-	# TODO
+	# 1. Add all static features
+	for stay_id in all_data["patientunitstayid"].unique():
+		engineered_data.loc[stay_id] = all_data[all_data["patientunitstayid"] == stay_id][STATIC_VARS].iloc[0]
 
-	# 2. Get features for all time series variables
-	# TODO
+		# 2. Get features for all time series variables
+		for var_name in TIME_SERIES_VARS:
+			time_series_features = get_time_series_features(
+				all_data[all_data["patientunitstayid"] == stay_id][var_name], var_name
+			)
 
-	# 3. Get phenotype features
-	# TODO
+			# Add missing columns if necessary
+			if all([feat not in engineered_data.columns for feat in time_series_features]):
+				for new_column in time_series_features.keys():
+					engineered_data[new_column] = np.nan
+
+			# Add time series features
+			for feat, val in time_series_features.items():
+				engineered_data.loc[stay_id][feat] = val
+
+		# 3. Get phenotype features
+		# TODO
 
 
 def get_time_series_features(time_series: pd.Series, var_name: str) -> TimeSeriesFeatures:
@@ -97,7 +114,7 @@ def get_time_series_features(time_series: pd.Series, var_name: str) -> TimeSerie
 	Returns
 	-------
 	features: TimeSeriesFeatures
-		Features created for this timeseries.
+		Features created for this time series.
 	"""
 	feature_funcs = {
 		"min": lambda series: series.min(),
@@ -110,11 +127,11 @@ def get_time_series_features(time_series: pd.Series, var_name: str) -> TimeSerie
 	series_slices = {
 		"full": slice(None),
 		"first10": slice(0, int(len(time_series) * 0.1) + 1),
-		"last10": slice(int(len(time_series) * 0.9)),
+		"last10": slice(int(len(time_series) * 0.9), len(time_series)),
 		"first25": slice(0, int(len(time_series) * 0.25) + 1),
-		"last25": slice(int(len(time_series) * 0.75)),
+		"last25": slice(int(len(time_series) * 0.75), len(time_series)),
 		"first50": slice(0, int(len(time_series) * 0.50) + 1),
-		"last50": slice(int(len(time_series) * 0.50))
+		"last50": slice(int(len(time_series) * 0.50), len(time_series))
 	}
 
 	features = {
@@ -141,18 +158,18 @@ def read_all_data(data_path: str) -> pd.DataFrame:
 	"""
 	return pd.read_csv(
 		data_path, dtype={
-			"Eyes": int,
-			"FiO2": int,
-			"GCS Total": int,
+			"Eyes": float,
+			"FiO2": float,
+			"GCS Total": float,
 			"Heart Rate": float,
 			"Invasive BP Diastolic": float,
 			"Invasive BP Systolic": float,
 			"MAP (mmHg)": float,
-			"Motor": int,
+			"Motor": float,
 			"O2 Saturation": float,
 			"Respiratory Rate": float,
 			"Temperature (C)": float,
-			"Verbal": int,
+			"Verbal": float,
 			"admissionheight": float,
 			"admissionweight": float,
 			"age": int,
@@ -178,3 +195,5 @@ if __name__ == "__main__":
 	parser.add_argument("--output_dir", "-o", type=str, required=True, help="Output directory for resulting dataframe.")
 
 	args = parser.parse_args()
+	
+	engineer_features(args.data_path, args.diagnoses_path, args.output_dir)
