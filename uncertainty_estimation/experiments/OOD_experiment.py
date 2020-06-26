@@ -1,8 +1,7 @@
 import pandas as pd
 import os
 import pickle
-from collections import defaultdict
-
+from tqdm import tqdm
 from uncertainty_estimation.models.novelty_estimator_wrapper import NoveltyEstimator
 from sklearn import svm
 from sklearn.decomposition import PCA
@@ -48,139 +47,96 @@ pca = NoveltyEstimator(PCA, dict(n_components=2), {}, 'sklearn')
 svm = NoveltyEstimator(svm.OneClassSVM, {}, {}, 'sklearn')
 
 
-def perturb_study(ne, train_data, test_data, scales=[1, 10, 1000], n_features=1):
+def perturb_study(ne, train_data, test_data, scales=[0.0001, 0.001, 0.1, 1, 10, 100, 1000],
+                  n_features=20):
     features_to_use = feature_names
     nov_an = ood_utils.NoveltyAnalyzer(ne, train_data[feature_names], test_data[feature_names])
     nov_an.calculate_novelty()
-    aucs_dict, std_aucs_dict = dict(), dict()
-    recall_dict, std_recall_dict = dict(), dict()
-    for scale_adjustment in scales:
+    aucs_dict = dict()
+    recall_dict = dict()
+    for scale_adjustment in tqdm(scales):
         random_sample = np.random.randint(0, len(features_to_use), n_features)
         scale_aucs, scale_recalls = [], []
         for r in random_sample:
             feature = features_to_use[r]
-            # test_adjusted = test_data[feature_names].copy()
+            # only looking at test data which has non-null values for the feature
             test_adjusted = test_data[test_data[feature].notnull()]
+            nov_an.set_test_and_calc(test_adjusted)
             # create a perturbed example, adjusting the scale before imputing + scaling
-            test_adjusted[feature] = test_data[feature] * scale_adjustment
+            test_adjusted.loc[:, feature] = test_data.loc[:, feature] * scale_adjustment
             nov_an.set_ood_and_calc(test_adjusted)
             scale_aucs += [nov_an.get_ood_detection_auc()]
             scale_recalls += [nov_an.get_ood_recall()]
-        aucs_dict[scale_adjustment] = np.mean(scale_aucs)
-        std_aucs_dict[scale_adjustment] = np.std(scale_aucs)
-        recall_dict[scale_adjustment] = np.mean(scale_recalls)
-        std_recall_dict[scale_adjustment] = np.std(scale_recalls)
-    return aucs_dict, std_aucs_dict, recall_dict, std_recall_dict
+        aucs_dict[scale_adjustment] = scale_aucs
+        recall_dict[scale_adjustment] = scale_recalls
+    return aucs_dict, recall_dict
 
 
 if __name__ == '__main__':
     # loop over the different methods
-    ne = pca
-    # aucs_dict, std_aucs_dict, recall_dict, std_recall_dict = perturb_study(ne, train_data[
-    #     feature_names], test_data[feature_names])
-    #
-    # dir_name = os.path.join('pickled_results', 'perturbation', ne.model_type.__name__)
-    #
-    # if not os.path.exists(dir_name):
-    #     os.mkdir(dir_name)
-    # with open(os.path.join(dir_name, 'perturb_recall.pkl'), 'wb') as f:
-    #     pickle.dump(recall_dict, f)
-    # with open(os.path.join(dir_name, 'perturb_recall_std.pkl'), 'wb') as f:
-    #     pickle.dump(std_recall_dict, f)
-    # with open(os.path.join(dir_name, 'perturb_detect_auc.pkl'), 'wb') as f:
-    #     pickle.dump(aucs_dict, f)
-    # with open(os.path.join(dir_name, 'perturb_detect_auc_std.pkl'), 'wb') as f:
-    #     pickle.dump(std_aucs_dict, f)
+    for ne in tqdm([svm, ae, vae, pca]):  # svm, ae, vae, pca]:
 
-    ood_detect_aucs, ood_recall = dict(), dict()
-    # Do experiment on newborns
-    print("Newborns")
-    newborns = other_data[other_data["ADMISSION_TYPE"] == 'NEWBORN']
-    min_size = min(len(newborns), len(test_data))
-    nov_an = ood_utils.NoveltyAnalyzer(ne, train_data[feature_names],
-                                       test_data[feature_names].sample(min_size),
-                                       impute_and_scale=True)
-    nov_an.calculate_novelty()
-    nov_an.set_ood_and_calc(newborns[feature_names].sample(min_size))
+        aucs_dict, recall_dict = perturb_study(ne, train_data[
+            feature_names], test_data[feature_names])
 
-    print("Recalled OOD fraction is {:.3f}".format(nov_an.get_ood_recall()))
-    print("OOD detection AUC is {:.3f}".format(nov_an.get_ood_detection_auc()))
-    # nov_an.plot_dists(ood_name='Newborn', save_dir=os.path.join('plots', 'newborn' + '_' +
-    #                                                             ne.model_type.__name__ +
-    #                                                             ".png"))
+        dir_name = os.path.join('pickled_results', 'perturbation', ne.model_type.__name__)
 
-    ood_recall["Newborn"] = nov_an.get_ood_detection_auc()
-    ood_detect_aucs["Newborn"] = nov_an.get_ood_recall()
+        if not os.path.exists(dir_name):
+            os.mkdir(dir_name)
+        with open(os.path.join(dir_name, 'model_info.pkl'), 'wb') as f:
+            pickle.dump({'train_params': ne.train_params, 'model_params': ne.model_params}, f)
+        with open(os.path.join(dir_name, 'perturb_recall.pkl'), 'wb') as f:
+            pickle.dump(recall_dict, f)
+        with open(os.path.join(dir_name, 'perturb_detect_auc.pkl'), 'wb') as f:
+            pickle.dump(aucs_dict, f)
 
-    # Do experiments on the other OOD groups
-    for ood_name, (column_name, ood_value) in ood_utils.MIMIC_OOD_MAPPINGS.items():
-        # Split all data splits into OOD and 'Non-OOD' data.
-        train_ood, train_non_ood = ood_utils.split_by_ood_name(train_data, column_name,
-                                                               ood_value)
-        val_ood, val_non_ood = ood_utils.split_by_ood_name(val_data, column_name, ood_value)
-        test_ood, test_non_ood = ood_utils.split_by_ood_name(val_data, column_name, ood_value)
-
-        # Group all OOD splits together.
-        all_ood = pd.concat([train_ood, test_ood, val_ood])
-        print("\n" + ood_name)
-
-        # Make i.d. test data and ood data of same size.
-        min_size = min(len(all_ood), len(test_non_ood))
-        test_non_ood = test_non_ood.sample(min_size)
-        train_non_ood = train_non_ood.sample(min_size)
-        all_ood = all_ood.sample(min_size)
-
-        nov_an = ood_utils.NoveltyAnalyzer(ne, train_non_ood[feature_names],
-                                           test_non_ood[feature_names],
+        ood_detect_aucs, ood_recall = dict(), dict()
+        # Do experiment on newborns
+        print("Newborns")
+        newborns = other_data[other_data["ADMISSION_TYPE"] == 'NEWBORN']
+        min_size = min(len(newborns), len(test_data))
+        nov_an = ood_utils.NoveltyAnalyzer(ne, train_data[feature_names],
+                                           test_data[feature_names].sample(min_size),
                                            impute_and_scale=True)
-
         nov_an.calculate_novelty()
-        nov_an.set_ood_and_calc(all_ood[feature_names])
+        nov_an.set_ood_and_calc(newborns[feature_names].sample(min_size))
 
-        ood_detect_aucs[ood_name] = nov_an.get_ood_detection_auc()
-        ood_recall[ood_name] = nov_an.get_ood_recall()
+        ood_recall["Newborn"] = nov_an.get_ood_detection_auc()
+        ood_detect_aucs["Newborn"] = nov_an.get_ood_recall()
 
-    dir_name = os.path.join('pickled_results', 'OOD', ne.model_type.__name__)
-    if not os.path.exists(dir_name):
-        os.mkdir(dir_name)
-    with open(os.path.join(dir_name, 'detect_auc.pkl'), 'wb') as f:
-        pickle.dump(ood_detect_aucs, f)
-    with open(os.path.join(dir_name, 'recall.pkl'), 'wb') as f:
-        pickle.dump(ood_recall, f)
+        # Do experiments on the other OOD groups
+        for ood_name, (column_name, ood_value) in ood_utils.MIMIC_OOD_MAPPINGS.items():
+            # Split all data splits into OOD and 'Non-OOD' data.
+            train_ood, train_non_ood = ood_utils.split_by_ood_name(train_data, column_name,
+                                                                   ood_value)
+            val_ood, val_non_ood = ood_utils.split_by_ood_name(val_data, column_name, ood_value)
+            test_ood, test_non_ood = ood_utils.split_by_ood_name(val_data, column_name,
+            ood_value)
 
-        #     # nov_an.plot_dists(ood_name=ood_name,
-        #     #                   save_dir=os.path.join('plots',
-        #     #                                         ood_name.replace('/',
-        #     #                                                          '_').replace('\n',
-        #     #                                                                       '_').replace(' ',
-        #     #                                                                                    '_')
-        #     #                                         + '_' +
-        #     #                                         ne.model_type.__name__ +
-        #     #                                         ".png"))
-        #
-        #     ood_detect_aucs[ood_name][ne.model_type.__name__] = nov_an.get_ood_detection_auc()
-        #     ood_recall[ood_name][ne.model_type.__name__] = nov_an.get_ood_recall()
-        #     print("Recalled OOD fraction is {:.3f}".format(nov_an.get_ood_recall()))
-        #     print("OOD detection AUC is {:.3f}".format(nov_an.get_ood_detection_auc()))
+            # Group all OOD splits together.
+            all_ood = pd.concat([train_ood, test_ood, val_ood])
+            print("\n" + ood_name)
 
-    # ood_utils.barplot_from_nested_dict(perturb_recall, xlim=(0.0, 1.0), figsize=(7, 8),
-    #                                    nested_std_dict=perturb_recall_std,
-    #                                    title="Recall of perturbed data",
-    #                                    legend=True,
-    #                                    save_dir=os.path.join('plots', 'perturbed_recall.png'),
-    #                                    orient='columns', kind='bar')
-    # ood_utils.barplot_from_nested_dict(perturb_detect_aucs, xlim=(0.4, 1.0), figsize=(7, 8),
-    #                                    nested_std_dict=perturb_detect_aucs_std,
-    #                                    title="Detection AUC of perturbed data",
-    #                                    legend=True,
-    #                                    save_dir=os.path.join('plots', 'perturbed_detect_auc.png'),
-    #                                    orient='columns', kind='bar')
+            # Make i.d. test data and ood data of same size.
+            min_size = min(len(all_ood), len(test_non_ood))
+            test_non_ood = test_non_ood.sample(min_size)
+            train_non_ood = train_non_ood.sample(min_size)
+            all_ood = all_ood.sample(min_size)
 
-    # ood_utils.barplot_from_nested_dict(ood_recall, xlim=(0.0, 1.0), figsize=(7, 8),
-    #                                    title="OOD recall",
-    #                                    legend=True,
-    #                                    save_dir=os.path.join('plots', 'OOD_recall.png'))
-    # ood_utils.barplot_from_nested_dict(ood_detect_aucs, xlim=(0.4, 1.0), figsize=(7, 8),
-    #                                    title="OOD detection AUC",
-    #                                    legend=True,
-    #                                    save_dir=os.path.join('plots', 'OOD_detect_auc.png'))
+            nov_an = ood_utils.NoveltyAnalyzer(ne, train_non_ood[feature_names],
+                                               test_non_ood[feature_names],
+                                               impute_and_scale=True)
+
+            nov_an.calculate_novelty()
+            nov_an.set_ood_and_calc(all_ood[feature_names])
+
+            ood_detect_aucs[ood_name] = nov_an.get_ood_detection_auc()
+            ood_recall[ood_name] = nov_an.get_ood_recall()
+
+        dir_name = os.path.join('pickled_results', 'OOD', ne.model_type.__name__)
+        if not os.path.exists(dir_name):
+            os.mkdir(dir_name)
+        with open(os.path.join(dir_name, 'detect_auc.pkl'), 'wb') as f:
+            pickle.dump(ood_detect_aucs, f)
+        with open(os.path.join(dir_name, 'recall.pkl'), 'wb') as f:
+            pickle.dump(ood_recall, f)

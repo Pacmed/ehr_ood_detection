@@ -2,71 +2,51 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
-from sklearn.impute import KNNImputer
+from sklearn.impute import KNNImputer, SimpleImputer
 from sklearn import pipeline
 from sklearn.preprocessing import StandardScaler
 
 from sklearn.metrics import roc_auc_score
 
-from typing import Tuple
+
+def barplot_from_nested_dict(nested_dict, metric_name='OOD detection AUC',
+                             group_name='OOD group', vline=None, xlim=(0, 1.0), save_dir=None,
+                             height=6,
+                             aspect=1.5, legend_out=False):
+    sns.set_style('whitegrid')
+    df = pd.DataFrame.from_dict(nested_dict)
+
+    df = df.stack().reset_index()
+    df.columns = [group_name, '', metric_name]
+
+    sns.catplot(x=metric_name, y=group_name, hue='', data=df, kind='bar',
+                height=height, aspect=aspect, facet_kws=dict(despine=False), alpha=0.9,
+                legend_out=legend_out)
+    plt.xlim(xlim)
+    if vline:
+        plt.axvline(vline, linestyle='--')
+    if save_dir:
+        plt.savefig(save_dir, dpi=300,
+                    bbox_inches='tight', pad=0)
+        plt.close()
+    else:
+        plt.show()
 
 
-def barplot_from_nested_dict(nested_dict: dict, xlim: Tuple[float, float],
-                             figsize: Tuple[float, float], title: str, save_dir: str,
-                             nested_std_dict: dict = None,
-                             remove_yticks: bool = False, legend: bool = True,
-                             legend_loc: str = 'lower right', orient: str =
-                             'index', kind: str = 'barh', vline: float = None,
-                             hline: float = None):
-    """Plot and save a grouped barplot from a nested dictionary.
-
-    Parameters
-    ----------
-    nested_dict: dict
-        The data represented in a nested dictionary.
-    nested_std_dict: dict
-        The standard deviations, also in a nested dictionary, to be used as error bars.
-    xlim: Tuple[float, float]
-        The limits on the x-axis to use.
-    figsize: Tuple[float, float]
-        The figure size to use.
-    title: str
-        The title of the plot.
-    save_dir: str
-        Where to save the file.
-    remove_yticks: bool
-        Whether to remove the yticks.
-    legend: bool
-        Whether to include a legend.
-    legend_loc: str
-        Where to include the legend
-    orient: str ('columns', 'index')
-        How to parse the df
-    kind: str  ('barh', 'bar')
-        What kind of barplot.
-    vline: float
-        If given, where to include a vertical line.
-    hline: float
-        If given, where to include a horizontal line.
-    """
+def boxplot_from_nested_listdict(nested_dict, name, hline=None, ylim=(0.0, 1.0), x_name='scale',
+                                 save_dir=None, **kwargs):
     sns.set_palette("Set1", 10)
     sns.set_style('whitegrid')
     df = pd.DataFrame.from_dict(nested_dict,
-                                orient=orient)
-    if nested_std_dict:
-        std_df = pd.DataFrame.from_dict(nested_std_dict,
-                                        orient=orient)
-        df.plot(kind=kind, alpha=0.9, yerr=std_df, figsize=figsize, fontsize=12,
-                title=title, xlim=xlim, legend=False)
-    else:
-        df.plot(kind=kind, alpha=0.9, figsize=figsize, fontsize=12,
-                title=title, xlim=xlim, legend=False)
-    if legend:
-        plt.legend(loc=legend_loc)
-    if remove_yticks:
-        plt.yticks([], [])
-    if vline:
-        plt.axvline(vline, linestyle='--')
+                                orient='columns')
+
+    df = df.stack().reset_index()
+    df.columns = [x_name, '', name]
+    df = df.explode(name)
+
+    sns.catplot(x=x_name, y=name, hue='', data=df, kind='box',
+                facet_kws=dict(despine=False), legend_out=False, **kwargs)
+    plt.ylim(ylim)
     if hline:
         plt.axhline(hline, linestyle='--')
     if save_dir:
@@ -75,6 +55,76 @@ def barplot_from_nested_dict(nested_dict: dict, xlim: Tuple[float, float],
         plt.close()
     else:
         plt.show()
+
+
+
+# def barplot_from_nested_dict(nested_dict: dict,
+#                              figsize: Tuple[float, float], title: str, save_dir: str,
+#                              nested_std_dict: dict = None,
+#                              ylim: Tuple[float, float] = None, xlim: Tuple[float, float] = None,
+#                              remove_yticks: bool = False, legend: bool = True,
+#                              legend_loc: str = 'lower right', orient: str =
+#                              'index', kind: str = 'barh', vline: float = None,
+#                              hline: float = None):
+#     """Plot and save a grouped barplot from a nested dictionary.
+#
+#     Parameters
+#     ----------
+#     nested_dict: dict
+#         The data represented in a nested dictionary.
+#     nested_std_dict: dict
+#         The standard deviations, also in a nested dictionary, to be used as error bars.
+#     xlim: Tuple[float, float]
+#         The limits on the x-axis to use.
+#     ylim: Tuple[float, float]
+#         The limits on the y-axis to use.
+#     figsize: Tuple[float, float]
+#         The figure size to use.
+#     title: str
+#         The title of the plot.
+#     save_dir: str
+#         Where to save the file.
+#     remove_yticks: bool
+#         Whether to remove the yticks.
+#     legend: bool
+#         Whether to include a legend.
+#     legend_loc: str
+#         Where to include the legend
+#     orient: str ('columns', 'index')
+#         How to parse the df
+#     kind: str  ('barh', 'bar')
+#         What kind of barplot.
+#     vline: float
+#         If given, where to include a vertical line.
+#     hline: float
+#         If given, where to include a horizontal line.
+#     """
+#     sns.set_palette("Set1", 10)
+#     # sns.set_style('whitegrid') #change grid dependent on
+#     df = pd.DataFrame.from_dict(nested_dict,
+#                                 orient=orient)
+#     if nested_std_dict:
+#         std_df = pd.DataFrame.from_dict(nested_std_dict,
+#                                         orient=orient)
+#         df.plot(kind=kind, alpha=0.9, yerr=std_df, figsize=figsize, fontsize=12,
+#                 title=title, xlim=xlim, ylim=ylim, legend=False)
+#     else:
+#         df.plot(kind=kind, alpha=0.9, figsize=figsize, fontsize=12,
+#                 title=title, xlim=xlim, ylim=ylim, legend=False)
+#     if legend:
+#         plt.legend(loc=legend_loc)
+#     if remove_yticks:
+#         plt.yticks([], [])
+#     if vline:
+#         plt.axvline(vline, linestyle='--')
+#     if hline:
+#         plt.axhline(hline, linestyle='--')
+#     if save_dir:
+#         plt.savefig(save_dir, dpi=300,
+#                     bbox_inches='tight', pad=0)
+#         plt.close()
+#     else:
+#         plt.show()
 
 
 class NoveltyAnalyzer:
@@ -108,16 +158,22 @@ class NoveltyAnalyzer:
     def _impute_and_scale(self):
         """Impute and scale, using the train data to fit the (mean) imputer and scaler."""
         self.pipe = pipeline.Pipeline([('scaler', StandardScaler()),
-                                       ('imputer', KNNImputer(n_neighbors=5, copy=True))])
-        self.pipe.fit(self.train_data[:500])
+                                       ('imputer', SimpleImputer())])
+        # n_neighbors=5, copy=True))])
 
+        self.pipe.fit(self.train_data)
         self.train_data = self.pipe.transform(self.train_data)
         self.test_data = self.pipe.transform(self.test_data)
 
     def set_ood_and_calc(self, new_ood_data):
         if self.impute_and_scale:
             self.ood_data = self.pipe.transform(new_ood_data)
-            self.ood_novelty = self.ne.get_novelty_score(self.ood_data)
+        self.ood_novelty = self.ne.get_novelty_score(self.ood_data)
+
+    def set_test_and_calc(self, new_test_data):
+        if self.impute_and_scale:
+            self.test_data = self.pipe.transform(new_test_data)
+        self.id_novelty = self.ne.get_novelty_score(self.test_data)
 
     def calculate_novelty(self):
         """Calculate the novelty on the OOD data and the i.d. test data."""
