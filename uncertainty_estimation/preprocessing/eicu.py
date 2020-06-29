@@ -13,12 +13,6 @@ Afterwards, the information is processed akin to the MIMIC-III data set as descr
 #   - Emergency
 #   - Elective Admissions
 
-# TODO:
-#   - Only use time series data of the first 48 hours
-#   - Change to in-hospital mortality
-#   - Only include patients with a minimum stay at the ICU
-#   - Change target to hospitaldischargestatus
-
 import argparse
 import itertools
 from typing import Dict, Union
@@ -33,7 +27,7 @@ TimeSeriesFeatures = Dict[str, Union[int, float]]
 
 # CONST
 STATIC_VARS = [
-	"admissionheight", "admissionweight", "age", "ethnicity", "gender", "unitdischargestatus"
+	"admissionheight", "admissionweight", "age", "ethnicity", "gender", "hospitaldischargestatus"
 ]
 
 TIME_SERIES_VARS = [
@@ -81,20 +75,25 @@ def engineer_features(data_path: str, diagnoses_path: str, output_dir: str):
 		Data for every patient stay with new, engineered features.
 	"""
 	all_data = read_all_data(data_path)
+	all_data = filter_data(all_data)
 	diagnoses_data = read_diagnoses_file(diagnoses_path)
 
 	engineered_data = pd.DataFrame(columns=["patientunitstayid"] + STATIC_VARS + list(PHENOTYPE_TO_ICD9.keys()))
 	engineered_data = engineered_data.set_index("patientunitstayid")
 
 	for stay_id in tqdm(all_data["patientunitstayid"].unique()):
+
 		# 1. Add all static features to the new table
 		engineered_data.loc[stay_id] = all_data[all_data["patientunitstayid"] == stay_id][STATIC_VARS].iloc[0]
 
 		# 2. Get features for all time series variables
 		for var_name in TIME_SERIES_VARS:
-			time_series_features = get_time_series_features(
-				all_data[all_data["patientunitstayid"] == stay_id][var_name], var_name
-			)
+			time_series = all_data[
+				(all_data["patientunitstayid"] == stay_id) &    # Only use data corresponding to current stay
+				(all_data["itemoffset"] / 60 <= 48)             # Only use data up to 48 hours after admission
+			][var_name]
+
+			time_series_features = get_time_series_features(time_series, var_name)
 
 			# Add missing columns if necessary
 			if all([feat not in engineered_data.columns for feat in time_series_features]):
@@ -118,6 +117,29 @@ def engineer_features(data_path: str, diagnoses_path: str, output_dir: str):
 			engineered_data.loc[stay_id][phenotype] = int(len(diagnoses & codes) > 0)
 
 	return engineered_data
+
+
+def filter_data(all_data: pd.DataFrame) -> pd.DataFrame:
+	"""
+	Filter data by discarding ICU stays that are too short.
+
+	Parameters
+	----------
+	all_data: pd.DataFrame
+		DataFrame containing all the data.
+
+	Returns
+	-------
+	all_data: pd.DataFrame
+		Filtered data.
+	"""
+	data_size = len(all_data)
+
+	# Filter patients with ICU stays shorter than 48 hours
+	all_data = all_data[all_data["unitdischargeoffset"] / 60 <= 48]
+	print(f"{data_size - len(all_data)} data points filtered out due to being too short.")
+
+	return all_data
 
 
 def parse_icd9code(raw_icd9code: str) -> str:
