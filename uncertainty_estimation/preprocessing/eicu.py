@@ -8,19 +8,16 @@ Afterwards, the information is processed akin to the MIMIC-III data set as descr
 
 """
 
-# TODO: Split into training / test 85 % / 15 %
 # TODO: Create OOD cohorts
 #   - Newborns (need to re-run script)
 #   - Emergency
 #   - Elective Admissions
-#   - Ethnicity Black / African
-#   - Ethnicity White
-#   - Female
-#   - Male
-#   - Thyroid Disorders
-#   - Acute and unspecified renal failure
-#   - Epilepsy; convulsions
-#   - Hypertension with complications and secondary hypertension
+
+# TODO:
+#   - Only use time series data of the first 48 hours
+#   - Change to in-hospital mortality
+#   - Only include patients with a minimum stay at the ICU
+#   - Change target to hospitaldischargestatus
 
 import argparse
 import itertools
@@ -38,10 +35,12 @@ TimeSeriesFeatures = Dict[str, Union[int, float]]
 STATIC_VARS = [
 	"admissionheight", "admissionweight", "age", "ethnicity", "gender", "unitdischargestatus"
 ]
+
 TIME_SERIES_VARS = [
 	"FiO2", "Heart Rate", "Invasive BP Diastolic", "Invasive BP Systolic", "O2 Saturation", "Respiratory Rate",
 	"Temperature (C)", "glucose", "Motor", "Eyes", "MAP (mmHg)", "GCS Total", "Verbal", "pH"
 ]
+
 PHENOTYPE_TO_ICD9 = {
 	"Thyroid disorders": {
 		"2400", "2409", "2410", "2411", "2419", "24200", "24201", "24210", "24211", "24220", "24221", "24230", "24231",
@@ -122,6 +121,9 @@ def engineer_features(data_path: str, diagnoses_path: str, output_dir: str):
 
 
 def parse_icd9code(raw_icd9code: str) -> str:
+	"""
+	Parse an ICD9 code from the eICU data set such that it is usable for the rest of the pipeline.
+	"""
 	return raw_icd9code.split(",")[0].replace(".", "")
 
 
