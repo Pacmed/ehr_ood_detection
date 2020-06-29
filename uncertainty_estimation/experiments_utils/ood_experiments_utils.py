@@ -178,19 +178,36 @@ def split_by_ood_name(df: pd.DataFrame, ood_name: str, ood_value):
 
 
 # I commented out groups that are too small
-MIMIC_OOD_MAPPINGS = {'Emergency/\nUrgent admissions': ('ADMISSION_TYPE', 'EMERGENCY'),
-                      'Elective admissions': ('ADMISSION_TYPE', 'ELECTIVE'),
-                      # 'Ethnicity: Asian': ('Ethnicity', 1)
-                      'Ethnicity: Black/African American': ('Ethnicity', 2),
-                      # 'Ethnicity: Hispanic/Latino': ('Ethnicity', 3),
-                      'Ethnicity: White': ('Ethnicity', 4),
-                      'Female': ('GENDER', 'F'),
-                      'Male': ('GENDER', 'M'),
-                      'Thyroid disorders': ('Thyroid disorders', True),
-                      'Acute and unspecified renal failure': (
-                          'Acute and unspecified renal failure', True),
-                      # 'Pancreatic disorders \n(not diabetes)': (
-                      # 'Pancreatic disorders (not diabetes)', True),
-                      'Epilepsy; convulsions': ('Epilepsy; convulsions', True),
-                      'Hypertension with complications \n and secondary hypertension': (
-                          'Hypertension with complications and secondary hypertension', True)}
+MIMIC_OOD_MAPPINGS = {
+    'Emergency/\nUrgent admissions': ('ADMISSION_TYPE', 'EMERGENCY'),
+    'Elective admissions': ('ADMISSION_TYPE', 'ELECTIVE'),
+    # 'Ethnicity: Asian': ('Ethnicity', 1)
+    'Ethnicity: Black/African American': ('Ethnicity', 2),
+    # 'Ethnicity: Hispanic/Latino': ('Ethnicity', 3),
+    'Ethnicity: White': ('Ethnicity', 4),
+    'Female': ('GENDER', 'F'),
+    'Male': ('GENDER', 'M'),
+    'Thyroid disorders': ('Thyroid disorders', True),
+    'Acute and unspecified renal failure': ('Acute and unspecified renal failure', True),
+    # 'Pancreatic disorders \n(not diabetes)': (
+    # 'Pancreatic disorders (not diabetes)', True),
+    'Epilepsy; convulsions': ('Epilepsy; convulsions', True),
+    'Hypertension with complications \n and secondary hypertension': (
+        'Hypertension with complications and secondary hypertension', True
+    )
+}
+
+EICU_OOD_MAPPINGS = {
+    "Emergency/\nUrgent admissions": ...,  # TODO
+    "Elective admissions": ...,  # TODO
+    "Ethnicity: Black/African American": ("ethnicity", 2),
+    "Ethnicity: White": ("ethnicity", 1),
+    "Female": ("gender", 1),
+    "Male": ("gender", 0),
+    "Thyroid disorders": ("Thyroid disorders", True),
+    "Acute and unspecified renal failure": ("Acute and unspecified renal failure", True),
+    "Epilepsy; convulsions": ('Epilepsy; convulsions', True),
+    "Hypertension with complications \n and secondary hypertension": (
+        "Hypertension with complications and secondary hypertension", True
+    )
+}
