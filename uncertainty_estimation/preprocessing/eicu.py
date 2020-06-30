@@ -126,16 +126,18 @@ def engineer_features(data_path: str, patient_path: str, diagnoses_path: str, ou
 
 		# 4. Get admission features
 		# Check whether admission was an emergency admission
-		# Assumption: Admission from the emergency department imply emergency admissions
-		engineered_data.loc[stay_id]["emergency"] = int(
-			patient_data[stay_id]["hospitaladmitsource"] == "Emergency Department"
-		)
+		admit_sources = patient_data[patient_data["patienthealthsystemstayid"] == stay_id]["hospitaladmitsource"]
 
-		# Check whether admission was an elective admission
-		# Assumption: Admission from the recovery room or the post-anesthesiology-care-unit imply an elective admission
-		engineered_data.loc[stay_id]["elective"] = int(
-			patient_data[stay_id]["hospitaladmitsource"] in ("Recovery Room", "PACU")
-		)
+		if len(admit_sources) == 0:
+			engineered_data.loc[stay_id]["emergency"] = engineered_data.loc[stay_id]["elective"] = 0
+
+		else:
+			# Assumption: Admission from the emergency department imply emergency admissions
+			engineered_data.loc[stay_id]["emergency"] = int(admit_sources.iloc[0] == "Emergency Department")
+
+			# Check whether admission was an elective admission
+			# Assumption: Admission from recovery room or post-anesthesiology-care-unit imply an elective admission
+			engineered_data.loc[stay_id]["elective"] = int(admit_sources.iloc[0] in ("Recovery Room", "PACU"))
 
 	return engineered_data
 
@@ -167,7 +169,8 @@ def filter_data(all_data: pd.DataFrame, patient_data: pd.DataFrame) -> pd.DataFr
 
 	# Filter patients transferred from other ICUs
 	all_data = all_data[
-		patient_data.lookup(all_data["patientunitstayid"], ["hospitaladmitsource"] * data_size) != "Other ICU"
+		(patient_data.lookup(all_data["patientunitstayid"], ["unitadmitsource"] * data_size) != "Other ICU") &
+		(patient_data.lookup(all_data["patientunitstayid"], ["unitadmitsource"] * data_size) != "ICU")
 	]
 	print(f"{data_size - len(all_data)} data points filtered out that were transfers from other ICUs.")
 
