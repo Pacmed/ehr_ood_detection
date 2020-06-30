@@ -9,7 +9,9 @@ Afterwards, the information is processed akin to the MIMIC-III data set as descr
 """
 
 # TODO: Create OOD cohorts
-#   - Newborns (need to re-run script)
+#   - Newborns (currently re-running script)
+#       - Re-add filtering by age
+#       - Re-add filtering by single unit stay (except newborns)
 #   - Emergency
 #   - Elective Admissions
 
@@ -56,14 +58,17 @@ PHENOTYPE_TO_ICD9 = {
 }
 
 
-def engineer_features(data_path: str, diagnoses_path: str, output_dir: str):
+def engineer_features(data_path: str, patient_path: str, diagnoses_path: str, output_dir: str):
 	"""
-	Take the eICU data set and engineer features. This include several features for time series ()
+	Take the eICU data set and engineer features. This includes multiple time series features as well as features
+	used to identify artificial OOD groups later.
 
 	Parameters
 	----------
 	data_path: str
 		Path to all_data.csv file.
+	patient_path: str
+		Path to patient.csv file.
 	diagnoses_path: str
 		Path to (original) diagnosis.csv file.
 	output_dir: str
@@ -75,7 +80,9 @@ def engineer_features(data_path: str, diagnoses_path: str, output_dir: str):
 		Data for every patient stay with new, engineered features.
 	"""
 	all_data = read_all_data(data_path)
-	all_data = filter_data(all_data)
+	patient_data = read_patients_file(patient_path)
+	all_data = filter_data(all_data, patient_data)
+	del patient_data
 	diagnoses_data = read_diagnoses_file(diagnoses_path)
 
 	engineered_data = pd.DataFrame(columns=["patientunitstayid"] + STATIC_VARS + list(PHENOTYPE_TO_ICD9.keys()))
@@ -119,14 +126,18 @@ def engineer_features(data_path: str, diagnoses_path: str, output_dir: str):
 	return engineered_data
 
 
-def filter_data(all_data: pd.DataFrame) -> pd.DataFrame:
+def filter_data(all_data: pd.DataFrame, patient_data: pd.DataFrame) -> pd.DataFrame:
 	"""
-	Filter data by discarding ICU stays that are too short.
+	Filter data by the following criteria:
+		* Filter out stays that were shorter than 48 hours
+		* Filter out stays where patients came from other ICUs
 
 	Parameters
 	----------
 	all_data: pd.DataFrame
 		DataFrame containing all the data.
+	patient_data: pd.DataFrame
+		Data about admitted patients.
 
 	Returns
 	-------
@@ -138,6 +149,13 @@ def filter_data(all_data: pd.DataFrame) -> pd.DataFrame:
 	# Filter patients with ICU stays shorter than 48 hours
 	all_data = all_data[all_data["unitdischargeoffset"] / 60 <= 48]
 	print(f"{data_size - len(all_data)} data points filtered out due to being too short.")
+	data_size = len(all_data)
+
+	# Filter patients transferred from other ICUs
+	all_data = all_data[
+		patient_data.lookup(all_data["patientunitstayid"], ["hospitaladmitsource"] * data_size) != "Other ICU"
+	]
+	print(f"{data_size - len(all_data)} data points filtered out that were transfers from other ICUs.")
 
 	return all_data
 
@@ -251,6 +269,23 @@ def read_all_data(data_path: str) -> pd.DataFrame:
 	)
 
 
+def read_patients_file(patient_path: str) -> pd.DataFrame:
+	"""
+	Read the original eICU patient.csv file.
+
+	Parameters
+	----------
+	patient_path: str
+		Path to (original) patient.csv file.
+
+	Returns
+	-------
+	patient_data: pd.DataFrame
+		Data about admitted patients.
+	"""
+	return pd.read_csv(patient_path, index_col="patientunitstayid")
+
+
 def read_diagnoses_file(diagnoses_path: str) -> pd.DataFrame:
 	"""
 	Read the original eICU diagnosis.csv.
@@ -281,9 +316,10 @@ def read_diagnoses_file(diagnoses_path: str) -> pd.DataFrame:
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--data_path", "-i", type=str, required=True, help="Directory with patients stays.")
+	parser.add_argument("--patient_path", "-p", type=str, required=True, help="Path to patient.csv file.")
 	parser.add_argument("--diagnoses_path", "-d", type=str, required=True, help="Path to diagnosis.csv file.")
 	parser.add_argument("--output_dir", "-o", type=str, required=True, help="Output directory for resulting dataframe.")
 
 	args = parser.parse_args()
 	
-	engineer_features(args.data_path, args.diagnoses_path, args.output_dir)
+	engineer_features(args.data_path, args.patient_path, args.diagnoses_path, args.output_dir)
