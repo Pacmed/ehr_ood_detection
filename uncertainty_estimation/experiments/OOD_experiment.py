@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 import pickle
+from collections import defaultdict
 from tqdm import tqdm
 from uncertainty_estimation.models.novelty_estimator_wrapper import NoveltyEstimator
 from sklearn import svm
