@@ -12,8 +12,6 @@ Afterwards, the information is processed akin to the MIMIC-III data set as descr
 #   - Newborns (currently re-running script)
 #       - Re-add filtering by age
 #       - Re-add filtering by single unit stay (except newborns)
-#   - Emergency
-#   - Elective Admissions
 
 import argparse
 import itertools
@@ -36,6 +34,8 @@ TIME_SERIES_VARS = [
 	"FiO2", "Heart Rate", "Invasive BP Diastolic", "Invasive BP Systolic", "O2 Saturation", "Respiratory Rate",
 	"Temperature (C)", "glucose", "Motor", "Eyes", "MAP (mmHg)", "GCS Total", "Verbal", "pH"
 ]
+
+ADMISSION_VARS = ["emergency", "elective"]
 
 PHENOTYPE_TO_ICD9 = {
 	"Thyroid disorders": {
@@ -82,10 +82,11 @@ def engineer_features(data_path: str, patient_path: str, diagnoses_path: str, ou
 	all_data = read_all_data(data_path)
 	patient_data = read_patients_file(patient_path)
 	all_data = filter_data(all_data, patient_data)
-	del patient_data
 	diagnoses_data = read_diagnoses_file(diagnoses_path)
 
-	engineered_data = pd.DataFrame(columns=["patientunitstayid"] + STATIC_VARS + list(PHENOTYPE_TO_ICD9.keys()))
+	engineered_data = pd.DataFrame(
+		columns=["patientunitstayid"] + STATIC_VARS + ADMISSION_VARS + list(PHENOTYPE_TO_ICD9.keys())
+	)
 	engineered_data = engineered_data.set_index("patientunitstayid")
 
 	for stay_id in tqdm(all_data["patientunitstayid"].unique()):
@@ -122,6 +123,19 @@ def engineer_features(data_path: str, patient_path: str, diagnoses_path: str, ou
 			# Check whether there is any overlap in the ICD9 codes corresponding to the diagnoses given during the stay
 			# and the codes belonging to the current phenotype
 			engineered_data.loc[stay_id][phenotype] = int(len(diagnoses & codes) > 0)
+
+		# 4. Get admission features
+		# Check whether admission was an emergency admission
+		# Assumption: Admission from the emergency department imply emergency admissions
+		engineered_data.loc[stay_id]["emergency"] = int(
+			patient_data[stay_id]["hospitaladmitsource"] == "Emergency Department"
+		)
+
+		# Check whether admission was an elective admission
+		# Assumption: Admission from the recovery room or the post-anesthesiology-care-unit imply an elective admission
+		engineered_data.loc[stay_id]["elective"] = int(
+			patient_data[stay_id]["hospitaladmitsource"] in ("Recovery Room", "PACU")
+		)
 
 	return engineered_data
 
