@@ -15,12 +15,13 @@ Afterwards, the information is processed akin to the MIMIC-III data set as descr
 
 import argparse
 import itertools
-from typing import Dict, Union
+from typing import Dict, Union, List
 
 import numpy as np
 import pandas as pd
 from scipy.stats import skew
 from tqdm import tqdm
+import yaml
 
 # Custom types
 TimeSeriesFeatures = Dict[str, Union[int, float]]
@@ -37,28 +38,8 @@ TIME_SERIES_VARS = [
 
 ADMISSION_VARS = ["emergency", "elective"]
 
-PHENOTYPE_TO_ICD9 = {
-	"Thyroid disorders": {
-		"2400", "2409", "2410", "2411", "2419", "24200", "24201", "24210", "24211", "24220", "24221", "24230", "24231",
-		"24240", "24241", "24280", "24281", "24290", "24291", "243", "2440", "2441", "2442", "2443", "2448", "2449",
-		"2450", "2451", "2452", "2453", "2454", "2458", "2459", "2460", "2461", "2462", "2463", "2468", "2469", "7945"
-	},
-	"Acute and unspecified renal failure": {"5845", "5846", "5847", "5848", "5849", "586"},
-	"Epilepsy; convulsions": {
-		"3450", "34500", "34501", "3451", "34510", "34511", "3452", "3453", "3454", "34540", "34541", "3455", "34550",
-		"34551", "3456", "34560", "34561", "3457", "34570", "34571", "3458", "34580", "34581", "3459", "34590", "34591",
-		"7803", "78031", "78032", "78033", "78039"
-	},
-	"Hypertension with complications and secondary hypertension": {
-		"4010", "40200", "40201", "40210", "40211", "40290", "40291", "4030", "40300", "40301", "4031", "40310",
-		"40311", "4039", "40390", "40391", "4040", "40400", "40401", "40402", "40403", "4041", "40410", "40411",
-		"40412", "40413", "4049", "40490", "40491", "40492", "40493", "40501", "40509", "40511", "40519", "40591",
-		"40599", "4372"
-	}
-}
 
-
-def engineer_features(data_path: str, patient_path: str, diagnoses_path: str, output_dir: str):
+def engineer_features(data_path: str, patient_path: str, diagnoses_path: str, phenotypes_path: str) -> pd.DataFrame:
 	"""
 	Take the eICU data set and engineer features. This includes multiple time series features as well as features
 	used to identify artificial OOD groups later.
@@ -71,8 +52,8 @@ def engineer_features(data_path: str, patient_path: str, diagnoses_path: str, ou
 		Path to patient.csv file.
 	diagnoses_path: str
 		Path to (original) diagnosis.csv file.
-	output_dir: str
-		Path to output directory.
+	phenotypes_path: str
+		Path to ICD9 phenotypes file.
 
 	Returns
 	-------
@@ -83,9 +64,10 @@ def engineer_features(data_path: str, patient_path: str, diagnoses_path: str, ou
 	patient_data = read_patients_file(patient_path)
 	all_data = filter_data(all_data, patient_data)
 	diagnoses_data = read_diagnoses_file(diagnoses_path)
+	phenotypes2icd9 = read_phenotypes_file(phenotypes_path)
 
 	engineered_data = pd.DataFrame(
-		columns=["patientunitstayid"] + STATIC_VARS + ADMISSION_VARS + list(PHENOTYPE_TO_ICD9.keys())
+		columns=["patientunitstayid"] + STATIC_VARS + ADMISSION_VARS + list(phenotypes2icd9.keys())
 	)
 	engineered_data = engineered_data.set_index("patientunitstayid")
 
@@ -119,9 +101,10 @@ def engineer_features(data_path: str, patient_path: str, diagnoses_path: str, ou
 		]["icd9code"]
 		diagnoses = {parse_icd9code(code) for code in diagnoses}
 
-		for phenotype, codes in PHENOTYPE_TO_ICD9.items():
+		for phenotype, phenotype_info in phenotypes2icd9.items():
 			# Check whether there is any overlap in the ICD9 codes corresponding to the diagnoses given during the stay
 			# and the codes belonging to the current phenotype
+			codes = set(phenotype_info["codes"])
 			engineered_data.loc[stay_id][phenotype] = int(len(diagnoses & codes) > 0)
 
 		# 4. Get admission features
@@ -330,13 +313,38 @@ def read_diagnoses_file(diagnoses_path: str) -> pd.DataFrame:
 	)
 
 
+def read_phenotypes_file(phenotypes_path: str) -> Dict[str, List[str]]:
+	"""
+	Return a dictionary mapping different phenotypes to ICD9 codes by reading them from a .yaml file.
+	The .yaml file was taken from `this repo <https://github.com/YerevaNN/mimic3-benchmarks/blob/v1.0.0-alpha/mimic3benc
+	hmark/resources/hcup_ccs_2015_definitions.yaml>`__.
+
+	Parameters
+	----------
+	phenotypes_path: str
+		Path to phenotypes file.
+
+	Returns
+	-------
+	phenotypes2icd9: Dict[str, List[str]]
+		Dictionary mapping phenotypes to their corresponding ICD9 codes.
+	"""
+	with open(phenotypes_path) as phenotypes_file:
+		phenotypes2icd9 = yaml.load(phenotypes_file)
+
+	return phenotypes2icd9
+
+
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--data_path", "-i", type=str, required=True, help="Directory with patients stays.")
 	parser.add_argument("--patient_path", "-p", type=str, required=True, help="Path to patient.csv file.")
 	parser.add_argument("--diagnoses_path", "-d", type=str, required=True, help="Path to diagnosis.csv file.")
+	parser.add_argument("--phenotypes_path", "-c", type=str, required=True, help="Path to phenotypes ICD9 file.")
 	parser.add_argument("--output_dir", "-o", type=str, required=True, help="Output directory for resulting dataframe.")
 
 	args = parser.parse_args()
 	
-	engineer_features(args.data_path, args.patient_path, args.diagnoses_path, args.output_dir)
+	engineered_data = engineer_features(args.data_path, args.patient_path, args.diagnoses_path, args.phenotypes_path)
+
+	engineered_data.to_csv(os.path.join(args.output_dir, "final_data.csv"))
