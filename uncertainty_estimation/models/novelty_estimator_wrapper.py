@@ -36,9 +36,12 @@ class NoveltyEstimator:
         elif self.name == 'sklearn':
             self.model = self.model_type(**self.model_params)
             self.model.fit(X_train)
-        elif self.name == 'NN':
+        elif self.name == 'NNEnsemble':
             self.model = self.model_type(**self.model_params)
             self.model.train(X_train, y_train, X_val, y_val, training_params=self.train_params)
+        elif self.name in ['NN', 'MCDropout']:
+            self.model = self.model_type(**self.model_params)
+            self.model.train(X_train, y_train, X_val, y_val, **self.train_params)
 
     def get_novelty_score(self, data, kind=None):
         """Apply the novelty estimator to obtain a novelty score for the data.
@@ -58,10 +61,12 @@ class NoveltyEstimator:
             return self.model.get_reconstr_error(data)
         elif self.name == 'sklearn':
             return - self.model.score_samples(data)
-        elif self.name == 'NN':
+        elif self.name in ['NNEnsemble', 'MCDropout']:
             if kind == 'std':
                 return self.model.get_std(data)
             elif kind == 'entropy':
                 return entropy(self.model.predict_proba(data), axis=1)
             else:
                 print("Unknown type of uncertainty: ", kind)
+        elif self.name == 'NN':
+            return entropy(self.model.predict_proba(data), axis=1)
