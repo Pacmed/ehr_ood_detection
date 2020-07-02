@@ -72,7 +72,7 @@ if __name__ == '__main__':
     train_data, test_data, val_data = dh.load_train_test_val()
     y_name = dh.load_target_name()
 
-    # The models we use to estimate novelty (?)
+    # The models we use to estimate novelty 
     pca = NoveltyEstimator(PCA, dict(n_components=2), {}, 'sklearn')
     svm = NoveltyEstimator(svm.OneClassSVM, {}, {}, 'sklearn')
 

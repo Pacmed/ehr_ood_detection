@@ -267,7 +267,7 @@ class MLP:
                 self.model(X_test_tensor)).detach().squeeze().numpy()
         return np.stack([1 - predictions, predictions], axis=1)
 
-    def get_mc_dropout_std(self, X_test: np.ndarray, n_samples=50):
+    def get_std(self, X_test: np.ndarray, n_samples=50):
         X_test_tensor = torch.tensor(X_test).float()
         # perform multiple forward passes with dropout activated.
         predictions_list = []
