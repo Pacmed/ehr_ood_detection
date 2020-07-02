@@ -2,12 +2,10 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
-from sklearn.impute import KNNImputer, SimpleImputer
+from sklearn.impute import SimpleImputer
 from sklearn import pipeline
 from sklearn.preprocessing import StandardScaler
 from .metrics import ood_detection_auc
-
-from sklearn.metrics import roc_auc_score
 
 
 class NoveltyAnalyzer:
@@ -17,9 +15,9 @@ class NoveltyAnalyzer:
     ----------
     novelty_estimator: NoveltyEstimator
         Which novelty estimator to use.
-    train_data: np.ndarray
+    X_train: np.ndarray
         Which training data to use.
-    test_data: np.ndarray
+    X_test: np.ndarray
         The identically distributed test data.
     ood_data: np.ndarray
         The OOD group.
@@ -27,13 +25,18 @@ class NoveltyAnalyzer:
         Whether to impute and scale the data before fitting the novelty estimator.
     """
 
-    def __init__(self, novelty_estimator, train_data, test_data, ood_data=None,
+    def __init__(self, novelty_estimator, X_train, X_test, X_val=None,
+                 y_train=None, y_test=None,
+                 y_val=None,
                  impute_and_scale=True):
         self.ne = novelty_estimator
-        self.train_data = train_data
-        self.test_data = test_data
-        self.ood_data = ood_data
-        self.trained = False
+        self.X_train = X_train
+        self.X_test = X_test
+        self.X_val = X_val
+        self.y_train = y_train
+        self.y_test = y_test
+        self.y_val = y_val
+        self.new_test = True
         self.impute_and_scale = impute_and_scale
         if self.impute_and_scale:
             self._impute_and_scale()
@@ -42,26 +45,34 @@ class NoveltyAnalyzer:
         """Impute and scale, using the train data to fit the (mean) imputer and scaler."""
         self.pipe = pipeline.Pipeline([('scaler', StandardScaler()),
                                        ('imputer', SimpleImputer())])
-        # n_neighbors=5, copy=True))])
 
-        self.pipe.fit(self.train_data)
-        self.train_data = self.pipe.transform(self.train_data)
-        self.test_data = self.pipe.transform(self.test_data)
+        self.pipe.fit(self.X_train)
+        self.X_train = self.pipe.transform(self.X_train)
+        self.X_test = self.pipe.transform(self.X_test)
+        if self.ne.model_type == 'NN':
+            self.X_val = self.pipe.transform(self.X_val)
 
-    def set_ood_and_calc(self, new_ood_data):
+    def set_ood(self, new_X_ood, impute_and_scale=True):
+        if impute_and_scale:
+            self.X_ood = self.pipe.transform(new_X_ood)
+        else:
+            self.X_ood = new_X_ood
+
+    def set_test(self, new_test_data):
         if self.impute_and_scale:
-            self.ood_data = self.pipe.transform(new_ood_data)
-        self.ood_novelty = self.ne.get_novelty_score(self.ood_data)
+            self.X_test = self.pipe.transform(new_test_data)
+        self.new_test = True
 
-    def set_test_and_calc(self, new_test_data):
-        if self.impute_and_scale:
-            self.test_data = self.pipe.transform(new_test_data)
-        self.id_novelty = self.ne.get_novelty_score(self.test_data)
-
-    def calculate_novelty(self):
+    def train(self):
         """Calculate the novelty on the OOD data and the i.d. test data."""
-        self.ne.train(self.train_data)
-        self.id_novelty = self.ne.get_novelty_score(self.test_data)
+        self.ne.train(self.X_train, self.y_train, self.X_val, self.y_val)
+
+    def calculate_novelty(self, kind=None):
+        if self.new_test:
+            # check whether the novelty on the test set is already calculated
+            self.id_novelty = self.ne.get_novelty_score(self.X_test, kind=kind)
+            self.new_test = False
+        self.ood_novelty = self.ne.get_novelty_score(self.X_ood, kind=kind)
 
     def get_ood_detection_auc(self):
         """Calculate the OOD detection AUC based on the novelty scores on OOD and i.d. test data.

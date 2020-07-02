@@ -123,9 +123,10 @@ class MLP:
     """
 
     def __init__(self, hidden_sizes: list, input_size: int, dropout_rate: float,
-                 class_weight: bool = True, output_size: int = 1, batch_norm: bool = False):
+                 class_weight: bool = True, output_size: int = 1, batch_norm: bool = False,
+                 lr: float = 1e-3):
         self.model = MLPModule(hidden_sizes, input_size, dropout_rate, output_size, batch_norm)
-        self.optimizer = torch.optim.Adam(self.model.parameters())
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
         self.class_weight = class_weight
 
     def _initialize_dataloader(self, X_train: np.ndarray, y_train: np.ndarray, batch_size: int):
@@ -245,4 +246,35 @@ class MLP:
                     n_no_improvement = 0
                     prev_val_loss = val_loss
             if n_no_improvement >= early_stopping_patience:
+                print("Early stopping after", epoch, "epochs.")
                 break
+
+    def predict_proba(self, X_test: np.ndarray, n_mc_dropout_samples=None):
+        X_test_tensor = torch.tensor(X_test).float()
+        if n_mc_dropout_samples:
+            # perform multiple forward passes with dropout activated.
+            predictions_list = []
+            for m in self.model.modules():
+                if m.__class__.__name__.startswith('Dropout'):
+                    m.train()
+            for i in range(n_mc_dropout_samples):
+                predictions_list.append(torch.sigmoid(
+                    self.model(X_test_tensor)).detach().squeeze().numpy())
+            predictions = np.mean(np.array(predictions_list), axis=0)
+        else:
+            self.model.eval()
+            predictions = torch.sigmoid(
+                self.model(X_test_tensor)).detach().squeeze().numpy()
+        return np.stack([1 - predictions, predictions], axis=1)
+
+    def get_mc_dropout_std(self, X_test: np.ndarray, n_samples=50):
+        X_test_tensor = torch.tensor(X_test).float()
+        # perform multiple forward passes with dropout activated.
+        predictions_list = []
+        for m in self.model.modules():
+            if m.__class__.__name__.startswith('Dropout'):
+                m.train()
+        for i in range(n_samples):
+            predictions_list.append(torch.sigmoid(
+                self.model(X_test_tensor)).detach().squeeze().numpy())
+        return np.std(np.array(predictions_list), axis=0)

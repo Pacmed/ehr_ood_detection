@@ -20,7 +20,7 @@ class NNEnsemble:
         self.models = dict()
 
     def train(self, X_train: np.ndarray, y_train: np.ndarray, X_val: np.ndarray, y_val: np.ndarray,
-              training_params: dict):
+              training_params: dict, bootstrap: bool = False, bootstrap_fraction: float = 1):
         """Train all MLPs on the training data.
 
         Parameters
@@ -35,9 +35,24 @@ class NNEnsemble:
             The labels corresponding to the validation data.
         training_params: dict
             The parameters used for training, see class MLP.
+        bootstrap: bool
+            Whether to train each MLP on a bootstrapped sample.
+        bootstrap_fraction: float
+            The sample size (defined as fraction of the training data size) to use when
+            bootstrapping.
         """
         for i in range(self.n_models):
             mlp = MLP(**self.model_params)
+            print(i)
+            if bootstrap:
+                bootstrap_size = int(len(X_train)*bootstrap_fraction)
+                idx_sample = np.random.random_integers(low=0, high=len(X_train) - 1,
+                                                       size=bootstrap_size)
+                X_sample = X_train[idx_sample]
+                y_sample = y_train[idx_sample]
+                mlp.train(X_sample, y_sample, X_val, y_val,
+                          **training_params)
+
             mlp.train(X_train, y_train, X_val, y_val,
                       **training_params)
             self.models[i] = mlp.model
