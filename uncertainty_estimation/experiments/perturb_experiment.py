@@ -12,6 +12,7 @@ from uncertainty_estimation.models.novelty_estimator_wrapper import NoveltyEstim
 from uncertainty_estimation.models.nn_ensemble import NNEnsemble
 from uncertainty_estimation.experiments_utils.datahandler import DataHandler
 from uncertainty_estimation.models.autoencoder import AE
+from uncertainty_estimation.models.mlp import MLP
 
 SCALES = [10, 100, 1000, 10000]
 N_FEATURES = 100
@@ -75,18 +76,30 @@ if __name__ == '__main__':
     pca = NoveltyEstimator(PCA, dict(n_components=2), {}, 'sklearn')
     svm = NoveltyEstimator(svm.OneClassSVM, {}, {}, 'sklearn')
 
+    nn_model_params = {'hidden_sizes': [50, 50],
+                       'dropout_rate': 0.0,
+                       'input_size': len(feature_names),
+                       'batch_norm': False,
+                       'lr': 1e-3,
+                       'class_weight': False}
+
+    # larger model because of dropout
+    mc_dropout_model_params = {'hidden_sizes': [100, 100],
+                               'dropout_rate': 0.5,
+                               'input_size': len(feature_names),
+                               'batch_norm': False,
+                               'lr': 1e-3,
+                               'class_weight': False}
+
+    nn_train_params = {'batch_size': 256,
+                       'early_stopping': True,
+                       'early_stopping_patience': 3,
+                       'n_epochs': 40}
+
     nn_ensemble = NoveltyEstimator(NNEnsemble, {'n_models': 10,
-                                                'model_params': {'hidden_sizes': [50, 50],
-                                                                 'dropout_rate': 0.0,
-                                                                 'input_size': len(feature_names),
-                                                                 'batch_norm': False,
-                                                                 'lr': 1e-3,
-                                                                 'class_weight': False}},
-                                   train_params={'batch_size': 256,
-                                                 'early_stopping': True,
-                                                 'early_stopping_patience': 3,
-                                                 'n_epochs': 40},
-                                   method_name='NN')
+                                                'model_params': nn_model_params},
+                                   train_params=nn_train_params,
+                                   method_name='NNEnsemble')
 
     ae = NoveltyEstimator(AE, dict(
         input_dim=len(feature_names),
@@ -95,9 +108,18 @@ if __name__ == '__main__':
         batch_size=256,
         learning_rate=0.0001), dict(n_epochs=50), 'AE')
 
-    for ne, kinds in [(nn_ensemble, ('std', 'entropy')), (pca, [None]), (ae, [None]), (svm,
-                                                                                       [None])]:
-        print(ne.model_type.__name__)
+    single_nn = NoveltyEstimator(MLP, model_params=nn_model_params,
+                                 train_params=nn_train_params, method_name='NN')
+
+    mc_dropout = NoveltyEstimator(MLP, model_params=mc_dropout_model_params,
+                                  train_params=nn_train_params, method_name='MCDropout')
+
+    for ne, kinds, name in [(nn_ensemble, ('std', 'entropy'), 'NN ensemble'),
+                            (pca, [None], 'PCA'),
+                            (ae, [None], 'AE'),
+                            (single_nn, [None], 'Single NN'),
+                            (mc_dropout, ['std', 'entropy'], 'MC Dropout')]:
+        print(name)
         nov_an = ood_utils.NoveltyAnalyzer(ne, train_data[feature_names].values,
                                            test_data[feature_names].values,
                                            val_data[feature_names].values,
@@ -110,10 +132,10 @@ if __name__ == '__main__':
                 feature_names], kind=kind)
             if len(kinds) > 1:
                 dir_name = os.path.join('pickled_results', args.data_origin, 'perturbation',
-                                        ne.model_type.__name__ + " (" + kind + ")")
+                                        name + " (" + kind + ")")
             else:
                 dir_name = os.path.join('pickled_results', args.data_origin, 'perturbation',
-                                        ne.model_type.__name__)
+                                        name)
 
             if not os.path.exists(dir_name):
                 os.mkdir(dir_name)
