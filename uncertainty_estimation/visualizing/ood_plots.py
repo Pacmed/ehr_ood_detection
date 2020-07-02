@@ -8,6 +8,7 @@ def barplot_from_nested_dict(nested_dict, metric_name='OOD detection AUC',
                              height=6,
                              aspect=1.5, legend_out=False):
     sns.set_style('whitegrid')
+    sns.set_palette("Set1", 10)
     df = pd.DataFrame.from_dict(nested_dict)
 
     df = df.stack().reset_index()
@@ -28,7 +29,7 @@ def barplot_from_nested_dict(nested_dict, metric_name='OOD detection AUC',
 
 
 def boxplot_from_nested_listdict(nested_dict, name, hline=None, ylim=(0.0, 1.0), x_name='scale',
-                                 save_dir=None, **kwargs):
+                                 save_dir=None, kind='box', **kwargs):
     sns.set_palette("Set1", 10)
     sns.set_style('whitegrid')
     df = pd.DataFrame.from_dict(nested_dict,
@@ -38,7 +39,7 @@ def boxplot_from_nested_listdict(nested_dict, name, hline=None, ylim=(0.0, 1.0),
     df.columns = [x_name, '', name]
     df = df.explode(name)
 
-    sns.catplot(x=x_name, y=name, hue='', data=df, kind='box',
+    sns.catplot(x=x_name, y=name, hue='', data=df, kind=kind,
                 facet_kws=dict(despine=False), legend_out=False, **kwargs)
     plt.ylim(ylim)
     if hline:
@@ -49,3 +50,5 @@ def boxplot_from_nested_listdict(nested_dict, name, hline=None, ylim=(0.0, 1.0),
         plt.close()
     else:
         plt.show()
+
+
