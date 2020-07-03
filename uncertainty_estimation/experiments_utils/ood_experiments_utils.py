@@ -13,10 +13,13 @@ METRICS_TO_USE = [metrics.ece, metrics.roc_auc_score, metrics.accuracy, metrics.
 
 def run_ood_experiment_on_group(train_non_ood, test_non_ood, val_non_ood,
                                 train_ood, test_ood, val_ood, feature_names,
-                                y_name, dicts, ood_name, model_info, impute_and_scale=True):
+                                y_name, ood_name, model_info,
+                                ood_detect_aucs, ood_recall, metrics,
+                                impute_and_scale=True):
     ne, kinds, method_name = model_info
-    ood_detect_aucs, ood_recall, metrics_after, metrics = dicts
     all_ood = pd.concat([train_ood, test_ood, val_ood])
+    print("Number of OOD:", len(all_ood))
+    print("Fraction of positives:", all_ood[y_name].mean())
     nov_an = NoveltyAnalyzer(ne, train_non_ood[feature_names].values,
                              test_non_ood[feature_names].values,
                              val_non_ood[feature_names].values,
@@ -28,28 +31,17 @@ def run_ood_experiment_on_group(train_non_ood, test_non_ood, val_non_ood,
     nov_an.set_ood(all_ood[feature_names], impute_and_scale=True)
     for kind in kinds:
         nov_an.calculate_novelty(kind=kind)
-        ood_recall[kind][ood_name] = nov_an.get_ood_detection_auc()
-        ood_detect_aucs[kind][ood_name] = nov_an.get_ood_recall()
+        ood_detect_aucs[kind][ood_name] = nov_an.get_ood_detection_auc()
+        ood_recall[kind][ood_name] = nov_an.get_ood_recall()
 
     if method_name in ['Single_NN', 'NN_Ensemble', 'MC_Dropout']:
         y_pred = nov_an.ne.model.predict_proba(nov_an.X_ood)[:, 1]
         for metric in METRICS_TO_USE:
-            metrics[metric.__name__][ood_name] = metric(all_ood[y_name].values, y_pred)
-    # what if the ood set would have been included?
-    # nov_an = NoveltyAnalyzer(ne, train_non_ood.append(train_ood)[feature_names].values,
-    #                          test_non_ood.append(test_ood)[feature_names].values,
-    #                          val_non_ood.append(val_ood)[feature_names].values,
-    #                          train_non_ood.append(train_ood)[y_name].values,
-    #                          test_non_ood.append(test_ood)[y_name].values,
-    #                          val_non_ood.append(val_ood)[y_name].values,
-    #                          impute_and_scale=True)
-    # nov_an.train()
-    # nov_an.set_ood(test_ood[feature_names], impute_and_scale=True)
-    # y_pred = nov_an.ne.model.predict_proba(nov_an.X_ood)[:, 1]
-    # for metric in METRICS_TO_USE:
-    #     metrics_after[metric.__name__][ood_name] = metric(test_ood[y_name].values,
-    #                                                       y_pred)
-    return ood_detect_aucs, ood_recall, metrics_after, metrics
+            try:
+                metrics[metric.__name__][ood_name] = metric(all_ood[y_name].values, y_pred)
+            except ValueError:
+                print("Fraction of positives:", all_ood[y_name].mean())
+    return ood_detect_aucs, ood_recall, metrics
 
 
 class NoveltyAnalyzer:
@@ -213,12 +205,12 @@ MIMIC_OOD_MAPPINGS = {'Emergency/\nUrgent admissions': ('ADMISSION_TYPE', 'EMERG
                           'Hypertension with complications and secondary hypertension', True)}
 
 EICU_OOD_MAPPINGS = {
-    "Emergency/\nUrgent admissions": ("emergency", True),
-    "Elective admissions": ("elective", True),
+    # "Emergency/\nUrgent admissions": ("emergency", True),
+    #"Elective admissions": ("elective", True),
     "Ethnicity: Black/African American": ("ethnicity", 2),
     "Ethnicity: White": ("ethnicity", 1),
     "Female": ("gender", 1),
-    "Male": ("gender", 0),
+    "Male": ("gender", 2),
     "Thyroid disorders": ("Thyroid disorders", True),
     "Acute and unspecified renal failure": ("Acute and unspecified renal failure", True),
     "Epilepsy; convulsions": ('Epilepsy; convulsions', True),

@@ -28,11 +28,10 @@ if __name__ == '__main__':
     for model_info in get_models_to_use(len(feature_names)):
         print(model_info[2])
         ood_detect_aucs, ood_recall = defaultdict(dict), defaultdict(dict)
-        metrics, metrics_after = defaultdict(dict), defaultdict(dict)
-        dicts = ood_detect_aucs, ood_recall, metrics_after, metrics
-        # Experiments on Newborns
+        metrics = defaultdict(dict)
+        # Experiments on Newborns, only on MIMIC for now
         if args.data_origin == 'MIMIC':
-            ood_detect_aucs, ood_recall, metrics_after, metrics = \
+            ood_detect_aucs, ood_recall, metrics = \
                 ood_utils.run_ood_experiment_on_group(
                     train_data,
                     test_data,
@@ -41,22 +40,22 @@ if __name__ == '__main__':
                     test_newborns,
                     val_newborns,
                     feature_names,
-                    y_name, dicts,
+                    y_name,
                     "Newborn",
-                    model_info,
+                    model_info, ood_detect_aucs, ood_recall, metrics,
                     impute_and_scale=True)
 
         # Do experiments on the other OOD groups
         for ood_name, (column_name, ood_value) in tqdm(ood_mappings):
             # Split all data splits into OOD and 'Non-OOD' data.
+            print("\n"+ood_name)
+
             train_ood, train_non_ood = ood_utils.split_by_ood_name(train_data, column_name,
                                                                    ood_value)
             val_ood, val_non_ood = ood_utils.split_by_ood_name(val_data, column_name, ood_value)
             test_ood, test_non_ood = ood_utils.split_by_ood_name(test_data, column_name,
                                                                  ood_value)
-
-            dicts = ood_detect_aucs, ood_recall, metrics_after, metrics
-            ood_detect_aucs, ood_recall, metrics_after, metrics = \
+            ood_detect_aucs, ood_recall, metrics = \
                 ood_utils.run_ood_experiment_on_group(
                     train_non_ood,
                     test_non_ood,
@@ -65,9 +64,10 @@ if __name__ == '__main__':
                     test_ood,
                     val_ood,
                     feature_names,
-                    y_name, dicts,
+                    y_name,
                     ood_name,
                     model_info,
+                    ood_detect_aucs, ood_recall, metrics,
                     impute_and_scale=True)
 
         ne, kinds, method_name = model_info
@@ -82,18 +82,12 @@ if __name__ == '__main__':
         for metric in metrics.keys():
             with open(os.path.join(metric_dir_name, metric + '.pkl'), 'wb') as f:
                 pickle.dump(metrics[metric], f)
-        metrics_after_dir_name = os.path.join(dir_name, 'metrics_after')
-        if not os.path.exists(metrics_after_dir_name):
-            os.mkdir(metrics_after_dir_name)
-        for metric in metrics.keys():
-            with open(os.path.join(metrics_after_dir_name, metric + '.pkl'), 'wb') as f:
-                pickle.dump(metrics_after[metric], f)
 
         for kind in kinds:
-            dir_name = os.path.join(dir_name, 'detection')
-            if not os.path.exists(dir_name):
-                os.mkdir(dir_name)
-            method_dir_name = os.path.join(dir_name, str(kind))
+            detection_dir_name = os.path.join(dir_name, 'detection')
+            if not os.path.exists(detection_dir_name):
+                os.mkdir(detection_dir_name)
+            method_dir_name = os.path.join(detection_dir_name, str(kind))
             if not os.path.exists(method_dir_name):
                 os.mkdir(method_dir_name)
             with open(os.path.join(method_dir_name, 'detect_auc.pkl'), 'wb') as f:
