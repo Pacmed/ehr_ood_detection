@@ -36,7 +36,7 @@ EICU_OOD_MAPPINGS = {
     "Ethnicity: Black/African American": ("ethnicity", 2),
     "Ethnicity: White": ("ethnicity", 1),
     "Female": ("gender", 1),
-    "Male": ("gender", 0),
+    "Male": ("gender", 2),
     "Thyroid disorders": ("Thyroid disorders", True),
     "Acute and unspecified renal failure": ("Acute and unspecified renal failure", True),
     "Epilepsy; convulsions": ('Epilepsy; convulsions', True),
