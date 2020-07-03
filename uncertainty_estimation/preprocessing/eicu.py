@@ -8,10 +8,11 @@ Afterwards, the information is processed akin to the MIMIC-III data set as descr
 
 """
 
-# TODO: Create OOD cohorts
-#   - Newborns (currently re-running script)
-#       - Re-add filtering by age
-#       - Re-add filtering by single unit stay (except newborns)
+# TODO: Fix current script and extend for newborns
+#   - Retrieve data from stay directories instead of all_data.csv
+#   - Throw out measurements in weird ranges
+#   - Separate data for newborns in a new df and write separately
+#   - Drop misc outcome and misc gender
 
 # STD
 import argparse
@@ -75,6 +76,8 @@ def engineer_features(data_path: str, patient_path: str, diagnoses_path: str, ph
 	engineered_data = engineered_data.set_index("patientunitstayid")
 
 	for stay_id in tqdm(all_data["patientunitstayid"].unique()):
+
+		# TODO: Add check for newborns here
 
 		# 1. Add all static features to the new table
 		engineered_data.loc[stay_id] = all_data[all_data["patientunitstayid"] == stay_id][STATIC_VARS].iloc[0]
