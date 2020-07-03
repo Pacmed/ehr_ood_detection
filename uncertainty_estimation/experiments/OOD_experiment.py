@@ -11,7 +11,7 @@ from uncertainty_estimation.experiments_utils.datahandler import DataHandler
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_origin',
-                        type=str, default='MIMIC',
+                        type=str, default='eICU',
                         help="Which data to use")
     args = parser.parse_args()
 
@@ -20,7 +20,8 @@ if __name__ == '__main__':
     feature_names = dh.load_feature_names()
     train_data, test_data, val_data = dh.load_train_test_val()
     y_name = dh.load_target_name()
-    train_newborns, test_newborns, val_newborns = dh.load_newborns()
+    if args.data_origin == 'MIMIC':
+        train_newborns, test_newborns, val_newborns = dh.load_newborns()
     ood_mappings = dh.load_ood_mappings()
 
     # loop over the different methods
@@ -30,19 +31,20 @@ if __name__ == '__main__':
         metrics, metrics_after = defaultdict(dict), defaultdict(dict)
         dicts = ood_detect_aucs, ood_recall, metrics_after, metrics
         # Experiments on Newborns
-        ood_detect_aucs, ood_recall, metrics_after, metrics = \
-            ood_utils.run_ood_experiment_on_group(
-                train_data,
-                test_data,
-                val_data,
-                train_newborns,
-                test_newborns,
-                val_newborns,
-                feature_names,
-                y_name, dicts,
-                "Newborn",
-                model_info,
-                impute_and_scale=True)
+        if args.data_origin == 'MIMIC':
+            ood_detect_aucs, ood_recall, metrics_after, metrics = \
+                ood_utils.run_ood_experiment_on_group(
+                    train_data,
+                    test_data,
+                    val_data,
+                    train_newborns,
+                    test_newborns,
+                    val_newborns,
+                    feature_names,
+                    y_name, dicts,
+                    "Newborn",
+                    model_info,
+                    impute_and_scale=True)
 
         # Do experiments on the other OOD groups
         for ood_name, (column_name, ood_value) in tqdm(ood_mappings):
