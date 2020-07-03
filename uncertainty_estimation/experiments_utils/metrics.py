@@ -1,11 +1,13 @@
 import pandas as pd
 import numpy as np
-from sklearn.metrics import roc_auc_score, accuracy_score
+from sklearn.metrics import roc_auc_score, accuracy_score, brier_score_loss
 
 DEFAULT_N_BINS = 10
 
+
 def entropy(probabilities, axis):
     return -np.sum(probabilities * np.log2(probabilities + 1e-8), axis=axis)
+
 
 def get_hard_labels(probabilities, thresh=0.5):
     return (probabilities >= thresh).astype(int)
