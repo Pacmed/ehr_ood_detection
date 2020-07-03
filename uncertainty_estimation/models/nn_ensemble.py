@@ -43,7 +43,6 @@ class NNEnsemble:
         """
         for i in range(self.n_models):
             mlp = MLP(**self.model_params)
-            print(i)
             if bootstrap:
                 bootstrap_size = int(len(X_train)*bootstrap_fraction)
                 idx_sample = np.random.random_integers(low=0, high=len(X_train) - 1,
