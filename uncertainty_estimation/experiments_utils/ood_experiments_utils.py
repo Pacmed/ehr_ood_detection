@@ -6,6 +6,50 @@ from sklearn.impute import SimpleImputer
 from sklearn import pipeline
 from sklearn.preprocessing import StandardScaler
 from .metrics import ood_detection_auc
+import uncertainty_estimation.experiments_utils.metrics as metrics
+
+METRICS_TO_USE = [metrics.ece, metrics.roc_auc_score, metrics.accuracy, metrics.brier_score_loss]
+
+
+def run_ood_experiment_on_group(train_non_ood, test_non_ood, val_non_ood,
+                                train_ood, test_ood, val_ood, feature_names,
+                                y_name, dicts, ood_name, model_info, impute_and_scale=True):
+    ne, kinds, method_name = model_info
+    ood_detect_aucs, ood_recall, metrics_after, metrics = dicts
+    all_ood = pd.concat([train_ood, test_ood, val_ood])
+    nov_an = NoveltyAnalyzer(ne, train_non_ood[feature_names].values,
+                             test_non_ood[feature_names].values,
+                             val_non_ood[feature_names].values,
+                             train_non_ood[y_name].values,
+                             test_non_ood[y_name].values,
+                             val_non_ood[y_name].values,
+                             impute_and_scale=impute_and_scale)
+    nov_an.train()
+    nov_an.set_ood(all_ood[feature_names], impute_and_scale=True)
+    for kind in kinds:
+        nov_an.calculate_novelty(kind=kind)
+        ood_recall[kind][ood_name] = nov_an.get_ood_detection_auc()
+        ood_detect_aucs[kind][ood_name] = nov_an.get_ood_recall()
+
+    if method_name in ['Single_NN', 'NN_Ensemble', 'MC_Dropout']:
+        y_pred = nov_an.ne.model.predict_proba(nov_an.X_ood)[:, 1]
+        for metric in METRICS_TO_USE:
+            metrics[metric.__name__][ood_name] = metric(all_ood[y_name].values, y_pred)
+    # what if the ood set would have been included?
+    # nov_an = NoveltyAnalyzer(ne, train_non_ood.append(train_ood)[feature_names].values,
+    #                          test_non_ood.append(test_ood)[feature_names].values,
+    #                          val_non_ood.append(val_ood)[feature_names].values,
+    #                          train_non_ood.append(train_ood)[y_name].values,
+    #                          test_non_ood.append(test_ood)[y_name].values,
+    #                          val_non_ood.append(val_ood)[y_name].values,
+    #                          impute_and_scale=True)
+    # nov_an.train()
+    # nov_an.set_ood(test_ood[feature_names], impute_and_scale=True)
+    # y_pred = nov_an.ne.model.predict_proba(nov_an.X_ood)[:, 1]
+    # for metric in METRICS_TO_USE:
+    #     metrics_after[metric.__name__][ood_name] = metric(test_ood[y_name].values,
+    #                                                       y_pred)
+    return ood_detect_aucs, ood_recall, metrics_after, metrics
 
 
 class NoveltyAnalyzer:

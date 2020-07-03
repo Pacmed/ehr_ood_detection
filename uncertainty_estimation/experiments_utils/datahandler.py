@@ -2,8 +2,15 @@ import pandas as pd
 import os
 import pickle
 import uncertainty_estimation.experiments_utils.ood_experiments_utils as ood_utils
+import numpy as np
 
-mimic_processed_folder =  "/data/processed/benchmark/inhospitalmortality/not_scaled"
+VAL_FRAC = 0.15
+TEST_FRAC = 0.15
+TRAIN_FRAC = 0.7
+
+mimic_processed_folder = "/data/processed/benchmark/inhospitalmortality/not_scaled"
+
+
 class DataHandler:
     def __init__(self, origin='MIMIC'):
         self.origin = origin
@@ -32,13 +39,20 @@ class DataHandler:
         if self.origin == 'MIMIC':
             return 'y'
 
+    def split_train_test_val(self, df):
+        train_data, test_data, val_data = np.split(df.sample(frac=1),
+                                                   [int(TRAIN_FRAC*len(df)),
+                                                    int(TRAIN_FRAC+TEST_FRAC *
+                                                    len(df))])
+        return train_data, test_data, val_data
+
     def load_newborns(self):
         if self.origin == 'MIMIC':
             other_data = pd.read_csv(
                 os.path.join(mimic_processed_folder, 'other_data_processed_w_static.csv'),
                 index_col=0)
             newborns = other_data[other_data["ADMISSION_TYPE"] == 'NEWBORN']
-            return newborns
+            return self.split_train_test_val(newborns)
 
     def load_ood_mappings(self):
         if self.origin == 'MIMIC':
