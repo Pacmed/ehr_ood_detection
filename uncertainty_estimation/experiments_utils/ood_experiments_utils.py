@@ -211,3 +211,18 @@ MIMIC_OOD_MAPPINGS = {'Emergency/\nUrgent admissions': ('ADMISSION_TYPE', 'EMERG
                       'Epilepsy; convulsions': ('Epilepsy; convulsions', True),
                       'Hypertension with complications \n and secondary hypertension': (
                           'Hypertension with complications and secondary hypertension', True)}
+
+EICU_OOD_MAPPINGS = {
+    "Emergency/\nUrgent admissions": ("emergency", True),
+    "Elective admissions": ("elective", True),
+    "Ethnicity: Black/African American": ("ethnicity", 2),
+    "Ethnicity: White": ("ethnicity", 1),
+    "Female": ("gender", 1),
+    "Male": ("gender", 0),
+    "Thyroid disorders": ("Thyroid disorders", True),
+    "Acute and unspecified renal failure": ("Acute and unspecified renal failure", True),
+    "Epilepsy; convulsions": ('Epilepsy; convulsions', True),
+    "Hypertension with complications \n and secondary hypertension": (
+        "Hypertension with complications and secondary hypertension", True
+    )
+}

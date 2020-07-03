@@ -9,6 +9,7 @@ TEST_FRAC = 0.15
 TRAIN_FRAC = 0.7
 
 mimic_processed_folder = "/data/processed/benchmark/inhospitalmortality/not_scaled"
+eicu_processed_csv = "/data/processed/eicu_processed/data/final_data.csv"
 
 
 class DataHandler:
@@ -28,22 +29,32 @@ class DataHandler:
                 os.path.join(processed_folder, 'val_data_processed_w_static.csv'),
                 index_col=0)
             return train_data, test_data, val_data
+        elif self.origin == 'eICU':
+            all_data = pd.read_csv(eicu_processed_csv)
+            all_data = all_data[all_data["hospitaldischargestatus"] < 2]
+            return self.split_train_test_val(all_data)
 
     def load_feature_names(self):
         if self.origin == 'MIMIC':
             with open('../experiments_utils/MIMIC_feature_names.pkl', 'rb') as f:
                 feature_names = pickle.load(f)
             return feature_names
+        elif self.origin == 'eICU':
+            with open('../experiments_utils/eICU_feature_names.pkl', 'rb') as f:
+                feature_names = pickle.load(f)
+            return feature_names
 
     def load_target_name(self):
         if self.origin == 'MIMIC':
             return 'y'
+        elif self.origin == 'eICU':
+            return "hospitaldischargestatus"
 
     def split_train_test_val(self, df):
-        train_data, test_data, val_data = np.split(df.sample(frac=1),
-                                                   [int(TRAIN_FRAC*len(df)),
-                                                    int(TRAIN_FRAC+TEST_FRAC *
-                                                    len(df))])
+        train_data, test_data, val_data = np.split(df.sample(frac=1, random_state=42),
+                                                   [int(TRAIN_FRAC * len(df)),
+                                                    int((TRAIN_FRAC + TEST_FRAC) *
+                                                        len(df))])
         return train_data, test_data, val_data
 
     def load_newborns(self):
@@ -57,4 +68,5 @@ class DataHandler:
     def load_ood_mappings(self):
         if self.origin == 'MIMIC':
             return ood_utils.MIMIC_OOD_MAPPINGS.items()
-
+        elif self.origin == 'eICU':
+            return ood_utils.EICU_OOD_MAPPINGS.items()
