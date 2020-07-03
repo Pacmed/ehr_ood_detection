@@ -2,17 +2,12 @@ import os
 import pickle
 import numpy as np
 from tqdm import tqdm
-from sklearn.decomposition import PCA
-from sklearn import svm
 from copy import deepcopy
 import argparse
 
 import uncertainty_estimation.experiments_utils.ood_experiments_utils as ood_utils
-from uncertainty_estimation.models.novelty_estimator_wrapper import NoveltyEstimator
-from uncertainty_estimation.models.nn_ensemble import NNEnsemble
+from uncertainty_estimation.experiments_utils.models_to_use import get_models_to_use
 from uncertainty_estimation.experiments_utils.datahandler import DataHandler
-from uncertainty_estimation.models.autoencoder import AE
-from uncertainty_estimation.models.mlp import MLP
 
 SCALES = [10, 100, 1000, 10000]
 N_FEATURES = 100
@@ -72,53 +67,7 @@ if __name__ == '__main__':
     train_data, test_data, val_data = dh.load_train_test_val()
     y_name = dh.load_target_name()
 
-    # The models we use to estimate novelty
-    pca = NoveltyEstimator(PCA, dict(n_components=2), {}, 'sklearn')
-    svm = NoveltyEstimator(svm.OneClassSVM, {}, {}, 'sklearn')
-
-    nn_model_params = {'hidden_sizes': [50, 50],
-                       'dropout_rate': 0.0,
-                       'input_size': len(feature_names),
-                       'batch_norm': False,
-                       'lr': 1e-3,
-                       'class_weight': False}
-
-    # larger model because of dropout
-    mc_dropout_model_params = {'hidden_sizes': [100, 100],
-                               'dropout_rate': 0.5,
-                               'input_size': len(feature_names),
-                               'batch_norm': False,
-                               'lr': 1e-3,
-                               'class_weight': False}
-
-    nn_train_params = {'batch_size': 256,
-                       'early_stopping': True,
-                       'early_stopping_patience': 3,
-                       'n_epochs': 40}
-
-    nn_ensemble = NoveltyEstimator(NNEnsemble, {'n_models': 10,
-                                                'model_params': nn_model_params},
-                                   train_params=nn_train_params,
-                                   method_name='NNEnsemble')
-
-    ae = NoveltyEstimator(AE, dict(
-        input_dim=len(feature_names),
-        hidden_dims=[30],
-        latent_dim=20,
-        batch_size=256,
-        learning_rate=0.0001), dict(n_epochs=50), 'AE')
-
-    single_nn = NoveltyEstimator(MLP, model_params=nn_model_params,
-                                 train_params=nn_train_params, method_name='NN')
-
-    mc_dropout = NoveltyEstimator(MLP, model_params=mc_dropout_model_params,
-                                  train_params=nn_train_params, method_name='MCDropout')
-
-    for ne, kinds, name in [(nn_ensemble, ('std', 'entropy'), 'NN ensemble'),
-                            (pca, [None], 'PCA'),
-                            (ae, [None], 'AE'),
-                            (single_nn, [None], 'Single NN'),
-                            (mc_dropout, ['std', 'entropy'], 'MC Dropout')]:
+    for ne, kinds, name in get_models_to_use(len(feature_names)):
         print(name)
         nov_an = ood_utils.NoveltyAnalyzer(ne, train_data[feature_names].values,
                                            test_data[feature_names].values,

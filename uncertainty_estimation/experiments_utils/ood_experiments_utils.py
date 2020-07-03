@@ -71,7 +71,6 @@ class NoveltyAnalyzer:
         if self.new_test:
             # check whether the novelty on the test set is already calculated
             self.id_novelty = self.ne.get_novelty_score(self.X_test, kind=kind)
-            self.new_test = False
         self.ood_novelty = self.ne.get_novelty_score(self.X_ood, kind=kind)
 
     def get_ood_detection_auc(self):
