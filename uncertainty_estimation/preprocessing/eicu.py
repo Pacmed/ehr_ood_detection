@@ -9,7 +9,6 @@ Afterwards, the information is processed akin to the MIMIC-III data set as descr
 """
 
 # TODO: Fix current script and extend for newborns
-#   - Retrieve data from stay directories instead of all_data.csv
 #   - Throw out measurements in weird ranges
 #   - Separate data for newborns in a new df and write separately
 #   - Drop misc outcome and misc gender
@@ -43,15 +42,15 @@ TIME_SERIES_VARS = [
 ADMISSION_VARS = ["emergency", "elective"]
 
 
-def engineer_features(data_path: str, patient_path: str, diagnoses_path: str, phenotypes_path: str) -> pd.DataFrame:
+def engineer_features(stays_dir: str, patient_path: str, diagnoses_path: str, phenotypes_path: str) -> pd.DataFrame:
 	"""
 	Take the eICU data set and engineer features. This includes multiple time series features as well as features
 	used to identify artificial OOD groups later.
 
 	Parameters
 	----------
-	data_path: str
-		Path to all_data.csv file.
+	stays_dir: str
+		Path to directory with all the patient stay folder, including three files each: pat.csv / nc.csv / lab.csv.
 	patient_path: str
 		Path to patient.csv file.
 	diagnoses_path: str
@@ -64,9 +63,12 @@ def engineer_features(data_path: str, patient_path: str, diagnoses_path: str, ph
 	engineered_data: pd.DataFrame
 		Data for every patient stay with new, engineered features.
 	"""
-	all_data = read_all_data(data_path)
+	stay_folders = {
+		int(stay_id): os.path.join(stays_dir, stay_id)
+		for stay_id in os.listdir(stays_dir) if not stay_id.endswith(".csv")
+	}
+
 	patient_data = read_patients_file(patient_path)
-	all_data = filter_data(all_data, patient_data)
 	diagnoses_data = read_diagnoses_file(diagnoses_path)
 	phenotypes2icd9 = read_phenotypes_file(phenotypes_path)
 
@@ -75,12 +77,19 @@ def engineer_features(data_path: str, patient_path: str, diagnoses_path: str, ph
 	)
 	engineered_data = engineered_data.set_index("patientunitstayid")
 
-	for stay_id in tqdm(all_data["patientunitstayid"].unique()):
+	for stay_id, stay_path in tqdm(stay_folders.items()):
+
+		# TODO: Re-add filtering
+
+		pat_data = read_patient_file(os.path.join(stay_path, "pats.csv"))
+		nc_data = read_stay_data_file(os.path.join(stay_path, "nc.csv"))
+		lab_data = read_stay_data_file(os.path.join(stay_path, "lab.csv"))
+		stay_data = pd.concat([nc_data, lab_data])
 
 		# TODO: Add check for newborns here
 
 		# 1. Add all static features to the new table
-		engineered_data.loc[stay_id] = all_data[all_data["patientunitstayid"] == stay_id][STATIC_VARS].iloc[0]
+		engineered_data.loc[stay_id] = pat_data[STATIC_VARS].iloc[0]
 
 		# 2. Get features for all time series variables
 		for var_name in TIME_SERIES_VARS:
@@ -88,6 +97,8 @@ def engineer_features(data_path: str, patient_path: str, diagnoses_path: str, ph
 				(all_data["patientunitstayid"] == stay_id) &    # Only use data corresponding to current stay
 				(all_data["itemoffset"] / 60 <= 48)             # Only use data up to 48 hours after admission
 			][var_name]
+
+			# TODO: Throw out weird values
 
 			time_series_features = get_time_series_features(time_series, var_name)
 
@@ -275,6 +286,52 @@ def read_all_data(data_path: str) -> pd.DataFrame:
 	)
 
 
+def read_patient_file(patient_path: str) -> pd.DataFrame:
+	"""
+	Path to pats.csv file, containing information about the patient of a stay.
+
+	Parameters
+	----------
+	patient_path: str
+		Path to pats.csv file.
+
+	Returns
+	-------
+	patient_data: pd.DataFrame
+		Information about the current patient as a DataFrame.
+	"""
+	return pd.read_csv(
+		patient_path,
+		dtype={
+			"patientunitstayid": int, "gender": int, "age": int, "ethnicity": int, "apacheadmissiondx": int,
+			"admissionheight": float, "hospitaladmitoffset": int, "admissionweight": float,
+			"hospitaldischargestatus": int, "unitdischargeoffset": int, "unitdischargestatus": int
+		}
+	)
+
+
+def read_stay_data_file(data_path: str) -> pd.DataFrame:
+	"""
+	Read a data file corresponding to a patient's stay. This can be either the nursing chart file (nc.csv) or the lab
+	data file (lab.csv).
+
+	Parameters
+	----------
+	data_path: str
+		Path to nursing chart file.
+
+	Returns
+	-------
+	data: pd.DataFrame
+		Data from nursing chart or lab.
+	"""
+	data = pd.read_csv(
+		data_path, dtype={"patientunitstayid": int, "itemoffset": int, "itemname": str, "itemvalue": float}
+	)
+	
+	return data
+
+
 def read_patients_file(patient_path: str) -> pd.DataFrame:
 	"""
 	Read the original eICU patient.csv file.
@@ -343,7 +400,7 @@ def read_phenotypes_file(phenotypes_path: str) -> Dict[str, List[str]]:
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
-	parser.add_argument("--data_path", "-i", type=str, required=True, help="Directory with patients stays.")
+	parser.add_argument("--stays_dir", "-i", type=str, required=True, help="Directory with patient stay folders.")
 	parser.add_argument("--patient_path", "-p", type=str, required=True, help="Path to patient.csv file.")
 	parser.add_argument("--diagnoses_path", "-d", type=str, required=True, help="Path to diagnosis.csv file.")
 	parser.add_argument("--phenotypes_path", "-c", type=str, required=True, help="Path to phenotypes ICD9 file.")
@@ -351,6 +408,6 @@ if __name__ == "__main__":
 
 	args = parser.parse_args()
 	
-	engineered_data = engineer_features(args.data_path, args.patient_path, args.diagnoses_path, args.phenotypes_path)
+	engineered_data = engineer_features(args.stays_dir, args.patient_path, args.diagnoses_path, args.phenotypes_path)
 
 	engineered_data.to_csv(os.path.join(args.output_dir, "final_data.csv"))
