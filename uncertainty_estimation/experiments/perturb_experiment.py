@@ -57,7 +57,7 @@ def run_perturbation_experiment(nov_an: ood_utils.NoveltyAnalyzer, X_test: np.nd
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_origin',
-                        type=str, default='eICU',
+                        type=str, default='MIMIC',
                         help="Which data to use")
     args = parser.parse_args()
 

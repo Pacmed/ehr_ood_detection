@@ -26,7 +26,7 @@ def get_models_to_use(input_dim):
     nn_train_params = {'batch_size': 256,
                        'early_stopping': True,
                        'early_stopping_patience': 3,
-                       'n_epochs': 40}
+                       'n_epochs': 100}
 
     nn_ensemble = NoveltyEstimator(NNEnsemble, {'n_models': 10,
                                                 'model_params': nn_model_params},
@@ -46,8 +46,8 @@ def get_models_to_use(input_dim):
     mc_dropout = NoveltyEstimator(MLP, model_params=mc_dropout_model_params,
                                   train_params=nn_train_params, method_name='MCDropout')
     return [
-        (single_nn, [None], 'Single_NN'),
-        (mc_dropout, ['std', 'entropy'], 'MC_Dropout'),
+        #(single_nn, [None], 'Single_NN'),
+        #(mc_dropout, ['std', 'entropy'], 'MC_Dropout'),
         (nn_ensemble, ('std', 'entropy'), 'NN_Ensemble'),
         (pca, [None], 'PCA'),
         (ae, [None], 'AE'),

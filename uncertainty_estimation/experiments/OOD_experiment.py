@@ -11,7 +11,7 @@ from uncertainty_estimation.experiments_utils.datahandler import DataHandler
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_origin',
-                        type=str, default='eICU',
+                        type=str, default='MIMIC',
                         help="Which data to use")
     args = parser.parse_args()
 
