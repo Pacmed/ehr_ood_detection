@@ -9,6 +9,7 @@ from .metrics import ood_detection_auc
 import uncertainty_estimation.experiments_utils.metrics as metrics
 
 METRICS_TO_USE = [metrics.ece, metrics.roc_auc_score, metrics.accuracy, metrics.brier_score_loss]
+N_SEEDS = 5
 
 
 def run_ood_experiment_on_group(train_non_ood, test_non_ood, val_non_ood,
@@ -27,20 +28,26 @@ def run_ood_experiment_on_group(train_non_ood, test_non_ood, val_non_ood,
                              test_non_ood[y_name].values,
                              val_non_ood[y_name].values,
                              impute_and_scale=impute_and_scale)
-    nov_an.train()
-    nov_an.set_ood(all_ood[feature_names], impute_and_scale=True)
     for kind in kinds:
-        nov_an.calculate_novelty(kind=kind)
-        ood_detect_aucs[kind][ood_name] = nov_an.get_ood_detection_auc()
-        ood_recall[kind][ood_name] = nov_an.get_ood_recall()
+        ood_detect_aucs[kind][ood_name] = []
+        ood_recall[kind][ood_name] = []
+    for metric in METRICS_TO_USE:
+        metrics[metric.__name__][ood_name] = []
+    for i in range(N_SEEDS):
+        nov_an.train()
+        nov_an.set_ood(all_ood[feature_names], impute_and_scale=True)
+        for kind in kinds:
+            nov_an.calculate_novelty(kind=kind)
+            ood_detect_aucs[kind][ood_name] += [nov_an.get_ood_detection_auc()]
+            ood_recall[kind][ood_name] += [nov_an.get_ood_recall()]
 
-    if method_name in ['Single_NN', 'NN_Ensemble', 'MC_Dropout']:
-        y_pred = nov_an.ne.model.predict_proba(nov_an.X_ood)[:, 1]
-        for metric in METRICS_TO_USE:
-            try:
-                metrics[metric.__name__][ood_name] = metric(all_ood[y_name].values, y_pred)
-            except ValueError:
-                print("Fraction of positives:", all_ood[y_name].mean())
+        if method_name in ['Single_NN', 'NN_Ensemble', 'MC_Dropout']:
+            y_pred = nov_an.ne.model.predict_proba(nov_an.X_ood)[:, 1]
+            for metric in METRICS_TO_USE:
+                try:
+                    metrics[metric.__name__][ood_name] += [metric(all_ood[y_name].values, y_pred)]
+                except ValueError:
+                    print("Fraction of positives:", all_ood[y_name].mean())
     return ood_detect_aucs, ood_recall, metrics
 
 
@@ -73,6 +80,7 @@ class NoveltyAnalyzer:
         self.y_test = y_test
         self.y_val = y_val
         self.new_test = True
+        self.ood = False
         self.impute_and_scale = impute_and_scale
         if self.impute_and_scale:
             self._impute_and_scale()
@@ -85,14 +93,14 @@ class NoveltyAnalyzer:
         self.pipe.fit(self.X_train)
         self.X_train = self.pipe.transform(self.X_train)
         self.X_test = self.pipe.transform(self.X_test)
-        if self.ne.model_type == 'NN':
-            self.X_val = self.pipe.transform(self.X_val)
+        self.X_val = self.pipe.transform(self.X_val)
 
     def set_ood(self, new_X_ood, impute_and_scale=True):
         if impute_and_scale:
             self.X_ood = self.pipe.transform(new_X_ood)
         else:
             self.X_ood = new_X_ood
+        self.ood = True
 
     def set_test(self, new_test_data):
         if self.impute_and_scale:
@@ -107,7 +115,8 @@ class NoveltyAnalyzer:
         if self.new_test:
             # check whether the novelty on the test set is already calculated
             self.id_novelty = self.ne.get_novelty_score(self.X_test, kind=kind)
-        self.ood_novelty = self.ne.get_novelty_score(self.X_ood, kind=kind)
+        if self.ood:
+            self.ood_novelty = self.ne.get_novelty_score(self.X_ood, kind=kind)
 
     def get_ood_detection_auc(self):
         """Calculate the OOD detection AUC based on the novelty scores on OOD and i.d. test data.
@@ -206,7 +215,7 @@ MIMIC_OOD_MAPPINGS = {'Emergency/\nUrgent admissions': ('ADMISSION_TYPE', 'EMERG
 
 EICU_OOD_MAPPINGS = {
     # "Emergency/\nUrgent admissions": ("emergency", True),
-    #"Elective admissions": ("elective", True),
+    # "Elective admissions": ("elective", True),
     "Ethnicity: Black/African American": ("ethnicity", 2),
     "Ethnicity: White": ("ethnicity", 1),
     "Female": ("gender", 1),
