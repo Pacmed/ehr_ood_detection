@@ -86,7 +86,7 @@ def engineer_features(stays_dir: str, patient_path: str, diagnoses_path: str, ph
 		for stay_id in os.listdir(stays_dir) if not stay_id.endswith(".csv")
 	}
 
-	patient_data = read_patients_file(patient_path)
+	all_patients_data = read_patients_file(patient_path)
 	diagnoses_data = read_diagnoses_file(diagnoses_path)
 	phenotypes2icd9 = read_phenotypes_file(phenotypes_path)
 
@@ -96,16 +96,29 @@ def engineer_features(stays_dir: str, patient_path: str, diagnoses_path: str, ph
 	engineered_data = engineered_data.set_index("patientunitstayid")
 
 	# Counter to keep track which stays were filtered for which reason
+	num_short_icu_stays = 0
+	num_icu_transfers = 0
 	num_insufficient_data = 0
 
 	for stay_id, stay_path in tqdm(stay_folders.items()):
 
-		# TODO: Re-add filtering
-
+		# Read data for that stay
 		pat_data = read_patient_file(os.path.join(stay_path, "pats.csv"))
 		nc_data = read_stay_data_file(os.path.join(stay_path, "nc.csv"))
 		lab_data = read_stay_data_file(os.path.join(stay_path, "lab.csv"))
 		stay_data = pd.concat([nc_data, lab_data])
+		del nc_data, lab_data
+
+		# Add general filtering
+		# Filter patients with ICU stays shorter than 48 hours
+		if is_short_stay(pat_data):
+			num_short_icu_stays += 1
+			continue
+
+		# Filter patients transferred from other ICUs
+		if is_icu_transfer(all_patients_data, stay_id):
+			num_icu_transfers += 1
+			continue
 
 		# TODO: Add check for newborns here
 
@@ -130,13 +143,14 @@ def engineer_features(stays_dir: str, patient_path: str, diagnoses_path: str, ph
 
 		# Filter if there are no measurements left
 		if len(stay_data) == 0:
-			engineered_data.drop(stay_id)
+			engineered_data.drop(stay_id, inplace=True)
 			num_insufficient_data += 1
 			continue
 
 		for var_name in TIME_SERIES_VARS:
 
-			time_series_features = get_time_series_features(time_series[var_name], var_name)
+			time_series = stay_data[stay_data["itemname"] == var_name]["itemvalue"]
+			time_series_features = get_time_series_features(time_series, var_name)
 
 			# Add missing columns if necessary
 			if all([feat not in engineered_data.columns for feat in time_series_features]):
@@ -162,7 +176,7 @@ def engineer_features(stays_dir: str, patient_path: str, diagnoses_path: str, ph
 
 		# 4. Get admission features
 		# Check whether admission was an emergency admission
-		admit_sources = patient_data[patient_data["patienthealthsystemstayid"] == stay_id]["hospitaladmitsource"]
+		admit_sources = all_patients_data[all_patients_data["patienthealthsystemstayid"] == stay_id]["hospitaladmitsource"]
 
 		if len(admit_sources) == 0:
 			engineered_data.loc[stay_id]["emergency"] = engineered_data.loc[stay_id]["elective"] = 0
@@ -178,39 +192,50 @@ def engineer_features(stays_dir: str, patient_path: str, diagnoses_path: str, ph
 	return engineered_data
 
 
-def filter_data(all_data: pd.DataFrame, patient_data: pd.DataFrame) -> pd.DataFrame:
+def is_short_stay(pat_data: pd.DataFrame, hour_threshold: int = 48) -> bool:
 	"""
-	Filter data by the following criteria:
-		* Filter out stays that were shorter than 48 hours
-		* Filter out stays where patients came from other ICUs
+	Check whether the ICU stay of a patient is too short to be considered useful for the experiments.
 
 	Parameters
 	----------
-	all_data: pd.DataFrame
-		DataFrame containing all the data.
-	patient_data: pd.DataFrame
-		Data about admitted patients.
+	pat_data: pd.DataFrame
+		Data with patient information for a certain stay.
+	hour_threshold: int
+		Minimum length of ICU stay for the sample to be considered.
 
 	Returns
 	-------
-	all_data: pd.DataFrame
-		Filtered data.
+	res: bool
+		Result of check.
 	"""
-	data_size = len(all_data)
+	return pat_data["unitdischargeoffset"].iloc[0] / 60 <= hour_threshold
 
-	# Filter patients with ICU stays shorter than 48 hours
-	all_data = all_data[all_data["unitdischargeoffset"] / 60 <= 48]
-	print(f"{data_size - len(all_data)} data points filtered out due to being too short.")
-	data_size = len(all_data)
 
-	# Filter patients transferred from other ICUs
-	all_data = all_data[
-		(patient_data.lookup(all_data["patientunitstayid"], ["unitadmitsource"] * data_size) != "Other ICU") &
-		(patient_data.lookup(all_data["patientunitstayid"], ["unitadmitsource"] * data_size) != "ICU")
+def is_icu_transfer(all_patients_data: pd.DataFrame, stay_id: int) -> bool:
+	"""
+	Check whether a patient came from another ICU.
+
+	Parameters
+	----------
+	all_patients_data: pd.DataFrame
+		DataFrame containing all patient data.
+	stay_id: int
+		ID of the current hospital stay.
+
+	Returns
+	-------
+	res: bool
+		Result of check.
+	"""
+	matches = all_patients_data[
+		all_patients_data["patienthealthsystemstayid"] == stay_id
 	]
-	print(f"{data_size - len(all_data)} data points filtered out that were transfers from other ICUs.")
 
-	return all_data
+	# No data available
+	if len(matches) == 0:
+		return False
+
+	return matches["hospitaladmitsource"].iloc[0] in ("Other ICU", "ICU")
 
 
 def parse_icd9code(raw_icd9code: str) -> str:
