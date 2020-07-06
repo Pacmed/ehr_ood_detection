@@ -9,7 +9,6 @@ Afterwards, the information is processed akin to the MIMIC-III data set as descr
 """
 
 # TODO: Fix current script and extend for newborns
-#   - Throw out measurements in weird ranges
 #   - Separate data for newborns in a new df and write separately
 #   - Drop misc outcome and misc gender
 
@@ -40,6 +39,25 @@ TIME_SERIES_VARS = [
 ]
 
 ADMISSION_VARS = ["emergency", "elective"]
+
+VAR_RANGES = {
+	"Eyes": (0, 5),
+	"GCS Total": (2, 16),
+	"Heart Rate": (0, 350),
+	"Motor": (0, 6),
+	"Invasive BP Diastolic": (0, 375),
+	"Invasive BP Systolic": (0, 375),
+	"MAP (mmHg)": (14, 330),
+	"Verbal": (1, 5),
+	# "admissionheight": (100, 240),
+	# "admissionweight": (30, 250),
+	"glucose": (33, 1200),
+	"pH": (6.3, 10),
+	"FiO2": (15, 110),
+	"O2 Saturation": (0, 100),
+	"Respiratory Rate": (0, 100),
+	"Temperature (C)": (26, 45)
+}
 
 
 def engineer_features(stays_dir: str, patient_path: str, diagnoses_path: str, phenotypes_path: str) -> pd.DataFrame:
@@ -77,6 +95,9 @@ def engineer_features(stays_dir: str, patient_path: str, diagnoses_path: str, ph
 	)
 	engineered_data = engineered_data.set_index("patientunitstayid")
 
+	# Counter to keep track which stays were filtered for which reason
+	num_insufficient_data = 0
+
 	for stay_id, stay_path in tqdm(stay_folders.items()):
 
 		# TODO: Re-add filtering
@@ -92,15 +113,30 @@ def engineer_features(stays_dir: str, patient_path: str, diagnoses_path: str, ph
 		engineered_data.loc[stay_id] = pat_data[STATIC_VARS].iloc[0]
 
 		# 2. Get features for all time series variables
+		# Filter by timing
+		stay_data = stay_data[
+			(stay_data["patientunitstayid"] == stay_id) &  # Only use data corresponding to current stay
+			(stay_data["itemoffset"] / 60 <= 48)  # Only use data up to 48 hours after admission
+		]
+
+		# Filter by plausibility of values
+		# For every measurement, retrieve the upper and lower bound of values for that variable and compare
+		stay_data = stay_data[
+			# Lower bound
+			(stay_data["itemname"].apply(lambda item: VAR_RANGES.__getitem__(item)[0]) <= stay_data["itemvalue"]) &
+			# Upper bound
+			(stay_data["itemvalue"] <= stay_data["itemname"].apply(lambda item: VAR_RANGES.__getitem__(item)[1]))
+		]
+
+		# Filter if there are no measurements left
+		if len(stay_data) == 0:
+			engineered_data.drop(stay_id)
+			num_insufficient_data += 1
+			continue
+
 		for var_name in TIME_SERIES_VARS:
-			time_series = all_data[
-				(all_data["patientunitstayid"] == stay_id) &    # Only use data corresponding to current stay
-				(all_data["itemoffset"] / 60 <= 48)             # Only use data up to 48 hours after admission
-			][var_name]
 
-			# TODO: Throw out weird values
-
-			time_series_features = get_time_series_features(time_series, var_name)
+			time_series_features = get_time_series_features(time_series[var_name], var_name)
 
 			# Add missing columns if necessary
 			if all([feat not in engineered_data.columns for feat in time_series_features]):
@@ -238,52 +274,6 @@ def get_time_series_features(time_series: pd.Series, var_name: str) -> TimeSerie
 	}
 
 	return features
-
-
-def read_all_data(data_path: str) -> pd.DataFrame:
-	"""
-	Read the bundled patient stay data.
-
-	Parameters
-	----------
-	data_path: str
-		Path to all_data.csv file.
-
-	Returns
-	-------
-	all_data: pd.DataFrame
-		All data read into a DataFrame.
-	"""
-	return pd.read_csv(
-		data_path, dtype={
-			"Eyes": float,
-			"FiO2": float,
-			"GCS Total": float,
-			"Heart Rate": float,
-			"Invasive BP Diastolic": float,
-			"Invasive BP Systolic": float,
-			"MAP (mmHg)": float,
-			"Motor": float,
-			"O2 Saturation": float,
-			"Respiratory Rate": float,
-			"Temperature (C)": float,
-			"Verbal": float,
-			"admissionheight": float,
-			"admissionweight": float,
-			"age": int,
-			"apacheadmissiondx": int,
-			"ethnicity": int,
-			"gender": int,
-			"glucose": float,
-			"hospitaladmissionoffset": int,
-			"hospitaldischargestatus": int,
-			"itemoffset": int,
-			"pH": float,
-			"patientunitstayid": int,
-			"unitdischargeoffset": int,
-			"unitdischargestatus": int
-		}
-	)
 
 
 def read_patient_file(patient_path: str) -> pd.DataFrame:
