@@ -8,15 +8,11 @@ Afterwards, the information is processed akin to the MIMIC-III data set as descr
 
 """
 
-# TODO: Fix current script and extend for newborns
-#   - Separate data for newborns in a new df and write separately
-#   - Drop misc outcome and misc gender
-
 # STD
 import argparse
 import itertools
 import os
-from typing import Dict, Union, List
+from typing import Dict, Union, List, Tuple
 
 # EXT
 import numpy as np
@@ -40,7 +36,12 @@ TIME_SERIES_VARS = [
 
 ADMISSION_VARS = ["emergency", "elective"]
 
-VAR_RANGES = {
+GENDER_MAPPINGS = {
+	1: 0,   # Female
+	2: 1    # Male
+}
+
+VAR_RANGES_NEWBORNS = {
 	"Eyes": (0, 5),
 	"GCS Total": (2, 16),
 	"Heart Rate": (0, 350),
@@ -49,8 +50,6 @@ VAR_RANGES = {
 	"Invasive BP Systolic": (0, 375),
 	"MAP (mmHg)": (14, 330),
 	"Verbal": (1, 5),
-	# "admissionheight": (100, 240),
-	# "admissionweight": (30, 250),
 	"glucose": (33, 1200),
 	"pH": (6.3, 10),
 	"FiO2": (15, 110),
@@ -58,9 +57,14 @@ VAR_RANGES = {
 	"Respiratory Rate": (0, 100),
 	"Temperature (C)": (26, 45)
 }
+VAR_RANGES_ADULTS = dict(VAR_RANGES_NEWBORNS)
+# Exclude these features for newborns
+VAR_RANGES_ADULTS["admissionheight"] = (100, 240)
+VAR_RANGES_ADULTS["admissionweight"] = (30, 250)
 
 
-def engineer_features(stays_dir: str, patient_path: str, diagnoses_path: str, phenotypes_path: str) -> pd.DataFrame:
+def engineer_features(stays_dir: str, patient_path: str, diagnoses_path: str, phenotypes_path: str) -> Tuple[
+	pd.DataFrame, pd.DataFrame]:
 	"""
 	Take the eICU data set and engineer features. This includes multiple time series features as well as features
 	used to identify artificial OOD groups later.
@@ -78,8 +82,8 @@ def engineer_features(stays_dir: str, patient_path: str, diagnoses_path: str, ph
 
 	Returns
 	-------
-	engineered_data: pd.DataFrame
-		Data for every patient stay with new, engineered features.
+	(adult_data, newborn_data): Tuple[pd.DataFrame, pd.DataFrame]
+		Data for every patient stay with new, engineered features, separated into DataFrames for adults and newborns.
 	"""
 	stay_folders = {
 		int(stay_id): os.path.join(stays_dir, stay_id)
@@ -90,15 +94,16 @@ def engineer_features(stays_dir: str, patient_path: str, diagnoses_path: str, ph
 	diagnoses_data = read_diagnoses_file(diagnoses_path)
 	phenotypes2icd9 = read_phenotypes_file(phenotypes_path)
 
-	engineered_data = pd.DataFrame(
-		columns=["patientunitstayid"] + STATIC_VARS + ADMISSION_VARS + list(phenotypes2icd9.keys())
-	)
-	engineered_data = engineered_data.set_index("patientunitstayid")
+	# Create final data frames
+	adult_data = create_stay_dataframe(phenotypes2icd9)
+	newborn_data = create_stay_dataframe(phenotypes2icd9)
 
 	# Counter to keep track which stays were filtered for which reason
 	num_short_icu_stays = 0
 	num_icu_transfers = 0
 	num_insufficient_data = 0
+	num_misc_gender = 0
+	num_misc_outcome = 0
 
 	for stay_id, stay_path in tqdm(stay_folders.items()):
 
@@ -120,10 +125,23 @@ def engineer_features(stays_dir: str, patient_path: str, diagnoses_path: str, ph
 			num_icu_transfers += 1
 			continue
 
-		# TODO: Add check for newborns here
+		# Filter patients with misc. / unknown gender
+		if pat_data["gender"].iloc[0] == 0:
+			num_misc_gender += 1
+			continue
+
+		# Filter patients with unknown outcome
+		if pat_data["hospitaldischargestatus"].iloc[0] == 2:
+			num_misc_outcome += 1
+			continue
+
+		# Determine whether current stay belongs to an adult or newborn
+		target_data = adult_data if is_adult(pat_data) else newborn_data
+		var_ranges = VAR_RANGES_ADULTS if is_adult(pat_data) else VAR_RANGES_NEWBORNS
 
 		# 1. Add all static features to the new table
-		engineered_data.loc[stay_id] = pat_data[STATIC_VARS].iloc[0]
+		pat_data["gender"] = pat_data["gender"].apply(GENDER_MAPPINGS.__getitem__)  # Map to more sensible gender value
+		target_data.loc[stay_id] = pat_data[STATIC_VARS].iloc[0]
 
 		# 2. Get features for all time series variables
 		# Filter by timing
@@ -136,14 +154,14 @@ def engineer_features(stays_dir: str, patient_path: str, diagnoses_path: str, ph
 		# For every measurement, retrieve the upper and lower bound of values for that variable and compare
 		stay_data = stay_data[
 			# Lower bound
-			(stay_data["itemname"].apply(lambda item: VAR_RANGES.__getitem__(item)[0]) <= stay_data["itemvalue"]) &
+			(stay_data["itemname"].apply(lambda item: var_ranges.__getitem__(item)[0]) <= stay_data["itemvalue"]) &
 			# Upper bound
-			(stay_data["itemvalue"] <= stay_data["itemname"].apply(lambda item: VAR_RANGES.__getitem__(item)[1]))
+			(stay_data["itemvalue"] <= stay_data["itemname"].apply(lambda item: var_ranges.__getitem__(item)[1]))
 		]
 
 		# Filter if there are no measurements left
 		if len(stay_data) == 0:
-			engineered_data.drop(stay_id, inplace=True)
+			target_data.drop(stay_id, inplace=True)
 			num_insufficient_data += 1
 			continue
 
@@ -153,13 +171,13 @@ def engineer_features(stays_dir: str, patient_path: str, diagnoses_path: str, ph
 			time_series_features = get_time_series_features(time_series, var_name)
 
 			# Add missing columns if necessary
-			if all([feat not in engineered_data.columns for feat in time_series_features]):
+			if all([feat not in target_data.columns for feat in time_series_features]):
 				for new_column in time_series_features.keys():
-					engineered_data[new_column] = np.nan
+					target_data[new_column] = np.nan
 
 			# Add time series features
 			for feat, val in time_series_features.items():
-				engineered_data.loc[stay_id][feat] = val
+				target_data.loc[stay_id][feat] = val
 
 		# 3. Get phenotype features
 		diagnoses = diagnoses_data[
@@ -172,41 +190,68 @@ def engineer_features(stays_dir: str, patient_path: str, diagnoses_path: str, ph
 			# Check whether there is any overlap in the ICD9 codes corresponding to the diagnoses given during the stay
 			# and the codes belonging to the current phenotype
 			codes = set(phenotype_info["codes"])
-			engineered_data.loc[stay_id][phenotype] = int(len(diagnoses & codes) > 0)
+			target_data.loc[stay_id][phenotype] = int(len(diagnoses & codes) > 0)
 
 		# 4. Get admission features
 		# Check whether admission was an emergency admission
-		admit_sources = all_patients_data[all_patients_data["patienthealthsystemstayid"] == stay_id]["hospitaladmitsource"]
+		admit_sources = all_patients_data[
+			all_patients_data["patienthealthsystemstayid"] == stay_id
+		]["hospitaladmitsource"]
 
 		if len(admit_sources) == 0:
-			engineered_data.loc[stay_id]["emergency"] = engineered_data.loc[stay_id]["elective"] = 0
+			target_data.loc[stay_id]["emergency"] = target_data.loc[stay_id]["elective"] = 0
 
 		else:
 			# Assumption: Admission from the emergency department imply emergency admissions
-			engineered_data.loc[stay_id]["emergency"] = int(admit_sources.iloc[0] == "Emergency Department")
+			target_data.loc[stay_id]["emergency"] = int(admit_sources.iloc[0] == "Emergency Department")
 
 			# Check whether admission was an elective admission
 			# Assumption: Admission from recovery room or post-anesthesiology-care-unit imply an elective admission
-			engineered_data.loc[stay_id]["elective"] = int(admit_sources.iloc[0] in ("Recovery Room", "PACU"))
+			target_data.loc[stay_id]["elective"] = int(admit_sources.iloc[0] in ("Recovery Room", "PACU"))
 
-	return engineered_data
+	print(f"Final data set contains {len(adult_data)} stays for adult patients.")
+	print(f"Final data set contains {len(newborn_data)} stays for newborns.")
+	print(f"{num_short_icu_stays} stays were filtered out for being too short.")
+	print(f"{num_icu_transfers} stays were filtered out for being transfers from other ICUs.")
+	print(f"{num_insufficient_data} stays were filtered out because there weren't enough measurements available.")
+	print(f"{num_misc_gender} stays were filtered out because patients had misc / unknown gender.")
+	print(f"{num_misc_outcome} stays were filtered out because the outcome was unknown.")
+
+	return adult_data, newborn_data
+
+
+def create_stay_dataframe(phenotypes2icd9: Dict[str, List[str]]) -> pd.DataFrame:
+	"""
+	Create final DataFrame for stay.
+
+	Parameters
+	----------
+	phenotypes2icd9: Dict[str, List[str]]
+		Dictionary mapping phenotypes to their corresponding ICD9 codes.
+
+	Returns
+	-------
+	data: pd.DataFrame
+		DataFrame for stay data.
+	"""
+	data = pd.DataFrame(
+		columns=["patientunitstayid"] + STATIC_VARS + ADMISSION_VARS + list(phenotypes2icd9.keys())
+	)
+	data = data.set_index("patientunitstayid")
+
+	return data
+
+
+def is_adult(pat_data: pd.DataFrame) -> bool:
+	"""
+	Check whether a patient is an adult.
+	"""
+	return pat_data["age"].iloc[0] >= 18
 
 
 def is_short_stay(pat_data: pd.DataFrame, hour_threshold: int = 48) -> bool:
 	"""
 	Check whether the ICU stay of a patient is too short to be considered useful for the experiments.
-
-	Parameters
-	----------
-	pat_data: pd.DataFrame
-		Data with patient information for a certain stay.
-	hour_threshold: int
-		Minimum length of ICU stay for the sample to be considered.
-
-	Returns
-	-------
-	res: bool
-		Result of check.
 	"""
 	return pat_data["unitdischargeoffset"].iloc[0] / 60 <= hour_threshold
 
@@ -214,18 +259,6 @@ def is_short_stay(pat_data: pd.DataFrame, hour_threshold: int = 48) -> bool:
 def is_icu_transfer(all_patients_data: pd.DataFrame, stay_id: int) -> bool:
 	"""
 	Check whether a patient came from another ICU.
-
-	Parameters
-	----------
-	all_patients_data: pd.DataFrame
-		DataFrame containing all patient data.
-	stay_id: int
-		ID of the current hospital stay.
-
-	Returns
-	-------
-	res: bool
-		Result of check.
 	"""
 	matches = all_patients_data[
 		all_patients_data["patienthealthsystemstayid"] == stay_id
@@ -423,6 +456,9 @@ if __name__ == "__main__":
 
 	args = parser.parse_args()
 	
-	engineered_data = engineer_features(args.stays_dir, args.patient_path, args.diagnoses_path, args.phenotypes_path)
+	adult_data, newborn_data = engineer_features(
+		args.stays_dir, args.patient_path, args.diagnoses_path, args.phenotypes_path
+	)
 
-	engineered_data.to_csv(os.path.join(args.output_dir, "final_data.csv"))
+	adult_data.to_csv(os.path.join(args.output_dir, "adult_data.csv"))
+	newborn_data.to_csv(os.path.join(args.output_dir, "newborn_data.csv"))
