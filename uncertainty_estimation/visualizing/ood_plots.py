@@ -32,7 +32,7 @@ def boxplot_from_nested_listdict(nested_dict, name, hline=None, vline=None, xlim
                                  ylim=(0.0, 1.0),
                                  x_name='scale',
                                  horizontal=False,
-                                 save_dir=None, kind='box', **kwargs):
+                                 save_dir=None, kind='box', legend_args={}, **kwargs):
     sns.set_palette("Set1", 10)
     sns.set_style('whitegrid')
     df = pd.DataFrame.from_dict(nested_dict,
@@ -44,9 +44,11 @@ def boxplot_from_nested_listdict(nested_dict, name, hline=None, vline=None, xlim
     if horizontal:
         sns.catplot(x=name, y=x_name, hue='', data=df, kind=kind,
                     facet_kws=dict(despine=False), legend_out=False, **kwargs)
+        plt.legend(**legend_args)
     else:
         sns.catplot(x=x_name, y=name, hue='', data=df, kind=kind,
                     facet_kws=dict(despine=False), legend_out=False, **kwargs)
+        plt.legend(**legend_args)
     plt.ylim(ylim)
     plt.xlim(xlim)
     if hline:

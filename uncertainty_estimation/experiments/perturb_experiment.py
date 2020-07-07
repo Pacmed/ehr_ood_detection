@@ -4,6 +4,7 @@ import numpy as np
 from tqdm import tqdm
 from copy import deepcopy
 import argparse
+import torch
 
 import uncertainty_estimation.experiments_utils.ood_experiments_utils as ood_utils
 from uncertainty_estimation.experiments_utils.models_to_use import get_models_to_use
@@ -55,9 +56,11 @@ def run_perturbation_experiment(nov_an: ood_utils.NoveltyAnalyzer, X_test: np.nd
 
 
 if __name__ == '__main__':
+    np.random.seed(123)
+    torch.manual_seed(123)
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_origin',
-                        type=str, default='MIMIC',
+                        type=str, default='eICU',
                         help="Which data to use")
     args = parser.parse_args()
 

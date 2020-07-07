@@ -6,11 +6,15 @@ from sklearn import pipeline
 from sklearn.preprocessing import StandardScaler
 from uncertainty_estimation.experiments_utils.models_to_use import get_models_to_use
 from uncertainty_estimation.experiments_utils.datahandler import DataHandler
+import numpy as np
+import torch
 
 if __name__ == '__main__':
+    np.random.seed(123)
+    torch.manual_seed(123)
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_origin',
-                        type=str, default='MIMIC',
+                        type=str, default='eICU',
                         help="Which data to use")
     args = parser.parse_args()
 
@@ -30,6 +34,7 @@ if __name__ == '__main__':
 
     uncertainties = dict()
     for ne, kinds, method_name in get_models_to_use(len(feature_names)):
+        print(method_name)
         ne.train(X_train, train_data[y_name].values, X_val, val_data[y_name].values)
         for kind in kinds:
             uncertainties[kind] = ne.get_novelty_score(X_test, kind=kind)
