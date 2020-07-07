@@ -42,6 +42,7 @@ GENDER_MAPPINGS = {
 }
 
 VAR_RANGES_NEWBORNS = {
+	# GCS for newborns
 	"Eyes": (0, 5),
 	"GCS Total": (2, 16),
 	"Heart Rate": (0, 350),
@@ -52,7 +53,7 @@ VAR_RANGES_NEWBORNS = {
 	"Verbal": (1, 5),
 	"glucose": (33, 1200),
 	"pH": (6.3, 10),
-	"FiO2": (15, 110),
+	"FiO2": (15, 100),
 	"O2 Saturation": (0, 100),
 	"Respiratory Rate": (0, 100),
 	"Temperature (C)": (26, 45)
