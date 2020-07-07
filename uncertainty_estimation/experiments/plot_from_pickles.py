@@ -3,9 +3,7 @@ import uncertainty_estimation.visualizing.ood_plots as ood_plots
 import uncertainty_estimation.visualizing.confidence_performance_plots as cp
 import uncertainty_estimation.experiments_utils.metrics as metrics
 import pickle
-import seaborn as sns
 from collections import defaultdict
-import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
@@ -52,8 +50,6 @@ def plot_ood_from_pickle(data_origin):
 
     name_dict = {'ece': 'ECE', 'roc_auc_score': 'ROC-AUC', 'accuracy': 'accuracy',
                  'brier_score_loss': 'Brier score'}
-    # lim_dict = {'ece': (0, 0.25), 'roc_auc_score': (0.5, 1.0), 'accuracy': (0.5, 1.1),
-    #             'brier_score_loss': (0.0, 0.2)}
 
     for m in metric_dict.keys():
         ood_plots.boxplot_from_nested_listdict(metric_dict[m], name=name_dict[m.split('.')[0]],
@@ -95,12 +91,68 @@ def plot_perturbation_from_pickle(data_origin):
                                            xlim=None, showfliers=False)
 
 
+def confidence_performance_from_pickle(data_origin):
+    id_dir_name = os.path.join('pickled_results', data_origin, 'ID')
+    id_plot_dir_name = os.path.join('plots', data_origin, 'ID')
+    predictions, uncertainties = defaultdict(list), defaultdict(list)
+
+    with open(os.path.join(id_dir_name, 'y_test.pkl'), 'rb') as f:
+        y_test = pickle.load(f)
+
+    bootstrapped_idxs = [np.random.randint(0, len(y_test) - 1, len(y_test)) for _ in range(5)]
+    for method in os.listdir(id_dir_name):
+        if method != 'y_test.pkl':
+            method_dir = os.path.join(id_dir_name, method)
+            uncertainties_dir = os.path.join(method_dir, 'uncertainties')
+            predictions_dir = os.path.join(method_dir, 'predictions')
+            for kind in os.listdir(uncertainties_dir):
+                if kind == 'None.pkl':
+                    name = method.replace('_', ' ')
+                else:
+                    name = method.replace('_', ' ') + ' (' + kind.split('.')[0] + ')'
+
+                for idxs in bootstrapped_idxs:
+                    try:
+                        with open(os.path.join(predictions_dir, 'predictions.pkl'), 'rb') as f:
+                            predictions[name] += [pickle.load(f)[idxs]]
+                        with open(os.path.join(uncertainties_dir, kind), 'rb') as f:
+                            uncertainties[name] += [pickle.load(f)[idxs]]
+                    except FileNotFoundError:
+                        # for novelty detection, there are no predictions
+                        pass
+
+    y_tests = [y_test[idx] for idx in bootstrapped_idxs]
+
+    metrics_to_use = dict([('AUC-ROC', metrics.roc_auc_score),
+                           ('ECE', metrics.ece),
+                           ('Fraction of positives', metrics.average_y),
+                           ('Brier score', metrics.brier_score_loss),
+                           ('accuracy', metrics.accuracy)])
+    step_size = int(len(y_test) / 10)
+
+    analyzer = cp.UncertaintyAnalyzer(y_tests,
+                                      predictions,
+                                      uncertainties,
+                                      metrics_to_use.values(),
+                                      min_size=step_size * 2 - 1,
+                                      step_size=step_size,
+                                      )
+    for metric_pretty_name, metric in metrics_to_use.items():
+        plt.figure(figsize=(6, 6))
+        analyzer.plot_incremental_metric(metric.__name__, title='')
+        plt.ylabel(metric_pretty_name)
+        plt.tight_layout()
+        plt.savefig(os.path.join(id_plot_dir_name, metric_pretty_name+".png"), dpi=300,
+                    bbox_inches='tight', pad=0)
+        plt.close()
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_origin',
                         type=str, default='MIMIC',
                         help="Which data to use")
     args = parser.parse_args()
-
     plot_ood_from_pickle(data_origin=args.data_origin)
     plot_perturbation_from_pickle(data_origin=args.data_origin)
+    confidence_performance_from_pickle(data_origin=args.data_origin)
