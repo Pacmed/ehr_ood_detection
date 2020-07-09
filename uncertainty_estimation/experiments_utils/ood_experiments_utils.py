@@ -41,7 +41,7 @@ def run_ood_experiment_on_group(train_non_ood, test_non_ood, val_non_ood,
             ood_detect_aucs[kind][ood_name] += [nov_an.get_ood_detection_auc()]
             ood_recall[kind][ood_name] += [nov_an.get_ood_recall()]
 
-        if method_name in ['Single_NN', 'NN_Ensemble', 'MC_Dropout']:
+        if method_name in ['Single_NN', 'NN_Ensemble', 'MC_Dropout', 'NN_Ensemble_bootstrapped']:
             y_pred = nov_an.ne.model.predict_proba(nov_an.X_ood)[:, 1]
             for metric in METRICS_TO_USE:
                 try:
