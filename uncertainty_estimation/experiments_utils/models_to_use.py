@@ -33,6 +33,12 @@ def get_models_to_use(input_dim):
                                    train_params=nn_train_params,
                                    method_name='NNEnsemble')
 
+    nn_ensemble_bootstrapped = NoveltyEstimator(NNEnsemble, {'n_models': 10,
+                                                             'bootstrap': True,
+                                                             'model_params': nn_model_params},
+                                                train_params=nn_train_params,
+                                                method_name='NNEnsemble')
+
     ae = NoveltyEstimator(AE, dict(
         input_dim=input_dim,
         hidden_dims=[30],
@@ -49,6 +55,7 @@ def get_models_to_use(input_dim):
         (single_nn, [None], 'Single_NN'),
         (mc_dropout, ['std', 'entropy'], 'MC_Dropout'),
         (nn_ensemble, ('std', 'entropy'), 'NN_Ensemble'),
-        (pca, [None], 'PCA'),
+        (nn_ensemble_bootstrapped, ('std', 'entropy'), 'NN_Ensemble_bootstrapped'),
+        (pca, [None], 'PPCA'),
         (ae, [None], 'AE'),
     ]

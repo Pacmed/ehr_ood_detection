@@ -14,13 +14,16 @@ class NNEnsemble:
         The model parameters, see class MLP.
     """
 
-    def __init__(self, n_models: int, model_params: dict):
+    def __init__(self, n_models: int, model_params: dict, bootstrap: bool = False,
+                 bootstrap_fraction: float = 1):
+        self.bootstrap = bootstrap
+        self.bootstrap_fraction = bootstrap_fraction
         self.n_models = n_models
         self.model_params = model_params
         self.models = dict()
 
     def train(self, X_train: np.ndarray, y_train: np.ndarray, X_val: np.ndarray, y_val: np.ndarray,
-              training_params: dict, bootstrap: bool = False, bootstrap_fraction: float = 1):
+              training_params: dict ):
         """Train all MLPs on the training data.
 
         Parameters
@@ -43,8 +46,8 @@ class NNEnsemble:
         """
         for i in range(self.n_models):
             mlp = MLP(**self.model_params)
-            if bootstrap:
-                bootstrap_size = int(len(X_train)*bootstrap_fraction)
+            if self.bootstrap:
+                bootstrap_size = int(len(X_train) * self.bootstrap_fraction)
                 idx_sample = np.random.random_integers(low=0, high=len(X_train) - 1,
                                                        size=bootstrap_size)
                 X_sample = X_train[idx_sample]
