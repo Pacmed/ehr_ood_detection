@@ -200,14 +200,14 @@ def engineer_features(stays_dir: str, patient_path: str, diagnoses_path: str, ph
 		# Check whether admission was an emergency admission
 		elective_surgery = apachepredvar_data[
 			apachepredvar_data["patientunitstayid"] == stay_id
-		]["electivesurgery"].iloc[0]
+		]["electivesurgery"]
 
-		if pd.isna(elective_surgery):
+		if len(elective_surgery) == 0 or pd.isna(elective_surgery.iloc[0]):
 			target_data.loc[stay_id]["emergency"] = target_data.loc[stay_id]["elective"] = 0
 
 		else:
-			target_data.loc[stay_id]["emergency"] = int(not bool(elective_surgery))
-			target_data.loc[stay_id]["elective"] = int(elective_surgery)
+			target_data.loc[stay_id]["emergency"] = int(not bool(elective_surgery.iloc[0]))
+			target_data.loc[stay_id]["elective"] = int(elective_surgery.iloc[0])
 			...
 
 	print(f"Final data set contains {len(adult_data)} stays for adult patients.")
