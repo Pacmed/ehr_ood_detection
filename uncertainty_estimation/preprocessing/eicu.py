@@ -312,9 +312,9 @@ def get_time_series_features(time_series: pd.Series, var_name: str) -> TimeSerie
 	feature_funcs = {
 		"min": lambda series: series.min(),
 		"max": lambda series: series.max(),
-		"mean": lambda series: series.mean(),
-		"std": lambda series: series.std(),
-		"skew": lambda series: skew(series),
+		"mean": lambda series: series.mean() if len(series) > 0 else 0,
+		"std": lambda series: series.std() if len(series) > 1 else 0,
+		"skew": lambda series: skew(series) if len(series) > 1 else 0,
 		"num": lambda series: len(series)
 	}
 	series_slices = {
