@@ -41,7 +41,7 @@ GENDER_MAPPINGS = {
 	2: 1  # Male
 }
 
-VAR_RANGES_NEWBORNS = {
+COMMON_VAR_RANGES = {
 	"Heart Rate": (0, 350),
 	"Invasive BP Diastolic": (0, 375),
 	"Invasive BP Systolic": (0, 375),
@@ -51,8 +51,20 @@ VAR_RANGES_NEWBORNS = {
 	"FiO2": (15, 100),
 	"O2 Saturation": (0, 100),
 	"Respiratory Rate": (0, 100),
-	"Temperature (C)": (26, 45)
+	"Temperature (C)": (26, 45),
 }
+
+VAR_RANGES_NEWBORNS = {
+	"Eyes": (0, 5),
+	"GCS Total": (0, 16),
+	"Motor": (0, 6),
+	"Verbal": (0, 5),
+	"admissionheight": (0, 100),
+	"admissionweight": (0, 25)
+}
+VAR_RANGES_NEWBORNS.update(COMMON_VAR_RANGES)
+
+
 VAR_RANGES_ADULTS = {
 	"Eyes": (0, 5),
 	"GCS Total": (2, 16),
@@ -61,7 +73,7 @@ VAR_RANGES_ADULTS = {
 	"admissionheight": (100, 240),
 	"admissionweight": (30, 250)
 }
-VAR_RANGES_ADULTS.update(VAR_RANGES_NEWBORNS)
+VAR_RANGES_ADULTS.update(COMMON_VAR_RANGES)
 
 
 def engineer_features(stays_dir: str, patient_path: str, diagnoses_path: str, phenotypes_path: str,
@@ -130,7 +142,7 @@ def engineer_features(stays_dir: str, patient_path: str, diagnoses_path: str, ph
 			continue
 
 		# Filter patients with misc. / unknown gender
-		if pat_data["gender"].iloc[0] == 0:
+		if pat_data["gender"].iloc[0] in (0, np.NaN):
 			num_misc_gender += 1
 			continue
 
@@ -153,6 +165,12 @@ def engineer_features(stays_dir: str, patient_path: str, diagnoses_path: str, ph
 			(stay_data["patientunitstayid"] == stay_id) &  # Only use data corresponding to current stay
 			(stay_data["itemoffset"] / 60 <= 48)  # Only use data up to 48 hours after admission
 		]
+
+		# Replace GCS values for newborns
+		for gsc_score in ["Motor", "Eyes", "GCS Total", "Verbal"]:
+			stay_data[
+				(stay_data["itemname"] == gsc_score) & (stay_data["itemvalue"] == -1)
+			]["itemvalue"] = 0
 
 		# Filter by plausibility of values
 		# For every measurement, retrieve the upper and lower bound of values for that variable and compare
