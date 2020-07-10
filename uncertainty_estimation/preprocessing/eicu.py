@@ -37,20 +37,15 @@ TIME_SERIES_VARS = [
 ADMISSION_VARS = ["emergency", "elective"]
 
 GENDER_MAPPINGS = {
-	1: 0,   # Female
-	2: 1    # Male
+	1: 0,  # Female
+	2: 1  # Male
 }
 
 VAR_RANGES_NEWBORNS = {
-	# GCS for newborns
-	"Eyes": (0, 5),
-	"GCS Total": (2, 16),
 	"Heart Rate": (0, 350),
-	"Motor": (0, 6),
 	"Invasive BP Diastolic": (0, 375),
 	"Invasive BP Systolic": (0, 375),
 	"MAP (mmHg)": (14, 330),
-	"Verbal": (1, 5),
 	"glucose": (33, 1200),
 	"pH": (6.3, 10),
 	"FiO2": (15, 100),
@@ -58,14 +53,19 @@ VAR_RANGES_NEWBORNS = {
 	"Respiratory Rate": (0, 100),
 	"Temperature (C)": (26, 45)
 }
-VAR_RANGES_ADULTS = dict(VAR_RANGES_NEWBORNS)
-# Exclude these features for newborns
-VAR_RANGES_ADULTS["admissionheight"] = (100, 240)
-VAR_RANGES_ADULTS["admissionweight"] = (30, 250)
+VAR_RANGES_ADULTS = {
+	"Eyes": (0, 5),
+	"GCS Total": (2, 16),
+	"Motor": (0, 6),
+	"Verbal": (1, 5),
+	"admissionheight": (100, 240),
+	"admissionweight": (30, 250)
+}
+VAR_RANGES_ADULTS.update(VAR_RANGES_NEWBORNS)
 
 
-def engineer_features(stays_dir: str, patient_path: str, diagnoses_path: str, phenotypes_path: str) -> Tuple[
-	pd.DataFrame, pd.DataFrame]:
+def engineer_features(stays_dir: str, patient_path: str, diagnoses_path: str, phenotypes_path: str,
+                      apachepredvar_path: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
 	"""
 	Take the eICU data set and engineer features. This includes multiple time series features as well as features
 	used to identify artificial OOD groups later.
@@ -80,6 +80,8 @@ def engineer_features(stays_dir: str, patient_path: str, diagnoses_path: str, ph
 		Path to (original) diagnosis.csv file.
 	phenotypes_path: str
 		Path to ICD9 phenotypes file.
+	apachepredvar_path: str
+		Path to apachePredVar.csv file.
 
 	Returns
 	-------
@@ -94,6 +96,7 @@ def engineer_features(stays_dir: str, patient_path: str, diagnoses_path: str, ph
 	all_patients_data = read_patients_file(patient_path)
 	diagnoses_data = read_diagnoses_file(diagnoses_path)
 	phenotypes2icd9 = read_phenotypes_file(phenotypes_path)
+	apachepredvar_data = pd.read_csv(apachepredvar_path)
 
 	# Create final data frames
 	adult_data = create_stay_dataframe(phenotypes2icd9)
@@ -195,20 +198,17 @@ def engineer_features(stays_dir: str, patient_path: str, diagnoses_path: str, ph
 
 		# 4. Get admission features
 		# Check whether admission was an emergency admission
-		admit_sources = all_patients_data[
-			all_patients_data["patienthealthsystemstayid"] == stay_id
-		]["hospitaladmitsource"]
+		elective_surgery = apachepredvar_data[
+			apachepredvar_data["patientunitstayid"] == stay_id
+		]["electivesurgery"].iloc[0]
 
-		if len(admit_sources) == 0:
+		if pd.isna(elective_surgery):
 			target_data.loc[stay_id]["emergency"] = target_data.loc[stay_id]["elective"] = 0
 
 		else:
-			# Assumption: Admission from the emergency department imply emergency admissions
-			target_data.loc[stay_id]["emergency"] = int(admit_sources.iloc[0] == "Emergency Department")
-
-			# Check whether admission was an elective admission
-			# Assumption: Admission from recovery room or post-anesthesiology-care-unit imply an elective admission
-			target_data.loc[stay_id]["elective"] = int(admit_sources.iloc[0] in ("Recovery Room", "PACU"))
+			target_data.loc[stay_id]["emergency"] = int(not bool(elective_surgery))
+			target_data.loc[stay_id]["elective"] = int(elective_surgery)
+			...
 
 	print(f"Final data set contains {len(adult_data)} stays for adult patients.")
 	print(f"Final data set contains {len(newborn_data)} stays for newborns.")
@@ -377,7 +377,7 @@ def read_stay_data_file(data_path: str) -> pd.DataFrame:
 	data = pd.read_csv(
 		data_path, dtype={"patientunitstayid": int, "itemoffset": int, "itemname": str, "itemvalue": float}
 	)
-	
+
 	return data
 
 
@@ -453,12 +453,13 @@ if __name__ == "__main__":
 	parser.add_argument("--patient_path", "-p", type=str, required=True, help="Path to patient.csv file.")
 	parser.add_argument("--diagnoses_path", "-d", type=str, required=True, help="Path to diagnosis.csv file.")
 	parser.add_argument("--phenotypes_path", "-c", type=str, required=True, help="Path to phenotypes ICD9 file.")
-	parser.add_argument("--output_dir", "-o", type=str, required=True, help="Output directory for resulting dataframe.")
+	parser.add_argument("--apachepredvar_path", "-a", type=str, required=True, help="Path to apachePredVar.csv.")
+	parser.add_argument("--output_dir", "-o", type=str, required=True, help="Output directory for resulting DataFrame.")
 
 	args = parser.parse_args()
-	
+
 	adult_data, newborn_data = engineer_features(
-		args.stays_dir, args.patient_path, args.diagnoses_path, args.phenotypes_path
+		args.stays_dir, args.patient_path, args.diagnoses_path, args.phenotypes_path, args.apachepredvar_path
 	)
 
 	adult_data.to_csv(os.path.join(args.output_dir, "adult_data.csv"))
