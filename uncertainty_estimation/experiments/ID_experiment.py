@@ -54,7 +54,7 @@ if __name__ == '__main__':
             with open(os.path.join(uncertainties_dir_name, str(kind) + '.pkl'), 'wb') as f:
                 pickle.dump(uncertainties[kind], f)
 
-        if method_name in ['Single_NN', 'NN_Ensemble', 'MC_Dropout']:
+        if method_name in ['Single_NN', 'NN_Ensemble', 'MC_Dropout', 'NN_Ensemble__bootstrapped']:
             predictions = ne.model.predict_proba(X_test)[:, 1]
             with open(os.path.join(predictions_dir_name, 'predictions.pkl'), 'wb') as f:
                 pickle.dump(predictions, f)
