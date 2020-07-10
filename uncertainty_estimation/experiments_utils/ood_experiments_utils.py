@@ -5,12 +5,97 @@ import pandas as pd
 from sklearn.impute import SimpleImputer
 from sklearn import pipeline
 from sklearn.preprocessing import StandardScaler
+from sklearn.impute import SimpleImputer
+from sklearn.metrics import roc_auc_score
+
 from .metrics import ood_detection_auc
 import uncertainty_estimation.experiments_utils.metrics as metrics
+
+from typing import Tuple
+
+# CONST
+# I commented out groups that are too small
+MIMIC_OOD_MAPPINGS = {
+    'Emergency/\nUrgent admissions': ('ADMISSION_TYPE', 'EMERGENCY'),
+    'Elective admissions': ('ADMISSION_TYPE', 'ELECTIVE'),
+    # 'Ethnicity: Asian': ('Ethnicity', 1)
+    'Ethnicity: Black/African American': ('Ethnicity', 2),
+    # 'Ethnicity: Hispanic/Latino': ('Ethnicity', 3),
+    'Ethnicity: White': ('Ethnicity', 4),
+    'Female': ('GENDER', 'F'),
+    'Male': ('GENDER', 'M'),
+    'Thyroid disorders': ('Thyroid disorders', True),
+    'Acute and unspecified renal failure': ('Acute and unspecified renal failure', True),
+    # 'Pancreatic disorders \n(not diabetes)': (
+    # 'Pancreatic disorders (not diabetes)', True),
+    'Epilepsy; convulsions': ('Epilepsy; convulsions', True),
+    'Hypertension with complications \n and secondary hypertension': (
+        'Hypertension with complications and secondary hypertension', True
+    )
+}
+
+EICU_OOD_MAPPINGS = {
+    "Emergency/\nUrgent admissions": ("emergency", True),
+    "Elective admissions": ("elective", True),
+    "Ethnicity: Black/African American": ("ethnicity", 2),
+    "Ethnicity: White": ("ethnicity", 3),
+    "Female": ("gender", 0),
+    "Male": ("gender", 1),
+    "Thyroid disorders": ("Thyroid disorders", True),
+    "Acute and unspecified renal failure": ("Acute and unspecified renal failure", True),
+    "Epilepsy; convulsions": ('Epilepsy; convulsions', True),
+    "Hypertension with complications \n and secondary hypertension": (
+        "Hypertension with complications and secondary hypertension", True
+    )
+}
 
 METRICS_TO_USE = [metrics.ece, metrics.roc_auc_score, metrics.accuracy, metrics.brier_score_loss]
 N_SEEDS = 5
 
+
+
+def barplot_from_nested_dict(nested_dict: dict, xlim: Tuple[float, float],
+                             figsize: Tuple[float, float], title: str, save_dir: str,
+                             nested_std_dict: dict = None,
+                             remove_yticks: bool = False, legend: bool = True):
+    """Plot and save a grouped barplot from a nested dictionary.
+
+    Parameters
+    ----------
+    nested_dict: dict
+        The data represented in a nested dictionary.
+    nested_std_dict: dict
+        The standard deviations, also in a nested dictionary, to be used as error bars.
+    xlim: Tuple[float, float]
+        The limits on the x-axis to use.
+    figsize: Tuple[float, float]
+        The figure size to use.
+    title: str
+        The title of the plot.
+    save_dir: str
+        Where to save the file.
+    remove_yticks: bool
+        Whether to remove the yticks.
+    """
+    sns.set_palette("Set1", 10)
+    sns.set_style('whitegrid')
+    df = pd.DataFrame.from_dict(nested_dict,
+                                orient='index').iloc[::-1]
+    if nested_std_dict:
+        std_df = pd.DataFrame.from_dict(nested_std_dict,
+                                        orient='index')  # .iloc[::-1]
+        df.plot(kind='barh', alpha=0.9, xerr=std_df, figsize=figsize, fontsize=12,
+                title=title, xlim=xlim, legend=False)
+    else:
+        df.plot(kind='barh', alpha=0.9, figsize=figsize, fontsize=12,
+                title=title, xlim=xlim, legend=False)
+    if legend:
+        plt.legend(loc='lower right')
+    if remove_yticks:
+        plt.yticks([], [])
+    plt.savefig(save_dir, dpi=300,
+                bbox_inches='tight', pad=0)
+    plt.close()
 
 def run_ood_experiment_on_group(train_non_ood, test_non_ood, val_non_ood,
                                 train_ood, test_ood, val_ood, feature_names,
@@ -193,37 +278,3 @@ def split_by_ood_name(df: pd.DataFrame, ood_name: str, ood_value):
     ood_df = df[df[ood_name] == ood_value]
     non_ood_df = df[~(df[ood_name] == ood_value)]
     return ood_df, non_ood_df
-
-
-# I commented out groups that are too small
-MIMIC_OOD_MAPPINGS = {'Emergency/\nUrgent admissions': ('ADMISSION_TYPE', 'EMERGENCY'),
-                      'Elective admissions': ('ADMISSION_TYPE', 'ELECTIVE'),
-                      # 'Ethnicity: Asian': ('Ethnicity', 1)
-                      'Ethnicity: Black/African American': ('Ethnicity', 2),
-                      # 'Ethnicity: Hispanic/Latino': ('Ethnicity', 3),
-                      'Ethnicity: White': ('Ethnicity', 4),
-                      'Female': ('GENDER', 'F'),
-                      'Male': ('GENDER', 'M'),
-                      'Thyroid disorders': ('Thyroid disorders', True),
-                      'Acute and unspecified renal failure': (
-                          'Acute and unspecified renal failure', True),
-                      # 'Pancreatic disorders \n(not diabetes)': (
-                      # 'Pancreatic disorders (not diabetes)', True),
-                      'Epilepsy; convulsions': ('Epilepsy; convulsions', True),
-                      'Hypertension with complications \n and secondary hypertension': (
-                          'Hypertension with complications and secondary hypertension', True)}
-
-EICU_OOD_MAPPINGS = {
-    # "Emergency/\nUrgent admissions": ("emergency", True),
-    # "Elective admissions": ("elective", True),
-    "Ethnicity: Black/African American": ("ethnicity", 2),
-    "Ethnicity: White": ("ethnicity", 1),
-    "Female": ("gender", 0),
-    "Male": ("gender", 1),
-    "Thyroid disorders": ("Thyroid disorders", True),
-    "Acute and unspecified renal failure": ("Acute and unspecified renal failure", True),
-    "Epilepsy; convulsions": ('Epilepsy; convulsions', True),
-    "Hypertension with complications \n and secondary hypertension": (
-        "Hypertension with complications and secondary hypertension", True
-    )
-}
