@@ -11,7 +11,7 @@ from uncertainty_estimation.experiments_utils.datahandler import DataHandler
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_origin',
-                        type=str, default='eICU',
+                        type=str, default='MIMIC_with_indicators',
                         help="Which data to use")
     args = parser.parse_args()
 
@@ -20,7 +20,7 @@ if __name__ == '__main__':
     feature_names = dh.load_feature_names()
     train_data, test_data, val_data = dh.load_train_test_val()
     y_name = dh.load_target_name()
-    if args.data_origin == 'MIMIC':
+    if args.data_origin in ['MIMIC', 'MIMIC_with_indicators']:
         train_newborns, test_newborns, val_newborns = dh.load_newborns()
     ood_mappings = dh.load_ood_mappings()
 
@@ -30,7 +30,8 @@ if __name__ == '__main__':
         ood_detect_aucs, ood_recall = defaultdict(dict), defaultdict(dict)
         metrics = defaultdict(dict)
         # Experiments on Newborns, only on MIMIC for now
-        if args.data_origin == 'MIMIC':
+        if args.data_origin in ['MIMIC', 'MIMIC_with_indicators']:
+            print("Newborns")
             ood_detect_aucs, ood_recall, metrics = \
                 ood_utils.run_ood_experiment_on_group(
                     train_data,

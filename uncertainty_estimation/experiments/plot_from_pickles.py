@@ -27,7 +27,7 @@ def plot_ood_from_pickle(data_origin):
             with open(os.path.join(detection_dir, kind, 'recall.pkl'), 'rb') as f:
                 recall_dict[name] = pickle.load(f)
 
-        if method in ['Single_NN', 'MC_Dropout', 'NN_Ensemble']:
+        if method in ['Single_NN', 'MC_Dropout', 'NN_Ensemble', 'Bootstrapped_NN_Ensemble']:
             metrics_dir = os.path.join(method_dir, 'metrics')
             for metric in os.listdir(metrics_dir):
                 name = method.replace('_', ' ')
@@ -150,9 +150,9 @@ def confidence_performance_from_pickle(data_origin):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_origin',
-                        type=str, default='MIMIC',
+                        type=str, default='MIMIC_with_indicators',
                         help="Which data to use")
     args = parser.parse_args()
     plot_ood_from_pickle(data_origin=args.data_origin)
-    plot_perturbation_from_pickle(data_origin=args.data_origin)
-    confidence_performance_from_pickle(data_origin=args.data_origin)
+    #plot_perturbation_from_pickle(data_origin=args.data_origin)
+    #confidence_performance_from_pickle(data_origin=args.data_origin)
