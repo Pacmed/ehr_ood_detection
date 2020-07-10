@@ -67,7 +67,7 @@ class Decoder(nn.Module):
         else:
             for i in range(len(architecture) - 1):
                 self.layers.append(nn.Linear(architecture[i], architecture[i + 1]))
-                self.layers.append(nn.ReLU())
+                self.layers.append(nn.Sigmoid())
             self.layers.append(nn.Linear(architecture[-1], input_dim))
         self.decoder = nn.Sequential(*self.layers)
 
