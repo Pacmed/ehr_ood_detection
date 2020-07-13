@@ -2,36 +2,38 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
-from sklearn.impute import SimpleImputer
 from sklearn import pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer
-from sklearn.metrics import roc_auc_score
+from scipy.stats import kstest, chisquare
 
-from .metrics import ood_detection_auc
 import uncertainty_estimation.experiments_utils.metrics as metrics
 
-from typing import Tuple
+from typing import Tuple, List
 
 # CONST
 # I commented out groups that are too small
 MIMIC_OOD_MAPPINGS = {
-    'Emergency/\nUrgent admissions': ('ADMISSION_TYPE', 'EMERGENCY'),
-    'Elective admissions': ('ADMISSION_TYPE', 'ELECTIVE'),
+    "Emergency/\nUrgent admissions": ("ADMISSION_TYPE", "EMERGENCY"),
+    "Elective admissions": ("ADMISSION_TYPE", "ELECTIVE"),
     # 'Ethnicity: Asian': ('Ethnicity', 1)
-    'Ethnicity: Black/African American': ('Ethnicity', 2),
+    "Ethnicity: Black/African American": ("Ethnicity", 2),
     # 'Ethnicity: Hispanic/Latino': ('Ethnicity', 3),
-    'Ethnicity: White': ('Ethnicity', 4),
-    'Female': ('GENDER', 'F'),
-    'Male': ('GENDER', 'M'),
-    'Thyroid disorders': ('Thyroid disorders', True),
-    'Acute and unspecified renal failure': ('Acute and unspecified renal failure', True),
+    "Ethnicity: White": ("Ethnicity", 4),
+    "Female": ("GENDER", "F"),
+    "Male": ("GENDER", "M"),
+    "Thyroid disorders": ("Thyroid disorders", True),
+    "Acute and unspecified renal failure": (
+        "Acute and unspecified renal failure",
+        True,
+    ),
     # 'Pancreatic disorders \n(not diabetes)': (
     # 'Pancreatic disorders (not diabetes)', True),
-    'Epilepsy; convulsions': ('Epilepsy; convulsions', True),
-    'Hypertension with complications \n and secondary hypertension': (
-        'Hypertension with complications and secondary hypertension', True
-    )
+    "Epilepsy; convulsions": ("Epilepsy; convulsions", True),
+    "Hypertension with complications \n and secondary hypertension": (
+        "Hypertension with complications and secondary hypertension",
+        True,
+    ),
 }
 
 EICU_OOD_MAPPINGS = {
@@ -42,22 +44,36 @@ EICU_OOD_MAPPINGS = {
     "Female": ("gender", 0),
     "Male": ("gender", 1),
     "Thyroid disorders": ("Thyroid disorders", True),
-    "Acute and unspecified renal failure": ("Acute and unspecified renal failure", True),
-    "Epilepsy; convulsions": ('Epilepsy; convulsions', True),
+    "Acute and unspecified renal failure": (
+        "Acute and unspecified renal failure",
+        True,
+    ),
+    "Epilepsy; convulsions": ("Epilepsy; convulsions", True),
     "Hypertension with complications \n and secondary hypertension": (
-        "Hypertension with complications and secondary hypertension", True
-    )
+        "Hypertension with complications and secondary hypertension",
+        True,
+    ),
 }
 
-METRICS_TO_USE = [metrics.ece, metrics.roc_auc_score, metrics.accuracy, metrics.brier_score_loss]
+METRICS_TO_USE = [
+    metrics.ece,
+    metrics.roc_auc_score,
+    metrics.accuracy,
+    metrics.brier_score_loss,
+]
 N_SEEDS = 5
 
 
-
-def barplot_from_nested_dict(nested_dict: dict, xlim: Tuple[float, float],
-                             figsize: Tuple[float, float], title: str, save_dir: str,
-                             nested_std_dict: dict = None,
-                             remove_yticks: bool = False, legend: bool = True):
+def barplot_from_nested_dict(
+    nested_dict: dict,
+    xlim: Tuple[float, float],
+    figsize: Tuple[float, float],
+    title: str,
+    save_dir: str,
+    nested_std_dict: dict = None,
+    remove_yticks: bool = False,
+    legend: bool = True,
+):
     """Plot and save a grouped barplot from a nested dictionary.
 
     Parameters
@@ -78,41 +94,68 @@ def barplot_from_nested_dict(nested_dict: dict, xlim: Tuple[float, float],
         Whether to remove the yticks.
     """
     sns.set_palette("Set1", 10)
-    sns.set_style('whitegrid')
-    df = pd.DataFrame.from_dict(nested_dict,
-                                orient='index').iloc[::-1]
+    sns.set_style("whitegrid")
+    df = pd.DataFrame.from_dict(nested_dict, orient="index").iloc[::-1]
     if nested_std_dict:
-        std_df = pd.DataFrame.from_dict(nested_std_dict,
-                                        orient='index')  # .iloc[::-1]
-        df.plot(kind='barh', alpha=0.9, xerr=std_df, figsize=figsize, fontsize=12,
-                title=title, xlim=xlim, legend=False)
+        std_df = pd.DataFrame.from_dict(nested_std_dict, orient="index")  # .iloc[::-1]
+        df.plot(
+            kind="barh",
+            alpha=0.9,
+            xerr=std_df,
+            figsize=figsize,
+            fontsize=12,
+            title=title,
+            xlim=xlim,
+            legend=False,
+        )
     else:
-        df.plot(kind='barh', alpha=0.9, figsize=figsize, fontsize=12,
-                title=title, xlim=xlim, legend=False)
+        df.plot(
+            kind="barh",
+            alpha=0.9,
+            figsize=figsize,
+            fontsize=12,
+            title=title,
+            xlim=xlim,
+            legend=False,
+        )
     if legend:
-        plt.legend(loc='lower right')
+        plt.legend(loc="lower right")
     if remove_yticks:
         plt.yticks([], [])
-    plt.savefig(save_dir, dpi=300,
-                bbox_inches='tight', pad=0)
+    plt.savefig(save_dir, dpi=300, bbox_inches="tight", pad=0)
     plt.close()
 
-def run_ood_experiment_on_group(train_non_ood, test_non_ood, val_non_ood,
-                                train_ood, test_ood, val_ood, feature_names,
-                                y_name, ood_name, model_info,
-                                ood_detect_aucs, ood_recall, metrics,
-                                impute_and_scale=True):
+
+def run_ood_experiment_on_group(
+    train_non_ood,
+    test_non_ood,
+    val_non_ood,
+    train_ood,
+    test_ood,
+    val_ood,
+    feature_names,
+    y_name,
+    ood_name,
+    model_info,
+    ood_detect_aucs,
+    ood_recall,
+    metrics,
+    impute_and_scale=True,
+):
     ne, kinds, method_name = model_info
     all_ood = pd.concat([train_ood, test_ood, val_ood])
     print("Number of OOD:", len(all_ood))
     print("Fraction of positives:", all_ood[y_name].mean())
-    nov_an = NoveltyAnalyzer(ne, train_non_ood[feature_names].values,
-                             test_non_ood[feature_names].values,
-                             val_non_ood[feature_names].values,
-                             train_non_ood[y_name].values,
-                             test_non_ood[y_name].values,
-                             val_non_ood[y_name].values,
-                             impute_and_scale=impute_and_scale)
+    nov_an = NoveltyAnalyzer(
+        ne,
+        train_non_ood[feature_names].values,
+        test_non_ood[feature_names].values,
+        val_non_ood[feature_names].values,
+        train_non_ood[y_name].values,
+        test_non_ood[y_name].values,
+        val_non_ood[y_name].values,
+        impute_and_scale=impute_and_scale,
+    )
     for kind in kinds:
         ood_detect_aucs[kind][ood_name] = []
         ood_recall[kind][ood_name] = []
@@ -126,14 +169,91 @@ def run_ood_experiment_on_group(train_non_ood, test_non_ood, val_non_ood,
             ood_detect_aucs[kind][ood_name] += [nov_an.get_ood_detection_auc()]
             ood_recall[kind][ood_name] += [nov_an.get_ood_recall()]
 
-        if method_name in ['Single_NN', 'NN_Ensemble', 'MC_Dropout', 'NN_Ensemble_bootstrapped']:
+        if method_name in [
+            "Single_NN",
+            "NN_Ensemble",
+            "MC_Dropout",
+            "NN_Ensemble_bootstrapped",
+        ]:
             y_pred = nov_an.ne.model.predict_proba(nov_an.X_ood)[:, 1]
             for metric in METRICS_TO_USE:
                 try:
-                    metrics[metric.__name__][ood_name] += [metric(all_ood[y_name].values, y_pred)]
+                    metrics[metric.__name__][ood_name] += [
+                        metric(all_ood[y_name].values, y_pred)
+                    ]
                 except ValueError:
                     print("Fraction of positives:", all_ood[y_name].mean())
     return ood_detect_aucs, ood_recall, metrics
+
+
+def split_by_ood_name(df: pd.DataFrame, ood_name: str, ood_value):
+    """Split a dataframe by OOD column name and corresponding OOD value.
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        The dataframe to split.
+    ood_name: str
+        The OOD column name
+    ood_value: Union[int, str, bool]
+
+
+    Returns
+    -------
+    ood_df : pd.DataFrame
+        The part of the dataframe with the OOD value.
+    non_ood_df: pd.DataFrame
+        The part of the dataframe without the OOD value.
+    """
+    ood_df = df[df[ood_name] == ood_value]
+    non_ood_df = df[~(df[ood_name] == ood_value)]
+    return ood_df, non_ood_df
+
+
+def validate_ood_data(
+    X_train: np.array, y_train: np.array, X_ood: np.array, y_ood: np.array
+) -> Tuple[List[float], float]:
+    """
+    Validate OOD data by comparing it to the taining (in-domain) data. For data to be OOD be assume a covariate shift to
+    have taken place, i.e.
+
+    1. p(x) =/= q(x)
+    2. p(y|x) = q(y|x)
+
+    We validate 1. by employing a Kolmogorov-Smirnov test along the feature dimension, checking whether the values are
+    indeed coming from statistically different distributions. We check 2. by collecting the relative class frequencies
+    of both distribution and comparing them with a chi-square test.
+
+    Parameters
+    ----------
+    X_train: np.array
+        Training samples.
+    y_train: np.array
+        Training labels.
+    X_ood: np.array
+        OOD samples.
+    y_ood:
+        Labels of OOD samples.
+
+    Returns
+    -------
+    @TODO
+    """
+    # Perform Kolmogorov-Smirnov for every feature dimension
+    ks_p_values = [kstest(X_train[:, d], X_ood[:, d])[1] for d in X_train.shape[1]]
+    percentage_sig = np.mean(map(lambda p_val: int(p_val <= 0.05), ks_p_values))
+
+    # Perform chi-squared test
+    class_freqs_train = np.bincount(y_train)
+    class_freqs_ood = np.bincount(y_ood)
+    class_freqs_train /= class_freqs_train.sum()
+    class_freqs_ood /= class_freqs_ood.sum()
+    cs_p_value = chisquare(class_freqs_ood, class_freqs_train)[1]
+
+    print(f"{percentage_sig * 100:.2f} % of features were stat. sig. different.")
+    print(f"Chi-square p-value was {cs_p_value:.4f}")
+
+    return ks_p_values, cs_p_value
 
 
 class NoveltyAnalyzer:
@@ -153,10 +273,17 @@ class NoveltyAnalyzer:
         Whether to impute and scale the data before fitting the novelty estimator.
     """
 
-    def __init__(self, novelty_estimator, X_train, X_test, X_val=None,
-                 y_train=None, y_test=None,
-                 y_val=None,
-                 impute_and_scale=True):
+    def __init__(
+        self,
+        novelty_estimator,
+        X_train,
+        X_test,
+        X_val=None,
+        y_train=None,
+        y_test=None,
+        y_val=None,
+        impute_and_scale=True,
+    ):
         self.ne = novelty_estimator
         self.X_train = X_train
         self.X_test = X_test
@@ -172,8 +299,9 @@ class NoveltyAnalyzer:
 
     def _impute_and_scale(self):
         """Impute and scale, using the train data to fit the (mean) imputer and scaler."""
-        self.pipe = pipeline.Pipeline([('scaler', StandardScaler()),
-                                       ('imputer', SimpleImputer())])
+        self.pipe = pipeline.Pipeline(
+            [("scaler", StandardScaler()), ("imputer", SimpleImputer())]
+        )
 
         self.pipe.fit(self.X_train)
         self.X_train = self.pipe.transform(self.X_train)
@@ -211,7 +339,7 @@ class NoveltyAnalyzer:
         float:
             The OOD detection AUC.
         """
-        return ood_detection_auc(self.ood_novelty, self.id_novelty)
+        return metrics.ood_detection_auc(self.ood_novelty, self.id_novelty)
 
     def get_ood_recall(self, threshold_fraction=0.95):
         """Calculate the recalled fraction of OOD examples. Use the threshold_fraction to find
@@ -247,34 +375,12 @@ class NoveltyAnalyzer:
         min_quantile = min(self.ood_novelty.min(), self.id_novelty.min())
         max_quantile = np.quantile(self.ood_novelty, 0.98)
         sns.distplot(self.ood_novelty.clip(min_quantile, max_quantile), label=ood_name)
-        sns.distplot(self.id_novelty.clip(min_quantile, max_quantile), label='Regular test data')
+        sns.distplot(
+            self.id_novelty.clip(min_quantile, max_quantile), label="Regular test data"
+        )
         plt.legend()
-        plt.xlabel('Novelty score')
+        plt.xlabel("Novelty score")
         plt.xlim(min_quantile, max_quantile)
         if save_dir:
             plt.savefig(save_dir, dpi=100)
         plt.close()
-
-
-def split_by_ood_name(df: pd.DataFrame, ood_name: str, ood_value):
-    """Split a dataframe by OOD column name and corresponding OOD value.
-
-    Parameters
-    ----------
-    df: pd.DataFrame
-        The dataframe to split.
-    ood_name: str
-        The OOD column name
-    ood_value: Union[int, str, bool]
-
-
-    Returns
-    -------
-    ood_df : pd.DataFrame
-        The part of the dataframe with the OOD value.
-    non_ood_df: pd.DataFrame
-        The part of the dataframe without the OOD value.
-    """
-    ood_df = df[df[ood_name] == ood_value]
-    non_ood_df = df[~(df[ood_name] == ood_value)]
-    return ood_df, non_ood_df
