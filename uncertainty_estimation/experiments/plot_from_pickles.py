@@ -2,6 +2,7 @@ import os
 import uncertainty_estimation.visualizing.ood_plots as ood_plots
 import uncertainty_estimation.visualizing.confidence_performance_plots as cp
 import uncertainty_estimation.experiments_utils.metrics as metrics
+from uncertainty_estimation.experiments_utils.models_to_use import get_models_to_use
 import pickle
 from collections import defaultdict
 import matplotlib.pyplot as plt
@@ -14,7 +15,7 @@ def plot_ood_from_pickle(data_origin):
     ood_plot_dir_name = os.path.join('plots', data_origin, 'OOD')
     auc_dict, recall_dict = dict(), dict()
     metric_dict = defaultdict(dict)
-    for method in os.listdir(ood_dir_name):
+    for method in [m[2] for m in get_models_to_use(None)]:
         method_dir = os.path.join(ood_dir_name, method)
         detection_dir = os.path.join(method_dir, 'detection')
         for kind in os.listdir(detection_dir):
@@ -27,7 +28,7 @@ def plot_ood_from_pickle(data_origin):
             with open(os.path.join(detection_dir, kind, 'recall.pkl'), 'rb') as f:
                 recall_dict[name] = pickle.load(f)
 
-        if method in ['Single_NN', 'MC_Dropout', 'NN_Ensemble', 'Bootstrapped_NN_Ensemble']:
+        if method in ['Single_NN', 'MC_Dropout', 'NN_Ensemble', 'NN_Ensemble_bootstrapped']:
             metrics_dir = os.path.join(method_dir, 'metrics')
             for metric in os.listdir(metrics_dir):
                 name = method.replace('_', ' ')
@@ -35,17 +36,17 @@ def plot_ood_from_pickle(data_origin):
                     metric_dict[metric][name] = pickle.load(f)
 
     ood_plots.boxplot_from_nested_listdict(auc_dict, name='OOD detection AUC', kind='bar',
-                                           x_name=' ', horizontal=True, ylim=None,
+                                           x_name=' ', horizontal=True, ylim=None, legend_out=True,
                                            save_dir=os.path.join(ood_plot_dir_name,
                                                                  'ood_detection_auc.png'),
                                            height=6, aspect=1.5, vline=0.5)
 
-    ood_plots.boxplot_from_nested_listdict(recall_dict, name='OOD recall', kind='bar',
+    ood_plots.boxplot_from_nested_listdict(recall_dict, name='95% OOD recall', kind='bar',
                                            x_name=' ',
                                            save_dir=os.path.join(ood_plot_dir_name,
                                                                  'ood_recall.png'),
-                                           horizontal=True, ylim=None,
-                                           xlim=(0, 0.2),
+                                           horizontal=True, ylim=None, legend_out=True,
+                                           xlim=(0, 1.0),
                                            height=6, aspect=1.5, vline=0.05)
 
     name_dict = {'ece': 'ECE', 'roc_auc_score': 'ROC-AUC', 'accuracy': 'accuracy',
@@ -58,9 +59,9 @@ def plot_ood_from_pickle(data_origin):
                                                                      m.split('.')[0] + ".png"),
                                                horizontal=True,
                                                ylim=None, legend_args={'loc': 'upper right'},
+                                               legend_out=True,
                                                height=6, aspect=1.5,
-                                               xlim=None,
-                                               legend=False)
+                                               xlim=(0, 1.0))
 
 
 def plot_perturbation_from_pickle(data_origin):
@@ -150,7 +151,7 @@ def confidence_performance_from_pickle(data_origin):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_origin',
-                        type=str, default='MIMIC_with_indicators',
+                        type=str, default='MIMIC',
                         help="Which data to use")
     args = parser.parse_args()
     plot_ood_from_pickle(data_origin=args.data_origin)

@@ -16,18 +16,14 @@ from typing import Tuple
 # CONST
 # I commented out groups that are too small
 MIMIC_OOD_MAPPINGS = {
-    'Emergency/\nUrgent admissions': ('ADMISSION_TYPE', 'EMERGENCY'),
+    # 'Emergency/\nUrgent admissions': ('ADMISSION_TYPE', 'EMERGENCY'),
     'Elective admissions': ('ADMISSION_TYPE', 'ELECTIVE'),
-    # 'Ethnicity: Asian': ('Ethnicity', 1)
     'Ethnicity: Black/African American': ('Ethnicity', 2),
-    # 'Ethnicity: Hispanic/Latino': ('Ethnicity', 3),
     'Ethnicity: White': ('Ethnicity', 4),
     'Female': ('GENDER', 'F'),
     'Male': ('GENDER', 'M'),
     'Thyroid disorders': ('Thyroid disorders', True),
     'Acute and unspecified renal failure': ('Acute and unspecified renal failure', True),
-    # 'Pancreatic disorders \n(not diabetes)': (
-    # 'Pancreatic disorders (not diabetes)', True),
     'Epilepsy; convulsions': ('Epilepsy; convulsions', True),
     'Hypertension with complications \n and secondary hypertension': (
         'Hypertension with complications and secondary hypertension', True
@@ -35,8 +31,8 @@ MIMIC_OOD_MAPPINGS = {
 }
 
 EICU_OOD_MAPPINGS = {
-    "Emergency/\nUrgent admissions": ("emergency", True),
-    "Elective admissions": ("elective", True),
+    # "Emergency/\nUrgent admissions": ("emergency", 1),
+    'Elective admissions': ("elective", 1),
     "Ethnicity: Black/African American": ("ethnicity", 2),
     "Ethnicity: White": ("ethnicity", 3),
     "Female": ("gender", 0),
@@ -51,7 +47,6 @@ EICU_OOD_MAPPINGS = {
 
 METRICS_TO_USE = [metrics.ece, metrics.roc_auc_score, metrics.accuracy, metrics.brier_score_loss]
 N_SEEDS = 5
-
 
 
 def barplot_from_nested_dict(nested_dict: dict, xlim: Tuple[float, float],
@@ -96,6 +91,7 @@ def barplot_from_nested_dict(nested_dict: dict, xlim: Tuple[float, float],
     plt.savefig(save_dir, dpi=300,
                 bbox_inches='tight', pad=0)
     plt.close()
+
 
 def run_ood_experiment_on_group(train_non_ood, test_non_ood, val_non_ood,
                                 train_ood, test_ood, val_ood, feature_names,
@@ -203,7 +199,7 @@ class NoveltyAnalyzer:
         if self.ood:
             self.ood_novelty = self.ne.get_novelty_score(self.X_ood, kind=kind)
 
-    def get_ood_detection_auc(self):
+    def get_ood_detection_auc(self, balanced=False):
         """Calculate the OOD detection AUC based on the novelty scores on OOD and i.d. test data.
 
         Returns
@@ -211,6 +207,16 @@ class NoveltyAnalyzer:
         float:
             The OOD detection AUC.
         """
+        if balanced:
+            if len(self.id_novelty) >= len(self.ood_novelty):
+                ds_id_novelty = np.random.choice(self.id_novelty, len(self.ood_novelty),
+                                                 replace=False)
+                return ood_detection_auc(self.ood_novelty, ds_id_novelty)
+            elif len(self.id_novelty) < len(self.ood_novelty):
+                ds_ood_novelty = np.random.choice(self.ood_novelty, len(self.id_novelty),
+                                                  replace=False)
+                return ood_detection_auc(self.ood_novelty, ds_ood_novelty)
+
         return ood_detection_auc(self.ood_novelty, self.id_novelty)
 
     def get_ood_recall(self, threshold_fraction=0.95):
