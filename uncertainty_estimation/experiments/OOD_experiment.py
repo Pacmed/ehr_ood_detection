@@ -32,6 +32,7 @@ if __name__ == "__main__":
         print(model_info[2])
         ood_detect_aucs, ood_recall = defaultdict(dict), defaultdict(dict)
         metrics = defaultdict(dict)
+
         # Experiments on Newborns, only on MIMIC for now
         if args.data_origin in ["MIMIC", "MIMIC_with_indicators"]:
             print("Newborns")
