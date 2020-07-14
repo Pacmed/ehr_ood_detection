@@ -5,7 +5,7 @@ import pandas as pd
 from sklearn import pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer
-from scipy.stats import kstest, chisquare, ttest_ind
+from scipy.stats import chisquare, ks_2samp
 
 import uncertainty_estimation.experiments_utils.metrics as metrics
 
@@ -238,7 +238,7 @@ def validate_ood_data(
     1. p(x) =/= q(x)
     2. p(y|x) = q(y|x)
 
-    We validate 1. by employing a Welch's t-test along the feature dimension, checking whether the values are
+    We validate 1. by employing a Kolmogorov-Smirnov test along the feature dimension, checking whether the values are
     indeed coming from statistically different distributions. We check 2. by collecting the relative class frequencies
     of both distribution and comparing them with a chi-square test.
 
@@ -259,20 +259,17 @@ def validate_ood_data(
 
     Returns
     -------
-    wt_p_values, cs_p_value: Tuple[np.ndarray, float]
-        Tuple with list of p-values from the Welch's t-test for every feature and p-value of chi-square test
+    ks_p_values, cs_p_value: Tuple[np.ndarray, float]
+        Tuple with list of p-values from the Kolmogorov-Smirnov test for every feature and p-value of chi-square test
         based on class labels.
     """
-    # Perform Welch's t-test for every feature dimension
-    wt_p_values = np.array(
-        [
-            ttest_ind(X_train[:, d], X_ood[:, d], equal_var=False)[1]
-            for d in range(X_train.shape[1])
-        ]
+    # Perform Kolmogorov-Smirnov test for every feature dimension
+    ks_p_values = np.array(
+        [ks_2samp(X_train[:, d], X_ood[:, d])[1] for d in range(X_train.shape[1])]
     )
-    wt_p_values[np.isnan(wt_p_values)] = 1
-    percentage_sig = (wt_p_values <= p_thresh).astype(int)
-    percentage_sig = percentage_sig.mean()
+    ks_p_values[np.isnan(ks_p_values)] = 1
+    ks_p_values_sig = (ks_p_values <= p_thresh).astype(int)
+    percentage_sig = ks_p_values_sig.mean()
 
     # Perform chi-squared test
     class_freqs_train = np.bincount(y_train)
@@ -281,11 +278,13 @@ def validate_ood_data(
     class_freqs_ood = class_freqs_ood / class_freqs_ood.sum()
     cs_p_value = chisquare(class_freqs_ood, class_freqs_train)[1]
 
-    print(f"{percentage_sig * 100:.2f} % of features were stat. sig. different.")
+    print(
+        f"{percentage_sig * 100:.2f} % of features ({ks_p_values_sig.sum()}) were stat. sig. different."
+    )
 
     if feature_names is not None and percentage_sig > 0:
         sorted_ks_p_values = list(
-            sorted(zip(feature_names, wt_p_values), key=lambda t: t[1])
+            sorted(zip(feature_names, ks_p_values), key=lambda t: t[1])
         )
 
         print("Most different features:")
@@ -298,7 +297,7 @@ def validate_ood_data(
 
     print(f"Chi-square p-value was {cs_p_value:.4f}.")
 
-    return wt_p_values, cs_p_value
+    return ks_p_values, cs_p_value
 
 
 class NoveltyAnalyzer:
