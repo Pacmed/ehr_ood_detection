@@ -9,7 +9,7 @@ TEST_FRAC = 0.15
 TRAIN_FRAC = 0.7
 
 mimic_processed_folder = "/data/processed/benchmark/inhospitalmortality/not_scaled"
-eicu_processed_csv = "/data/processed/eicu_processed/data/adult_data_with_indicators.csv"
+eicu_processed_csv = "/data/processed/eicu_processed/data/adult_data.csv"
 
 
 class DataHandler:

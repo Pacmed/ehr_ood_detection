@@ -11,7 +11,7 @@ from uncertainty_estimation.experiments_utils.datahandler import DataHandler
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_origin',
-                        type=str, default='MIMIC_with_indicators',
+                        type=str, default='MIMIC',
                         help="Which data to use")
     args = parser.parse_args()
 
@@ -72,7 +72,7 @@ if __name__ == '__main__':
                     impute_and_scale=True)
 
         ne, kinds, method_name = model_info
-        # Save everything for this model
+        #rera Save everything for this model
         dir_name = os.path.join('pickled_results', args.data_origin,
                                 'OOD', method_name)
         if not os.path.exists(dir_name):
