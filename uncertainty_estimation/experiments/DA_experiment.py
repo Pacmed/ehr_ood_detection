@@ -18,7 +18,7 @@ feature_names_eicu = dh_eicu.load_feature_names()
 train_eicu, test_eicu, val_eicu = dh_eicu.load_train_test_val()
 y_eicu = dh_eicu.load_target_name()
 
-for model_info in get_models_to_use(len(feature_names)):
+for model_info in get_models_to_use(len(feature_names_eicu)):
     print(model_info[2])
     ood_detect_aucs, ood_recall = defaultdict(dict), defaultdict(dict)
     metrics = defaultdict(dict)
@@ -34,12 +34,11 @@ for model_info in get_models_to_use(len(feature_names)):
             ood_feature_names=feature_names_eicu,
             non_ood_y_name=y_mimic,
             ood_y_name=y_eicu,
-            ood_name='eICU_as_OOD'
+            ood_name='eICU_as_OOD',
             model_info=model_info,
             ood_detect_aucs=ood_detect_aucs,
             ood_recall=ood_recall,
-            metrics=metrics,
-            impute_and_scale=True)
+            metrics=metrics, impute_and_scale=True)
 
     ood_detect_aucs, ood_recall, metrics = \
         ood_utils.run_ood_experiment_on_group(
@@ -53,7 +52,7 @@ for model_info in get_models_to_use(len(feature_names)):
             ood_feature_names=feature_names_mimic,
             non_ood_y_name=y_eicu,
             ood_y_name=y_mimic,
-            ood_name='MIMIC_as_OOD'
+            ood_name='MIMIC_as_OOD',
             model_info=model_info,
             ood_detect_aucs=ood_detect_aucs,
             ood_recall=ood_recall,

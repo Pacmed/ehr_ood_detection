@@ -106,7 +106,7 @@ def run_ood_experiment_on_group(train_non_ood, test_non_ood, val_non_ood,
     ne, kinds, method_name = model_info
     all_ood = pd.concat([train_ood, test_ood, val_ood])
     print("Number of OOD:", len(all_ood))
-    print("Fraction of positives:", all_ood[non_ood_y_name].mean())
+    print("Fraction of positives:", all_ood[ood_y_name].mean())
     nov_an = NoveltyAnalyzer(ne, train_non_ood[non_ood_feature_names].values,
                              test_non_ood[non_ood_feature_names].values,
                              val_non_ood[non_ood_feature_names].values,
