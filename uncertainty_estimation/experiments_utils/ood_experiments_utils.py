@@ -94,20 +94,25 @@ def barplot_from_nested_dict(nested_dict: dict, xlim: Tuple[float, float],
 
 
 def run_ood_experiment_on_group(train_non_ood, test_non_ood, val_non_ood,
-                                train_ood, test_ood, val_ood, feature_names,
-                                y_name, ood_name, model_info,
+                                train_ood, test_ood, val_ood,
+                                non_ood_feature_names,
+                                ood_feature_names,
+                                non_ood_y_name,
+                                ood_y_name,
+                                ood_name,
+                                model_info,
                                 ood_detect_aucs, ood_recall, metrics,
                                 impute_and_scale=True):
     ne, kinds, method_name = model_info
     all_ood = pd.concat([train_ood, test_ood, val_ood])
     print("Number of OOD:", len(all_ood))
-    print("Fraction of positives:", all_ood[y_name].mean())
-    nov_an = NoveltyAnalyzer(ne, train_non_ood[feature_names].values,
-                             test_non_ood[feature_names].values,
-                             val_non_ood[feature_names].values,
-                             train_non_ood[y_name].values,
-                             test_non_ood[y_name].values,
-                             val_non_ood[y_name].values,
+    print("Fraction of positives:", all_ood[non_ood_y_name].mean())
+    nov_an = NoveltyAnalyzer(ne, train_non_ood[non_ood_feature_names].values,
+                             test_non_ood[non_ood_feature_names].values,
+                             val_non_ood[non_ood_feature_names].values,
+                             train_non_ood[non_ood_y_name].values,
+                             test_non_ood[non_ood_y_name].values,
+                             val_non_ood[non_ood_y_name].values,
                              impute_and_scale=impute_and_scale)
     for kind in kinds:
         ood_detect_aucs[kind][ood_name] = []
@@ -116,7 +121,7 @@ def run_ood_experiment_on_group(train_non_ood, test_non_ood, val_non_ood,
         metrics[metric.__name__][ood_name] = []
     for i in range(N_SEEDS):
         nov_an.train()
-        nov_an.set_ood(all_ood[feature_names], impute_and_scale=True)
+        nov_an.set_ood(all_ood[ood_feature_names], impute_and_scale=True)
         for kind in kinds:
             nov_an.calculate_novelty(kind=kind)
             ood_detect_aucs[kind][ood_name] += [nov_an.get_ood_detection_auc(balanced=True)]
@@ -126,9 +131,9 @@ def run_ood_experiment_on_group(train_non_ood, test_non_ood, val_non_ood,
             y_pred = nov_an.ne.model.predict_proba(nov_an.X_ood)[:, 1]
             for metric in METRICS_TO_USE:
                 try:
-                    metrics[metric.__name__][ood_name] += [metric(all_ood[y_name].values, y_pred)]
+                    metrics[metric.__name__][ood_name] += [metric(all_ood[ood_y_name].values, y_pred)]
                 except ValueError:
-                    print("Fraction of positives:", all_ood[y_name].mean())
+                    print("Fraction of positives:", all_ood[ood_y_name].mean())
     return ood_detect_aucs, ood_recall, metrics
 
 
