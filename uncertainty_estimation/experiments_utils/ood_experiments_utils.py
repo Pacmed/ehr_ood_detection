@@ -119,7 +119,7 @@ def run_ood_experiment_on_group(train_non_ood, test_non_ood, val_non_ood,
         nov_an.set_ood(all_ood[feature_names], impute_and_scale=True)
         for kind in kinds:
             nov_an.calculate_novelty(kind=kind)
-            ood_detect_aucs[kind][ood_name] += [nov_an.get_ood_detection_auc()]
+            ood_detect_aucs[kind][ood_name] += [nov_an.get_ood_detection_auc(balanced=True)]
             ood_recall[kind][ood_name] += [nov_an.get_ood_recall()]
 
         if method_name in ['Single_NN', 'NN_Ensemble', 'MC_Dropout', 'NN_Ensemble_bootstrapped']:
