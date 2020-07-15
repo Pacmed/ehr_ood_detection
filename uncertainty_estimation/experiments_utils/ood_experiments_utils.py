@@ -9,7 +9,7 @@ from scipy.stats import chisquare, ks_2samp
 
 import uncertainty_estimation.experiments_utils.metrics as metrics
 
-from typing import Tuple, List, Optional
+from typing import Tuple, List, Optional, Callable, Union
 
 # CONST
 # I commented out groups that are too small
@@ -62,6 +62,14 @@ METRICS_TO_USE = [
     metrics.brier_score_loss,
 ]
 N_SEEDS = 5
+
+SCORING_FUNCS = {
+    "AE": lambda model: None,
+    "sklearn": lambda model: lambda data: -model.score_samples(data),
+    "MCDropout": lambda model: lambda data: model.predict_proba(data),
+    "NNEnsemble": lambda model: lambda data: model.predict_proba(data),
+    "NN": lambda model: lambda data: model.predict_proba(data),
+}
 
 
 def barplot_from_nested_dict(
@@ -158,14 +166,6 @@ def run_ood_experiment_on_group(
         impute_and_scale=impute_and_scale,
     )
 
-    validate_ood_data(
-        nov_an.X_train,
-        nov_an.y_train,
-        nov_an.X_test,
-        nov_an.y_test,
-        feature_names=feature_names,
-    )
-
     for kind in kinds:
         ood_detect_aucs[kind][ood_name] = []
         ood_recall[kind][ood_name] = []
@@ -195,6 +195,19 @@ def run_ood_experiment_on_group(
                     ]
                 except ValueError:
                     print("Fraction of positives:", all_ood[y_name].mean())
+
+    # Score with last model trained
+
+    scoring_func = SCORING_FUNCS[ne.name](nov_an.ne.model)
+
+    validate_ood_data(
+        nov_an.X_train,
+        nov_an.y_train,
+        nov_an.X_test,
+        nov_an.y_test,
+        feature_names=feature_names,
+        scoring_func=scoring_func,
+    )
 
     return ood_detect_aucs, ood_recall, metrics
 
@@ -230,7 +243,8 @@ def validate_ood_data(
     y_ood: np.array,
     p_thresh: float = 0.05,
     feature_names: Optional[str] = None,
-) -> Tuple[np.ndarray, float]:
+    scoring_func: Optional[Callable] = None,
+) -> Union[Tuple[np.ndarray, float, float], Tuple[np.ndarray, float]]:
     """
     Validate OOD data by comparing it to the training (in-domain) data. For data to be OOD be assume a covariate shift
     to have taken place, i.e.
@@ -256,6 +270,9 @@ def validate_ood_data(
         p-value threshold for KS test.
     feature_names: List[str]
         List of feature names.
+    scoring_func: Optional[Callable]
+        Model function that assigns class probabilities to samples. If given, a chi-square test will be performed
+        between p_theta(y|x) and q(y|x).
 
     Returns
     -------
@@ -263,6 +280,24 @@ def validate_ood_data(
         Tuple with list of p-values from the Kolmogorov-Smirnov test for every feature and p-value of chi-square test
         based on class labels.
     """
+
+    def _rescale_obs(
+        obs_freqs: np.array, exp_freqs: np.array, min_size: Optional[int] = None
+    ) -> Tuple[np.array, np.array]:
+        """
+        Chi-square test is sensitive to differences in number of observation and significance tests are generally more
+        likely to reject the null hypothesis given a large sample size. Thus, rescale the number of observation for the
+        bigger sample according to the smaller one.
+        """
+        min_size = (
+            min(obs_freqs.sum(), exp_freqs.sum()) if min_size is None else min_size
+        )
+
+        obs_freqs = obs_freqs / obs_freqs.sum() * min_size
+        exp_freqs = exp_freqs / exp_freqs.sum() * min_size
+
+        return obs_freqs, exp_freqs
+
     # Perform Kolmogorov-Smirnov test for every feature dimension
     ks_p_values = np.array(
         [ks_2samp(X_train[:, d], X_ood[:, d])[1] for d in range(X_train.shape[1])]
@@ -271,10 +306,13 @@ def validate_ood_data(
     ks_p_values_sig = (ks_p_values <= p_thresh).astype(int)
     percentage_sig = ks_p_values_sig.mean()
 
-    # Perform chi-squared test
+    # Perform chi-square test
     class_freqs_train = np.bincount(y_train)
     class_freqs_ood = np.bincount(y_ood)
-    cs_p_value = chisquare(class_freqs_ood, class_freqs_train)[1]
+    scaled_class_freqs_train, scaled_class_freqs_ood = _rescale_obs(
+        class_freqs_train, class_freqs_ood
+    )
+    cs_p_value = chisquare(scaled_class_freqs_ood, scaled_class_freqs_train)[1]
 
     print(
         f"{percentage_sig * 100:.2f} % of features ({ks_p_values_sig.sum()}) were stat. sig. different."
@@ -294,6 +332,22 @@ def validate_ood_data(
             print(f"{i+1}. {feat_name:<50} (p={p_val:.4f})")
 
     print(f"Chi-square p-value was {cs_p_value:.4f}.")
+
+    # Perform chi-square test with p_theta(y|x) approx. p(y|x)
+    if scoring_func is not None:
+        class_freqs_model = scoring_func(X_ood).mean(axis=0)
+        scaled_class_freqs_ood, scaled_class_freqs_model = _rescale_obs(
+            class_freqs_ood,
+            class_freqs_model,
+            min_size=min(X_train.shape[0], X_ood.shape[0]),
+        )
+        cs_model_p_value = chisquare(scaled_class_freqs_ood, scaled_class_freqs_model)[
+            1
+        ]
+
+        print(f"Chi-square theta p-value was {cs_model_p_value:.4f}")
+
+        return ks_p_values, cs_p_value, cs_model_p_value
 
     return ks_p_values, cs_p_value
 
