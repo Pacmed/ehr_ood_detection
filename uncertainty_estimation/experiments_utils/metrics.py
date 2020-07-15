@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from sklearn.metrics import roc_auc_score, accuracy_score, brier_score_loss
+from sklearn.metrics import roc_auc_score, accuracy_score, brier_score_loss, log_loss
 
 DEFAULT_N_BINS = 10
 

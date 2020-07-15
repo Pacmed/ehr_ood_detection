@@ -45,7 +45,8 @@ EICU_OOD_MAPPINGS = {
     )
 }
 
-METRICS_TO_USE = [metrics.ece, metrics.roc_auc_score, metrics.accuracy, metrics.brier_score_loss]
+METRICS_TO_USE = [metrics.ece, metrics.roc_auc_score, metrics.accuracy,
+                  metrics.brier_score_loss, metrics.log_loss]
 N_SEEDS = 5
 
 
@@ -101,7 +102,8 @@ def run_ood_experiment_on_group(train_non_ood, test_non_ood, val_non_ood,
                                 ood_y_name,
                                 ood_name,
                                 model_info,
-                                ood_detect_aucs, ood_recall, metrics,
+                                ood_detect_aucs, ood_recall,
+                                metrics,
                                 impute_and_scale=True):
     ne, kinds, method_name = model_info
     all_ood = pd.concat([train_ood, test_ood, val_ood])
@@ -124,16 +126,14 @@ def run_ood_experiment_on_group(train_non_ood, test_non_ood, val_non_ood,
         nov_an.set_ood(all_ood[ood_feature_names], impute_and_scale=True)
         for kind in kinds:
             nov_an.calculate_novelty(kind=kind)
-            ood_detect_aucs[kind][ood_name] += [nov_an.get_ood_detection_auc(balanced=True)]
+            ood_detect_aucs[kind][ood_name] += [nov_an.get_ood_detection_auc(balanced=False)]
             ood_recall[kind][ood_name] += [nov_an.get_ood_recall()]
 
         if method_name in ['Single_NN', 'NN_Ensemble', 'MC_Dropout', 'NN_Ensemble_bootstrapped']:
             y_pred = nov_an.ne.model.predict_proba(nov_an.X_ood)[:, 1]
+
             for metric in METRICS_TO_USE:
-                try:
-                    metrics[metric.__name__][ood_name] += [metric(all_ood[ood_y_name].values, y_pred)]
-                except ValueError:
-                    print("Fraction of positives:", all_ood[ood_y_name].mean())
+                metrics[metric.__name__][ood_name] += [metric(all_ood[ood_y_name].values, y_pred)]
     return ood_detect_aucs, ood_recall, metrics
 
 
@@ -212,15 +212,6 @@ class NoveltyAnalyzer:
         float:
             The OOD detection AUC.
         """
-        if balanced:
-            if len(self.id_novelty) >= len(self.ood_novelty):
-                ds_id_novelty = np.random.choice(self.id_novelty, len(self.ood_novelty),
-                                                 replace=False)
-                return ood_detection_auc(self.ood_novelty, ds_id_novelty)
-            elif len(self.id_novelty) < len(self.ood_novelty):
-                ds_ood_novelty = np.random.choice(self.ood_novelty, len(self.id_novelty),
-                                                  replace=False)
-                return ood_detection_auc(self.ood_novelty, ds_ood_novelty)
 
         return ood_detection_auc(self.ood_novelty, self.id_novelty)
 
