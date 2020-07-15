@@ -11,7 +11,7 @@ from uncertainty_estimation.experiments_utils.datahandler import DataHandler
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_origin',
-                        type=str, default='MIMIC',
+                        type=str, default='MIMIC_with_indicators',
                         help="Which data to use")
     args = parser.parse_args()
 
@@ -41,7 +41,9 @@ if __name__ == '__main__':
                     test_newborns,
                     val_newborns,
                     feature_names,
+                    feature_names,
                     y_name,
+                    y_name
                     "Newborn",
                     model_info, ood_detect_aucs, ood_recall, metrics,
                     impute_and_scale=True)
@@ -65,6 +67,8 @@ if __name__ == '__main__':
                     test_ood,
                     val_ood,
                     feature_names,
+                    feature_names,
+                    y_name,
                     y_name,
                     ood_name,
                     model_info,
