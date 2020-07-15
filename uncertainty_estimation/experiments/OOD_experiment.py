@@ -25,7 +25,7 @@ if __name__ == '__main__':
     ood_mappings = dh.load_ood_mappings()
 
     # loop over the different methods
-    for model_info in get_models_to_use(len(feature_names)):
+    for model_info in get_models_to_use(len(feature_names))[:1]:
         print(model_info[2])
         ood_detect_aucs, ood_recall = defaultdict(dict), defaultdict(dict)
         metrics = defaultdict(dict)
@@ -43,7 +43,7 @@ if __name__ == '__main__':
                     feature_names,
                     feature_names,
                     y_name,
-                    y_name
+                    y_name,
                     "Newborn",
                     model_info, ood_detect_aucs, ood_recall, metrics,
                     impute_and_scale=True)
