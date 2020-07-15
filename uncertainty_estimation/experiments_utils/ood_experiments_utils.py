@@ -274,8 +274,6 @@ def validate_ood_data(
     # Perform chi-squared test
     class_freqs_train = np.bincount(y_train)
     class_freqs_ood = np.bincount(y_ood)
-    class_freqs_train = class_freqs_train / class_freqs_train.sum()
-    class_freqs_ood = class_freqs_ood / class_freqs_ood.sum()
     cs_p_value = chisquare(class_freqs_ood, class_freqs_train)[1]
 
     print(
