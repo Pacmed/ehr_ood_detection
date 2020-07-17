@@ -219,8 +219,9 @@ def split_by_ood_name(df: pd.DataFrame, ood_name: str, ood_value):
 def validate_ood_data(
     X_train: np.array,
     X_ood: np.array,
-    p_thresh: float = 0.05,
+    p_thresh: float = 0.01,
     feature_names: Optional[List[str]] = None,
+    verbose: bool = True,
 ) -> Tuple[np.ndarray, float]:
     """
     Validate OOD data by comparing it to the training (in-domain) data. For data to be OOD be assume a covariate shift
@@ -246,6 +247,8 @@ def validate_ood_data(
         p-value threshold for KS test.
     feature_names: List[str]
         List of feature names.
+    verbose: bool
+        Print results to screen.
 
     Returns
     -------
@@ -271,11 +274,12 @@ def validate_ood_data(
     ks_p_values_sig = (ks_p_values <= p_thresh).astype(int)
     percentage_sig = ks_p_values_sig.mean()
 
-    print(
-        f"{percentage_sig * 100:.2f} % of features ({ks_p_values_sig.sum()}) were stat. sig. different."
-    )
+    if verbose:
+        print(
+            f"{percentage_sig * 100:.2f} % of features ({ks_p_values_sig.sum()}) were stat. sig. different."
+        )
 
-    if feature_names is not None and percentage_sig > 0:
+    if feature_names is not None and percentage_sig > 0 and verbose:
         sorted_ks_p_values = list(
             sorted(zip(feature_names, ks_p_values), key=lambda t: t[1])
         )

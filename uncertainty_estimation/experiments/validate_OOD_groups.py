@@ -13,7 +13,7 @@ import pandas as pd
 import numpy as np
 
 from sklearn.preprocessing import StandardScaler
-from sklearn.impute import SimpleImputer
+from sklearn.impute import SimpleImputer, KNNImputer
 from sklearn import pipeline
 
 import uncertainty_estimation.experiments_utils.ood_experiments_utils as ood_utils
@@ -44,6 +44,7 @@ def validate_ood_group(
 
     pipe.fit(id_data)
     scaled_imputed_id = pipe.transform(id_data)
+
     scaled_imputed_ood = pipe.transform(ood_data)
 
     ks_values_scaled_imputed, sig_scaled_imputed = ood_utils.validate_ood_data(
@@ -59,7 +60,19 @@ def validate_ood_group(
     ks_sig_scaled_imputed = (ks_values_scaled_imputed <= p_thresh).astype(int)
 
     num_diff_feats = ks_sig_scaled_imputed.sum() - ks_sig_raw.sum()
-    results["diff #feats"] = num_diff_feats
+    results["diff #feats ood"] = num_diff_feats
+
+    # Do the same computing the original data set to its original variant
+    ks_values_same, _ = ood_utils.validate_ood_data(
+        pipe.named_steps["scaler"].transform(id_data),  # Only scale, don't impute
+        scaled_imputed_id,
+        feature_names=feature_names,
+        p_thresh=p_thresh,
+        verbose=False,
+    )
+    ks_sig_same = (ks_values_same <= p_thresh).astype(int)
+    num_diff_same = ks_sig_same.sum() - ks_sig_raw.sum()
+    results["diff #feats same"] = num_diff_same
 
     if num_diff_feats > 0:
         # Retrieve the names of those features
@@ -68,8 +81,10 @@ def validate_ood_group(
             for i, feat_name in enumerate(feature_names)
             if ks_sig_raw[i] == 0 and ks_sig_scaled_imputed[i] == 1
         ]
+
         print(
-            f"\nIn total {num_diff_feats} new stat. sig. features:\n{', '.join(newly_sig_feats)}"
+            f"\nIn total {num_diff_feats} new stat. sig. features ({num_diff_same} new for the same dataset after "
+            f"imputing):\n{', '.join(newly_sig_feats)}"
         )
 
     return results
@@ -98,7 +113,13 @@ if __name__ == "__main__":
     ood_mappings = dh.load_ood_mappings()
 
     validation_results = pd.DataFrame(
-        columns=["group", "raw", "scaled & imputed", "diff #feats"]
+        columns=[
+            "group",
+            "raw",
+            "scaled & imputed",
+            "diff #feats ood",
+            "diff #feats same",
+        ]
     )
     validation_results.set_index("group")
 
