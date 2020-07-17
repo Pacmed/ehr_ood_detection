@@ -24,62 +24,55 @@ def validate_ood_group(
     id_data: np.array,
     ood_data: np.array,
     feature_names: List[str],
-    scale: bool = True,
-    impute: bool = True,
+    p_thresh: float = 0.05,
 ) -> Dict[str, float]:
-    scaler = StandardScaler()
-    imputer = SimpleImputer()
 
-    sigs = {}
+    pipe = pipeline.Pipeline(
+        [("scaler", StandardScaler()), ("imputer", SimpleImputer())]
+    )
+
+    results = {}
 
     print("Raw data")
 
-    _, sig_raw = ood_utils.validate_ood_data(
-        id_data, ood_data, feature_names=feature_names
+    ks_values_raw, sig_raw = ood_utils.validate_ood_data(
+        id_data, ood_data, feature_names=feature_names, p_thresh=p_thresh
     )
-    sigs["raw"] = f"{sig_raw * 100:.2f}"
+    results["raw"] = f"{sig_raw * 100:.2f}"
 
-    if scale:
-        print("\nScaled Data")
+    print("\nImputed & scaled data")
 
-        scaler.fit(id_data)
-        scaled_id = scaler.transform(id_data)
-        scaled_ood = scaler.transform(ood_data)
+    pipe.fit(id_data)
+    scaled_imputed_id = pipe.transform(id_data)
+    scaled_imputed_ood = pipe.transform(ood_data)
 
-        _, sig_scaled = ood_utils.validate_ood_data(
-            scaled_id, scaled_ood, feature_names=feature_names
+    ks_values_scaled_imputed, sig_scaled_imputed = ood_utils.validate_ood_data(
+        scaled_imputed_id,
+        scaled_imputed_ood,
+        feature_names=feature_names,
+        p_thresh=p_thresh,
+    )
+    results["scaled & imputed"] = f"{sig_scaled_imputed * 100:.2f}"
+
+    # Calculate how many new features became stat. sig. after imputing
+    ks_sig_raw = (ks_values_raw <= p_thresh).astype(int)
+    ks_sig_scaled_imputed = (ks_values_scaled_imputed <= p_thresh).astype(int)
+
+    num_diff_feats = ks_sig_scaled_imputed.sum() - ks_sig_raw.sum()
+    results["diff #feats"] = num_diff_feats
+
+    if num_diff_feats > 0:
+        # Retrieve the names of those features
+        newly_sig_feats = [
+            feat_name
+            for i, feat_name in enumerate(feature_names)
+            if ks_sig_raw[i] == 0 and ks_sig_scaled_imputed[i] == 1
+        ]
+        print(
+            f"\nIn total {num_diff_feats} new stat. sig. features:\n{', '.join(newly_sig_feats)}"
         )
-        sigs["scaled"] = f"{sig_scaled * 100:.2f}"
 
-    if impute:
-        print("\nImputed Data")
-
-        imputer.fit(id_data)
-        imputed_id = imputer.transform(id_data)
-        imputed_ood = imputer.transform(ood_data)
-
-        _, sig_imputed = ood_utils.validate_ood_data(
-            imputed_id, imputed_ood, feature_names=feature_names
-        )
-        sigs["imputed"] = f"{sig_imputed * 100:.2f}"
-
-    if impute and scale:
-        print("\nImputed & scaled data")
-
-        pipe = pipeline.Pipeline(
-            [("scaler", StandardScaler()), ("imputer", SimpleImputer())]
-        )
-
-        pipe.fit(id_data)
-        scaled_imputed_id = imputer.transform(id_data)
-        scaled_imputed_ood = imputer.transform(ood_data)
-
-        _, sig_scaled_imputed = ood_utils.validate_ood_data(
-            scaled_imputed_id, scaled_imputed_ood, feature_names=feature_names
-        )
-        sigs["scaled & imputed"] = f"{sig_scaled_imputed * 100:.2f}"
-
-    return sigs
+    return results
 
 
 if __name__ == "__main__":
@@ -105,22 +98,22 @@ if __name__ == "__main__":
     ood_mappings = dh.load_ood_mappings()
 
     validation_results = pd.DataFrame(
-        columns=["group", "raw", "scaled", "imputed", "scaled & imputed"]
+        columns=["group", "raw", "scaled & imputed", "diff #feats"]
     )
     validation_results.set_index("group")
 
-    def _set_results(
-        name: str, results: pd.DataFrame, sigs: Dict[str, float]
+    def _add_group_results(
+        name: str, results: pd.DataFrame, group_results: Dict[str, float]
     ) -> pd.DataFrame:
-        sigs["group"] = name
-        results = results.append(sigs, ignore_index=True)
+        group_results["group"] = name
+        results = results.append(group_results, ignore_index=True)
 
         return results
 
     # Experiments on Newborns, only on MIMIC for now
     if args.data_origin in ["MIMIC", "MIMIC_with_indicators"]:
         print("### Newborns ####")
-        validation_results = _set_results(
+        validation_results = _add_group_results(
             "Newborns",
             validation_results,
             validate_ood_group(
@@ -145,7 +138,7 @@ if __name__ == "__main__":
 
         all_ood = pd.concat([train_ood, test_ood, val_ood])
 
-        validation_results = _set_results(
+        validation_results = _add_group_results(
             ood_name,
             validation_results,
             validate_ood_group(
