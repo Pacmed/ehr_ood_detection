@@ -3,6 +3,7 @@ import pickle
 from collections import defaultdict
 from tqdm import tqdm
 import argparse
+import pandas as pd
 
 import uncertainty_estimation.experiments_utils.ood_experiments_utils as ood_utils
 from uncertainty_estimation.experiments_utils.models_to_use import get_models_to_use
@@ -21,10 +22,13 @@ if __name__ == "__main__":
     # Loading the data
     dh = DataHandler(args.data_origin)
     feature_names = dh.load_feature_names()
+
     train_data, test_data, val_data = dh.load_train_test_val()
     y_name = dh.load_target_name()
+
     if args.data_origin in ["MIMIC", "MIMIC_with_indicators"]:
         train_newborns, test_newborns, val_newborns = dh.load_newborns()
+
     ood_mappings = dh.load_ood_mappings()
 
     # loop over the different methods
