@@ -24,6 +24,7 @@ def validate_ood_group(
     id_data: np.array,
     ood_data: np.array,
     feature_names: List[str],
+    test: str = "welch",
     p_thresh: float = 0.05,
 ) -> Dict[str, float]:
 
@@ -36,7 +37,7 @@ def validate_ood_group(
     print("Raw data")
 
     ks_values_raw, sig_raw = ood_utils.validate_ood_data(
-        id_data, ood_data, feature_names=feature_names, p_thresh=p_thresh
+        id_data, ood_data, feature_names=feature_names, test=test, p_thresh=p_thresh
     )
     results["raw"] = f"{sig_raw * 100:.2f}"
 
@@ -51,28 +52,29 @@ def validate_ood_group(
         scaled_imputed_id,
         scaled_imputed_ood,
         feature_names=feature_names,
+        test=test,
         p_thresh=p_thresh,
     )
-    results["scaled & imputed"] = f"{sig_scaled_imputed * 100:.2f}"
+    results["imputed"] = f"{sig_scaled_imputed * 100:.2f}"
 
     # Calculate how many new features became stat. sig. after imputing
     ks_sig_raw = (ks_values_raw <= p_thresh).astype(int)
     ks_sig_scaled_imputed = (ks_values_scaled_imputed <= p_thresh).astype(int)
 
     num_diff_feats = ks_sig_scaled_imputed.sum() - ks_sig_raw.sum()
-    results["diff #feats ood"] = num_diff_feats
+    results["#feats ood"] = num_diff_feats
 
     # Do the same computing the original data set to its original variant
     ks_values_same, _ = ood_utils.validate_ood_data(
         pipe.named_steps["scaler"].transform(id_data),  # Only scale, don't impute
         scaled_imputed_id,
         feature_names=feature_names,
+        test=test,
         p_thresh=p_thresh,
         verbose=False,
     )
-    ks_sig_same = (ks_values_same <= p_thresh).astype(int)
-    num_diff_same = ks_sig_same.sum() - ks_sig_raw.sum()
-    results["diff #feats same"] = num_diff_same
+    num_diff_same = (ks_values_same <= p_thresh).astype(int).sum()
+    results["#feats same"] = num_diff_same
 
     if num_diff_feats > 0:
         # Retrieve the names of those features
@@ -113,20 +115,14 @@ if __name__ == "__main__":
     ood_mappings = dh.load_ood_mappings()
 
     validation_results = pd.DataFrame(
-        columns=[
-            "group",
-            "raw",
-            "scaled & imputed",
-            "diff #feats ood",
-            "diff #feats same",
-        ]
+        columns=["group", "raw", "imputed", "#feats ood", "#feats same"]
     )
     validation_results.set_index("group")
 
     def _add_group_results(
         name: str, results: pd.DataFrame, group_results: Dict[str, float]
     ) -> pd.DataFrame:
-        group_results["group"] = name
+        group_results["group"] = name if len(name) < 32 else name[:32] + "..."
         results = results.append(group_results, ignore_index=True)
 
         return results
