@@ -30,10 +30,13 @@ def barplot_from_nested_dict(nested_dict, metric_name='OOD detection AUC',
 
 def boxplot_from_nested_listdict(nested_dict, name, hline=None, vline=None, xlim=(0.0, 1.0), \
                                  ylim=(0.0, 1.0),
+                                 dummy_group_name=None,
                                  x_name='scale',
                                  horizontal=False,
                                  legend_out=False,
-                                 save_dir=None, kind='box', legend_args={}, **kwargs):
+                                 figsize=None,
+                                 save_dir=None, kind='box',
+                                 **kwargs):
     sns.set_palette("Set1", 10)
     sns.set_style('whitegrid')
     df = pd.DataFrame.from_dict(nested_dict,
@@ -42,14 +45,20 @@ def boxplot_from_nested_listdict(nested_dict, name, hline=None, vline=None, xlim
     df = df.stack().reset_index()
     df.columns = [x_name, '', name]
     df = df.explode(name)
+    if dummy_group_name:
+        methods = [m for m in df[''].unique()]
+        fake_df = pd.DataFrame({x_name: [dummy_group_name] * len(methods),
+                                '': methods, name: [0] * len(methods)})
+        df = pd.concat([fake_df, df])
+    plt.figure(figsize=figsize)
     if horizontal:
-        sns.catplot(x=name, y=x_name, hue='', data=df, kind=kind,legend_out=legend_out,
+        sns.catplot(x=name, y=x_name, hue='', data=df, kind=kind, legend_out=legend_out,
                     facet_kws=dict(despine=False), **kwargs)
-        #plt.legend(**legend_args)
+
     else:
-        sns.catplot(x=x_name, y=name, hue='', data=df, kind=kind,legend_out=legend_out,
-                    facet_kws=dict(despine=False),  **kwargs)
-        #plt.legend(**legend_args)
+        sns.catplot(x=x_name, y=name, hue='', data=df, kind=kind, legend_out=legend_out,
+                    facet_kws=dict(despine=False), **kwargs)
+
     plt.ylim(ylim)
     plt.xlim(xlim)
     if hline:

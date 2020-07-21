@@ -11,7 +11,7 @@ from uncertainty_estimation.experiments_utils.datahandler import DataHandler
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_origin',
-                        type=str, default='MIMIC_with_indicators',
+                        type=str, default='MIMIC',
                         help="Which data to use")
     args = parser.parse_args()
 
@@ -25,7 +25,7 @@ if __name__ == '__main__':
     ood_mappings = dh.load_ood_mappings()
 
     # loop over the different methods
-    for model_info in get_models_to_use(len(feature_names))[:1]:
+    for model_info in get_models_to_use(len(feature_names)):
         print(model_info[2])
         ood_detect_aucs, ood_recall = defaultdict(dict), defaultdict(dict)
         metrics = defaultdict(dict)
@@ -76,7 +76,7 @@ if __name__ == '__main__':
                     impute_and_scale=True)
 
         ne, kinds, method_name = model_info
-        #rera Save everything for this model
+        #era Save everything for this model
         dir_name = os.path.join('pickled_results', args.data_origin,
                                 'OOD', method_name)
         if not os.path.exists(dir_name):
@@ -87,6 +87,7 @@ if __name__ == '__main__':
         for metric in metrics.keys():
             with open(os.path.join(metric_dir_name, metric + '.pkl'), 'wb') as f:
                 pickle.dump(metrics[metric], f)
+
 
         for kind in kinds:
             detection_dir_name = os.path.join(dir_name, 'detection')

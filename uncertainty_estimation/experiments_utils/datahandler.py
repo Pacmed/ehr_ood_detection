@@ -9,7 +9,7 @@ TEST_FRAC = 0.15
 TRAIN_FRAC = 0.7
 
 mimic_processed_folder = "/data/processed/benchmark/inhospitalmortality/not_scaled"
-eicu_processed_csv = "/data/processed/eicu_processed/data/adult_data.csv"
+eicu_processed_csv = "/data/processed/eicu_processed/data/adult_data_nan.csv"
 
 
 class DataHandler:
@@ -37,11 +37,12 @@ class DataHandler:
 
     def load_feature_names(self):
         if self.origin == 'MIMIC':
-            with open('../experiments_utils/feature_names/MIMIC_feature_names.pkl', 'rb') as f:
+            with open('../experiments_utils/feature_names/common_mimic_params.pkl', 'rb') as f:
                 feature_names = pickle.load(f)
             return feature_names
 
         elif self.origin == 'MIMIC_with_indicators':
+            #changed to only work with params common to MIMIC and eICU
             with open('../experiments_utils/feature_names/MIMIC_feature_names.pkl', 'rb') as f:
                 feature_names = pickle.load(f)
             with open('../experiments_utils/feature_names/MIMIC_indicator_names.pkl', 'rb') as f:
@@ -54,7 +55,7 @@ class DataHandler:
             return feature_names
 
         elif self.origin == 'eICU':
-            with open('../experiments_utils/feature_names/eICU_feature_names.pkl', 'rb') as f:
+            with open('../experiments_utils/feature_names/common_eicu_params.pkl', 'rb') as f:
                 feature_names = pickle.load(f)
             return feature_names
 
