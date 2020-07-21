@@ -5,6 +5,9 @@ from sklearn.metrics import roc_auc_score, accuracy_score, brier_score_loss, log
 DEFAULT_N_BINS = 10
 
 
+def nll(y, y_pred):
+    return log_loss(y, y_pred, eps=1e-5)
+
 def entropy(probabilities, axis):
     return -np.sum(probabilities * np.log2(probabilities + 1e-8), axis=axis)
 

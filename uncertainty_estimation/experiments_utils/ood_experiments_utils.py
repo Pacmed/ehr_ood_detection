@@ -46,7 +46,7 @@ EICU_OOD_MAPPINGS = {
 }
 
 METRICS_TO_USE = [metrics.ece, metrics.roc_auc_score, metrics.accuracy,
-                  metrics.brier_score_loss, metrics.log_loss]
+                  metrics.brier_score_loss, metrics.nll]
 N_SEEDS = 5
 
 

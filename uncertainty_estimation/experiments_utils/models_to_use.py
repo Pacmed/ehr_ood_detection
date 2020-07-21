@@ -1,4 +1,5 @@
 from sklearn.decomposition import PCA
+from sklearn.svm import OneClassSVM
 from uncertainty_estimation.models.novelty_estimator_wrapper import NoveltyEstimator
 from uncertainty_estimation.models.nn_ensemble import NNEnsemble
 from uncertainty_estimation.models.autoencoder import AE
@@ -7,6 +8,8 @@ from uncertainty_estimation.models.mlp import MLP
 
 def get_models_to_use(input_dim):
     pca = NoveltyEstimator(PCA, dict(n_components=2), {}, 'sklearn')
+
+    #oneClassSVM = NoveltyEstimator(OneClassSVM, {}, {}, 'sklearn')
 
     nn_model_params = {'hidden_sizes': [50, 50],
                        'dropout_rate': 0.0,
@@ -57,5 +60,6 @@ def get_models_to_use(input_dim):
         (nn_ensemble, ('std', 'entropy'), 'NN_Ensemble'),
         (nn_ensemble_bootstrapped, ('std', 'entropy'), 'NN_Ensemble_bootstrapped'),
         (pca, [None], 'PPCA'),
-        (ae, [None], 'AE'),
+        (ae, [None], 'AE')
+
     ]

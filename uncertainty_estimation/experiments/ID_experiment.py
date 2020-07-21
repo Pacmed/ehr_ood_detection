@@ -9,9 +9,10 @@ from uncertainty_estimation.experiments_utils.datahandler import DataHandler
 import numpy as np
 import torch
 
+N_SEEDS = 5
 if __name__ == '__main__':
-    np.random.seed(123)
-    torch.manual_seed(123)
+    np.random.seed(42)
+    torch.manual_seed(42)
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_origin',
                         type=str, default='eICU',
@@ -22,6 +23,7 @@ if __name__ == '__main__':
     dh = DataHandler(args.data_origin)
     feature_names = dh.load_feature_names()
     train_data, test_data, val_data = dh.load_train_test_val()
+
     y_name = dh.load_target_name()
 
     pipe = pipeline.Pipeline([('scaler', StandardScaler()),
@@ -35,9 +37,17 @@ if __name__ == '__main__':
     uncertainties = dict()
     for ne, kinds, method_name in get_models_to_use(len(feature_names)):
         print(method_name)
-        ne.train(X_train, train_data[y_name].values, X_val, val_data[y_name].values)
         for kind in kinds:
-            uncertainties[kind] = ne.get_novelty_score(X_test, kind=kind)
+            uncertainties[kind] = []
+
+        predictions = []
+        for i in range(N_SEEDS):
+            ne.train(X_train, train_data[y_name].values, X_val, val_data[y_name].values)
+            for kind in kinds:
+                uncertainties[kind] += [ne.get_novelty_score(X_test, kind=kind)]
+                print(len(uncertainties[kind][0]))
+            if method_name in ['Single_NN', 'NN_Ensemble', 'MC_Dropout', 'NN_Ensemble_bootstrapped']:
+                predictions += [ne.model.predict_proba(X_test)[:, 1]]
 
         dir_name = os.path.join('pickled_results', args.data_origin,
                                 'ID', method_name)
@@ -54,10 +64,10 @@ if __name__ == '__main__':
             with open(os.path.join(uncertainties_dir_name, str(kind) + '.pkl'), 'wb') as f:
                 pickle.dump(uncertainties[kind], f)
 
-        if method_name in ['Single_NN', 'NN_Ensemble', 'MC_Dropout', 'NN_Ensemble__bootstrapped']:
-            predictions = ne.model.predict_proba(X_test)[:, 1]
+        if method_name in ['Single_NN', 'NN_Ensemble', 'MC_Dropout', 'NN_Ensemble_bootstrapped']:
             with open(os.path.join(predictions_dir_name, 'predictions.pkl'), 'wb') as f:
                 pickle.dump(predictions, f)
+
     with open(os.path.join('pickled_results', args.data_origin,
                            'ID', 'y_test.pkl'), 'wb') as f:
         pickle.dump(test_data[y_name].values, f)
