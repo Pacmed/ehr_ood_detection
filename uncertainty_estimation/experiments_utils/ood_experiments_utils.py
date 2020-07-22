@@ -6,6 +6,7 @@ from sklearn import pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer
 from scipy.stats import ks_2samp, ttest_ind, shapiro
+from tqdm import tqdm
 
 import uncertainty_estimation.experiments_utils.metrics as metrics
 
@@ -165,7 +166,7 @@ def run_ood_experiment_on_group(
     for metric in METRICS_TO_USE:
         metrics[metric.__name__][ood_name] = []
 
-    for i in range(N_SEEDS):
+    for _ in tqdm(range(N_SEEDS)):
         nov_an.train()
         nov_an.set_ood(all_ood[feature_names], impute_and_scale=True)
 
@@ -179,6 +180,7 @@ def run_ood_experiment_on_group(
             "NN_Ensemble",
             "MC_Dropout",
             "NN_Ensemble_bootstrapped",
+            "NN_Ensemble_anchored",
         ]:
             y_pred = nov_an.ne.model.predict_proba(nov_an.X_ood)[:, 1]
             for metric in METRICS_TO_USE:

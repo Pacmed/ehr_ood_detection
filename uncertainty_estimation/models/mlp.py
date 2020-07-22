@@ -1,5 +1,6 @@
-from typing import Tuple
+from typing import Tuple, Callable, Dict
 
+from math import sqrt
 import numpy as np
 import torch.nn as nn
 import torch
@@ -25,8 +26,14 @@ class MLPModule(nn.Module):
         Whether to apply batch normalization after each layer.
     """
 
-    def __init__(self, hidden_sizes: list, input_size: int, dropout_rate: float,
-                 output_size: int = 1, do_batch_norm: bool = False):
+    def __init__(
+        self,
+        hidden_sizes: list,
+        input_size: int,
+        dropout_rate: float,
+        output_size: int = 1,
+        do_batch_norm: bool = False,
+    ):
         super(MLPModule, self).__init__()
         layers = []
 
@@ -122,14 +129,25 @@ class MLP:
         Whether to apply batch normalization after each layer.
     """
 
-    def __init__(self, hidden_sizes: list, input_size: int, dropout_rate: float,
-                 class_weight: bool = True, output_size: int = 1, batch_norm: bool = False,
-                 lr: float = 1e-3):
-        self.model = MLPModule(hidden_sizes, input_size, dropout_rate, output_size, batch_norm)
+    def __init__(
+        self,
+        hidden_sizes: list,
+        input_size: int,
+        dropout_rate: float,
+        class_weight: bool = True,
+        output_size: int = 1,
+        batch_norm: bool = False,
+        lr: float = 1e-3,
+    ):
+        self.model = MLPModule(
+            hidden_sizes, input_size, dropout_rate, output_size, batch_norm
+        )
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
         self.class_weight = class_weight
 
-    def _initialize_dataloader(self, X_train: np.ndarray, y_train: np.ndarray, batch_size: int):
+    def _initialize_dataloader(
+        self, X_train: np.ndarray, y_train: np.ndarray, batch_size: int
+    ):
         """Initialize the dataloader of the train data.
 
         Parameters
@@ -141,11 +159,12 @@ class MLP:
         batch_size:
             The batch size.
         """
-        train_set = SimpleDataset(torch.from_numpy(X_train),
-                                  torch.from_numpy(y_train))
+        train_set = SimpleDataset(torch.from_numpy(X_train), torch.from_numpy(y_train))
         self.train_loader = DataLoader(train_set, batch_size, shuffle=True)
 
-    def get_loss_fn(self, mean_y: torch.Tensor) -> torch.nn.modules.loss.BCEWithLogitsLoss:
+    def get_loss_fn(
+        self, mean_y: torch.Tensor
+    ) -> torch.nn.modules.loss.BCEWithLogitsLoss:
         """Obtain the loss function to be used, which is (in case we use class weighting)
         dependent on the class imbalance in the batch.
 
@@ -196,11 +215,17 @@ class MLP:
         val_loss = loss_fn(y_pred, torch.tensor(y_val).float().view(-1, 1))
         return val_loss
 
-    def train(self, X_train: np.ndarray, y_train: np.ndarray, X_val: np.ndarray, y_val: np.ndarray,
-              batch_size: int = constants.DEFAULT_BATCH_SIZE, n_epochs: int =
-              constants.DEFAULT_N_EPOCHS,
-              early_stopping: bool = True,
-              early_stopping_patience: int = constants.DEFAULT_EARLY_STOPPING_PAT):
+    def train(
+        self,
+        X_train: np.ndarray,
+        y_train: np.ndarray,
+        X_val: np.ndarray,
+        y_val: np.ndarray,
+        batch_size: int = constants.DEFAULT_BATCH_SIZE,
+        n_epochs: int = constants.DEFAULT_N_EPOCHS,
+        early_stopping: bool = True,
+        early_stopping_patience: int = constants.DEFAULT_EARLY_STOPPING_PAT,
+    ):
         """Train the MLP.
 
         Parameters
@@ -224,7 +249,7 @@ class MLP:
         """
 
         self._initialize_dataloader(X_train, y_train, batch_size)
-        prev_val_loss = float('inf')
+        prev_val_loss = float("inf")
         n_no_improvement = 0
         for epoch in range(n_epochs):
 
@@ -255,16 +280,18 @@ class MLP:
             # perform multiple forward passes with dropout activated.
             predictions_list = []
             for m in self.model.modules():
-                if m.__class__.__name__.startswith('Dropout'):
+                if m.__class__.__name__.startswith("Dropout"):
                     m.train()
             for i in range(n_mc_dropout_samples):
-                predictions_list.append(torch.sigmoid(
-                    self.model(X_test_tensor)).detach().squeeze().numpy())
+                predictions_list.append(
+                    torch.sigmoid(self.model(X_test_tensor)).detach().squeeze().numpy()
+                )
             predictions = np.mean(np.array(predictions_list), axis=0)
         else:
             self.model.eval()
-            predictions = torch.sigmoid(
-                self.model(X_test_tensor)).detach().squeeze().numpy()
+            predictions = (
+                torch.sigmoid(self.model(X_test_tensor)).detach().squeeze().numpy()
+            )
         return np.stack([1 - predictions, predictions], axis=1)
 
     def get_std(self, X_test: np.ndarray, n_samples=50):
@@ -272,9 +299,94 @@ class MLP:
         # perform multiple forward passes with dropout activated.
         predictions_list = []
         for m in self.model.modules():
-            if m.__class__.__name__.startswith('Dropout'):
+            if m.__class__.__name__.startswith("Dropout"):
                 m.train()
         for i in range(n_samples):
-            predictions_list.append(torch.sigmoid(
-                self.model(X_test_tensor)).detach().squeeze().numpy())
+            predictions_list.append(
+                torch.sigmoid(self.model(X_test_tensor)).detach().squeeze().numpy()
+            )
         return np.std(np.array(predictions_list), axis=0)
+
+
+class AnchoredMLP(MLP):
+    """
+    Implement a member of an anchored ensembles as described in [1]. The main difference compared to regular ensembles
+    of Deep Neural Networks is that they use a special kind of weight decay regularization, which makes the whole
+    process Bayesian.
+
+    [1] https://arxiv.org/pdf/1810.05546.pdf
+    """
+
+    def __init__(
+        self,
+        hidden_sizes: list,
+        input_size: int,
+        dropout_rate: float,
+        class_weight: bool = True,
+        output_size: int = 1,
+        batch_norm: bool = False,
+        lr: float = 1e-3,
+    ):
+
+        super().__init__(
+            hidden_sizes,
+            input_size,
+            dropout_rate=0,
+            class_weight=class_weight,
+            output_size=output_size,
+            batch_norm=False,
+            lr=lr,
+        )
+
+        self.anchors = self.sample_anchors_and_resample_weights()
+
+    def sample_anchors_and_resample_weights(self) -> Dict[str, torch.Tensor]:
+        """
+        Sample parameter anchors from the same prior normal distribution with zero mean and sqrt(prior_scale) variance.
+
+        Returns
+        -------
+        anchors: Dict[str, torch.FloatTensor]
+            Dictionary mapping from parameter name to the parameter's anchor.
+        """
+        anchors = {}
+
+        for name, param in self.model.mlp.named_parameters():
+            # Usually torch weight matrices are initialized by sampling from U[-sqrt(1/k), sqrt(1/k)]
+            # Because anchored ensembling requires initializing them from a normal distribution, use kaiming init
+            # instead which samples from N(0, sqrt(2/k))
+            k = (
+                param.shape[1] if len(param.shape) == 2 else param.shape[0]
+            )  # Distinguish between weights and biases
+            prior_scale = sqrt(2 / k)
+            std = sqrt(prior_scale)
+            anchors[name] = torch.normal(0, std, size=param.size())
+            param.data.normal_(0, std)  # Re-sample weights from normal distribution
+
+        return anchors
+
+    def anchor_loss(self, labels: torch.Tensor):
+        loss = 0
+        N = labels.shape[0]
+
+        for name, param in self.model.mlp.named_parameters():
+            anchor = self.anchors[name]
+
+            # Create diagonal Lambda matrix
+            k = param.shape[1] if len(param.shape) == 2 else param.shape[0]
+            prior_scale = sqrt(2 / k)
+            Lambda = torch.diag(
+                torch.ones(size=(param.shape[0],)) * sqrt(1 / 2 * prior_scale)
+            )
+
+            loss += torch.norm(Lambda @ (param - anchor)) / N
+
+        return loss
+
+    def get_loss_fn(self, mean_y: torch.Tensor) -> Callable:
+        """
+        Return a modified loss function which includes the anchored ensembles loss.
+        """
+        bce_loss = super().get_loss_fn(mean_y)
+
+        return lambda pred, labels: bce_loss(pred, labels) + self.anchor_loss(labels)
