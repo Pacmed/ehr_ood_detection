@@ -205,5 +205,5 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     plot_ood_from_pickle(data_origin=args.data_origin)
-    # plot_perturbation_from_pickle(data_origin=args.data_origin)
+    plot_perturbation_from_pickle(data_origin=args.data_origin)
     # confidence_performance_from_pickle(data_origin=args.data_origin)
