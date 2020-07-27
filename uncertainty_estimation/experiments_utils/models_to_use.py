@@ -74,12 +74,16 @@ def get_models_to_use(input_dim):
     )
 
     bayesian_nn_params = dict(nn_train_params)
-    bayesian_nn_params["lr"] = 0.001
+    bayesian_nn_params["batch_size"] = 1024
+    bayesian_nn_params["early_stopping_patience"] = 5
+
+    bayesian_nn_model_params = dict(nn_model_params)
+    bayesian_nn_model_params["lr"] = 0.005
 
     bayesian_nn = NoveltyEstimator(
         BayesianMLP,
-        model_params=nn_model_params,
-        train_params=nn_train_params,
+        model_params=bayesian_nn_model_params,
+        train_params=bayesian_nn_params,
         method_name="BNN",
     )
 
