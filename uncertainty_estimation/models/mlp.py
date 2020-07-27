@@ -1,50 +1,37 @@
-from typing import Tuple
-
+from typing import Tuple, Callable
 import numpy as np
 import torch.nn as nn
 import torch
 from torch.utils.data import Dataset, DataLoader
+
+from blitz.modules import BayesianLinear
+from blitz.utils import variational_estimator
+
 import uncertainty_estimation.models.constants as constants
 
 
-class MLPModule(nn.Module):
-    """Create a new multi-layer perceptron instance with ReLU activations and no non-linearity in
-    the output layer.
-
-    Parameters
-    ----------
-    hidden_sizes: list
-        The sizes of the hidden layers.
-    input_size: int
-        The input size.
-    dropout_rate: float
-        The dropout rate applied after each layer (except the output layer)
-    output_size: int
-        The output size.
-    do_batch_norm: bool
-        Whether to apply batch normalization after each layer.
+class BaseMLPModule(nn.Module):
+    """
+    Abstract class for a multilayer perceptron.
     """
 
-    def __init__(self, hidden_sizes: list, input_size: int, dropout_rate: float,
-                 output_size: int = 1, do_batch_norm: bool = False):
-        super(MLPModule, self).__init__()
+    def __init__(
+        self,
+        hidden_sizes: list,
+        input_size: int,
+        dropout_rate: float,
+        output_size: int = 1,
+        layer_class: nn.Module = nn.Linear,
+    ):
+        super().__init__()
         layers = []
 
-        if len(hidden_sizes) > 0:
-            layers.append(nn.Linear(input_size, hidden_sizes[0]))
-            if do_batch_norm:
-                layers.append(nn.BatchNorm1d(num_features=hidden_sizes[0]))
+        hidden_sizes = [input_size] + hidden_sizes + [output_size]
+
+        for in_dim, out_dim in zip(hidden_sizes[:-1], hidden_sizes[1:]):
+            layers.append(layer_class(in_dim, out_dim))
             layers.append(nn.ReLU())
             layers.append(nn.Dropout(dropout_rate))
-
-        for i in range(1, len(hidden_sizes)):
-            layers.append(nn.Linear(hidden_sizes[i - 1], hidden_sizes[i]))
-            if do_batch_norm:
-                layers.append(nn.BatchNorm1d(num_features=hidden_sizes[i]))
-            layers.append(nn.ReLU())
-            layers.append(nn.Dropout(dropout_rate))
-
-        layers.append(nn.Linear(hidden_sizes[-1], output_size))
 
         self.mlp = nn.Sequential(*layers)
 
@@ -62,6 +49,28 @@ class MLPModule(nn.Module):
             The output of the model.
         """
         return self.mlp(_input)
+
+
+class MLPModule(BaseMLPModule):
+    ...
+
+
+@variational_estimator
+class BayesianMLPModule(BaseMLPModule):
+    def __init__(
+        self,
+        hidden_sizes: list,
+        input_size: int,
+        dropout_rate: float,
+        output_size: int = 1,
+    ):
+        super().__init__(
+            hidden_sizes,
+            input_size,
+            dropout_rate=0,
+            output_size=output_size,
+            layer_class=BayesianLinear,
+        )
 
 
 class SimpleDataset(Dataset):
@@ -122,14 +131,23 @@ class MLP:
         Whether to apply batch normalization after each layer.
     """
 
-    def __init__(self, hidden_sizes: list, input_size: int, dropout_rate: float,
-                 class_weight: bool = True, output_size: int = 1, batch_norm: bool = False,
-                 lr: float = 1e-3):
-        self.model = MLPModule(hidden_sizes, input_size, dropout_rate, output_size, batch_norm)
+    def __init__(
+        self,
+        hidden_sizes: list,
+        input_size: int,
+        dropout_rate: float,
+        class_weight: bool = True,
+        output_size: int = 1,
+        lr: float = 1e-3,
+        mlp_module: BaseMLPModule = MLPModule,
+    ):
+        self.model = mlp_module(hidden_sizes, input_size, dropout_rate, output_size)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
         self.class_weight = class_weight
 
-    def _initialize_dataloader(self, X_train: np.ndarray, y_train: np.ndarray, batch_size: int):
+    def _initialize_dataloader(
+        self, X_train: np.ndarray, y_train: np.ndarray, batch_size: int
+    ):
         """Initialize the dataloader of the train data.
 
         Parameters
@@ -141,11 +159,12 @@ class MLP:
         batch_size:
             The batch size.
         """
-        train_set = SimpleDataset(torch.from_numpy(X_train),
-                                  torch.from_numpy(y_train))
+        train_set = SimpleDataset(torch.from_numpy(X_train), torch.from_numpy(y_train))
         self.train_loader = DataLoader(train_set, batch_size, shuffle=True)
 
-    def get_loss_fn(self, mean_y: torch.Tensor) -> torch.nn.modules.loss.BCEWithLogitsLoss:
+    def get_loss_fn(
+        self, mean_y: torch.Tensor
+    ) -> torch.nn.modules.loss.BCEWithLogitsLoss:
         """Obtain the loss function to be used, which is (in case we use class weighting)
         dependent on the class imbalance in the batch.
 
@@ -196,11 +215,17 @@ class MLP:
         val_loss = loss_fn(y_pred, torch.tensor(y_val).float().view(-1, 1))
         return val_loss
 
-    def train(self, X_train: np.ndarray, y_train: np.ndarray, X_val: np.ndarray, y_val: np.ndarray,
-              batch_size: int = constants.DEFAULT_BATCH_SIZE, n_epochs: int =
-              constants.DEFAULT_N_EPOCHS,
-              early_stopping: bool = True,
-              early_stopping_patience: int = constants.DEFAULT_EARLY_STOPPING_PAT):
+    def train(
+        self,
+        X_train: np.ndarray,
+        y_train: np.ndarray,
+        X_val: np.ndarray,
+        y_val: np.ndarray,
+        batch_size: int = constants.DEFAULT_BATCH_SIZE,
+        n_epochs: int = constants.DEFAULT_N_EPOCHS,
+        early_stopping: bool = True,
+        early_stopping_patience: int = constants.DEFAULT_EARLY_STOPPING_PAT,
+    ):
         """Train the MLP.
 
         Parameters
@@ -224,7 +249,7 @@ class MLP:
         """
 
         self._initialize_dataloader(X_train, y_train, batch_size)
-        prev_val_loss = float('inf')
+        prev_val_loss = float("inf")
         n_no_improvement = 0
         for epoch in range(n_epochs):
 
@@ -234,12 +259,14 @@ class MLP:
                 loss_fn = self.get_loss_fn(batch_y.float().mean())
 
                 loss = loss_fn(y_pred.view(-1, 1), batch_y.float().view(-1, 1))
+                print(loss)
                 self.optimizer.zero_grad()
                 loss.backward()
                 self.optimizer.step()
 
             if early_stopping:
                 val_loss = self.validate(X_val, y_val)
+                print("Val", val_loss)
                 if val_loss > prev_val_loss:
                     n_no_improvement += 1
                 else:
@@ -249,22 +276,24 @@ class MLP:
                 print("Early stopping after", epoch, "epochs.")
                 break
 
-    def predict_proba(self, X_test: np.ndarray, n_mc_dropout_samples=None):
+    def predict_proba(self, X_test: np.ndarray, n_samples=None):
         X_test_tensor = torch.tensor(X_test).float()
-        if n_mc_dropout_samples:
+        if n_samples:
             # perform multiple forward passes with dropout activated.
             predictions_list = []
             for m in self.model.modules():
-                if m.__class__.__name__.startswith('Dropout'):
+                if m.__class__.__name__.startswith("Dropout"):
                     m.train()
-            for i in range(n_mc_dropout_samples):
-                predictions_list.append(torch.sigmoid(
-                    self.model(X_test_tensor)).detach().squeeze().numpy())
+            for i in range(n_samples):
+                predictions_list.append(
+                    torch.sigmoid(self.model(X_test_tensor)).detach().squeeze().numpy()
+                )
             predictions = np.mean(np.array(predictions_list), axis=0)
         else:
             self.model.eval()
-            predictions = torch.sigmoid(
-                self.model(X_test_tensor)).detach().squeeze().numpy()
+            predictions = (
+                torch.sigmoid(self.model(X_test_tensor)).detach().squeeze().numpy()
+            )
         return np.stack([1 - predictions, predictions], axis=1)
 
     def get_std(self, X_test: np.ndarray, n_samples=50):
@@ -272,9 +301,188 @@ class MLP:
         # perform multiple forward passes with dropout activated.
         predictions_list = []
         for m in self.model.modules():
-            if m.__class__.__name__.startswith('Dropout'):
+            if m.__class__.__name__.startswith("Dropout"):
                 m.train()
         for i in range(n_samples):
-            predictions_list.append(torch.sigmoid(
-                self.model(X_test_tensor)).detach().squeeze().numpy())
+            predictions_list.append(
+                torch.sigmoid(self.model(X_test_tensor)).detach().squeeze().numpy()
+            )
         return np.std(np.array(predictions_list), axis=0)
+
+
+class BayesianMLP(MLP):
+    """
+    Implement the training of a Bayesian Multi-layer perceptron.
+    """
+
+    def __init__(
+        self,
+        hidden_sizes: list,
+        input_size: int,
+        dropout_rate: float,
+        class_weight: bool = True,
+        output_size: int = 1,
+        lr: float = 1e-3,
+    ):
+        super().__init__(
+            hidden_sizes,
+            input_size,
+            dropout_rate,
+            class_weight,
+            output_size,
+            lr,
+            mlp_module=BayesianMLPModule,
+        )
+
+    def train(
+        self,
+        X_train: np.ndarray,
+        y_train: np.ndarray,
+        X_val: np.ndarray,
+        y_val: np.ndarray,
+        batch_size: int = constants.DEFAULT_BATCH_SIZE,
+        n_epochs: int = constants.DEFAULT_N_EPOCHS,
+        early_stopping: bool = True,
+        early_stopping_patience: int = constants.DEFAULT_EARLY_STOPPING_PAT,
+    ):
+        """Train the MLP.
+
+        Parameters
+        ----------
+        X_train: np.ndarray
+            The training data.
+        y_train: np.ndarray
+            The labels corresponding to the training data.
+        X_val: np.ndarray
+            The validation data.
+        y_val: np.ndarray
+            The labels corresponding to the validation data.
+        batch_size: int
+            The batch size, default 256
+        n_epochs: int
+            The number of training epochs, default 30
+        early_stopping: bool
+            Whether to perform early stopping, default True
+        early_stopping_patience: int
+            The early stopping patience, default 2.
+        """
+
+        self._initialize_dataloader(X_train, y_train, batch_size)
+        prev_val_loss = float("inf")
+        n_no_improvement = 0
+        for epoch in range(n_epochs):
+
+            self.model.train()
+            for batch_X, batch_y in self.train_loader:
+                y_pred = self.model(batch_X.float())
+                loss_fn = self.get_loss_fn(batch_y.float().mean())
+
+                loss = loss_fn(y_pred.view(-1, 1), batch_y.float().view(-1, 1))
+
+                print(loss)
+                self.optimizer.zero_grad()
+                loss.backward()
+                self.optimizer.step()
+
+            if early_stopping:
+                val_loss = self.validate(X_val, y_val)
+                print("Val", val_loss)
+                if val_loss > prev_val_loss:
+                    n_no_improvement += 1
+                else:
+                    n_no_improvement = 0
+                    prev_val_loss = val_loss
+
+            if n_no_improvement >= early_stopping_patience:
+                print("Early stopping after", epoch, "epochs.")
+                break
+
+    def get_loss_fn(self, mean_y: torch.Tensor) -> Callable:
+        bce_loss = super().get_loss_fn(mean_y)
+
+        loss_fn = lambda inputs, labels: self.model.sample_elbo(
+            inputs=inputs, labels=labels, criterion=bce_loss, sample_nbr=2
+        )
+
+        return loss_fn
+
+    def train(
+        self,
+        X_train: np.ndarray,
+        y_train: np.ndarray,
+        X_val: np.ndarray,
+        y_val: np.ndarray,
+        batch_size: int = constants.DEFAULT_BATCH_SIZE,
+        n_epochs: int = constants.DEFAULT_N_EPOCHS,
+        early_stopping: bool = True,
+        early_stopping_patience: int = constants.DEFAULT_EARLY_STOPPING_PAT,
+    ):
+        """Train the MLP.
+
+        Parameters
+        ----------
+        X_train: np.ndarray
+            The training data.
+        y_train: np.ndarray
+            The labels corresponding to the training data.
+        X_val: np.ndarray
+            The validation data.
+        y_val: np.ndarray
+            The labels corresponding to the validation data.
+        batch_size: int
+            The batch size, default 256
+        n_epochs: int
+            The number of training epochs, default 30
+        early_stopping: bool
+            Whether to perform early stopping, default True
+        early_stopping_patience: int
+            The early stopping patience, default 2.
+        """
+
+        self._initialize_dataloader(X_train, y_train, batch_size)
+        prev_val_loss = float("inf")
+        n_no_improvement = 0
+        for epoch in range(n_epochs):
+
+            self.model.train()
+            for batch_X, batch_y in self.train_loader:
+                loss_fn = self.get_loss_fn(batch_y.float().mean())
+
+                loss = loss_fn(batch_X.float(), batch_y.float().view(-1, 1))
+                self.optimizer.zero_grad()
+                loss.backward()
+                self.optimizer.step()
+
+            if early_stopping:
+                val_loss = self.validate(X_val, y_val)
+                print("Val", val_loss)
+                if val_loss > prev_val_loss:
+                    n_no_improvement += 1
+                else:
+                    n_no_improvement = 0
+                    prev_val_loss = val_loss
+            if n_no_improvement >= early_stopping_patience:
+                print("Early stopping after", epoch, "epochs.")
+                break
+
+    def validate(self, X_val: np.ndarray, y_val: np.ndarray) -> torch.Tensor:
+        """Calculate the validation loss.
+
+        Parameters
+        ----------
+        X_val: np.ndarray
+            The validation data.
+        y_val: np.ndarray
+            The labels corresponding to the validation data.
+
+        Returns
+        -------
+        type: torch.Tensor
+            The validation loss.
+        """
+        self.model.eval()
+        loss_fn = self.get_loss_fn(torch.tensor(y_val).float().mean())
+        val_loss = loss_fn(
+            torch.tensor(X_val).float(), torch.tensor(y_val).float().view(-1, 1)
+        )
+        return val_loss

@@ -178,6 +178,7 @@ def run_ood_experiment_on_group(
             "Single_NN",
             "NN_Ensemble",
             "MC_Dropout",
+            "BNN",
             "NN_Ensemble_bootstrapped",
         ]:
             y_pred = nov_an.ne.model.predict_proba(nov_an.X_ood)[:, 1]

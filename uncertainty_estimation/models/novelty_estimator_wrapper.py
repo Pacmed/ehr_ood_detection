@@ -30,16 +30,18 @@ class NoveltyEstimator:
         train_data: np.ndarray
             The training data to fit the novelty estimator on.
         """
-        if self.name == 'AE':
+        if self.name == "AE":
             self.model = self.model_type(**self.model_params, train_data=X_train)
             self.model.train(**self.train_params)
-        elif self.name == 'sklearn':
+        elif self.name == "sklearn":
             self.model = self.model_type(**self.model_params)
             self.model.fit(X_train)
-        elif self.name == 'NNEnsemble':
+        elif self.name == "NNEnsemble":
             self.model = self.model_type(**self.model_params)
-            self.model.train(X_train, y_train, X_val, y_val, training_params=self.train_params)
-        elif self.name in ['NN', 'MCDropout']:
+            self.model.train(
+                X_train, y_train, X_val, y_val, training_params=self.train_params
+            )
+        elif self.name in ["NN", "MCDropout", "BNN"]:
             self.model = self.model_type(**self.model_params)
             self.model.train(X_train, y_train, X_val, y_val, **self.train_params)
 
@@ -57,16 +59,16 @@ class NoveltyEstimator:
             The novelty estimates.
 
         """
-        if self.name == 'AE':
+        if self.name == "AE":
             return self.model.get_reconstr_error(data)
-        elif self.name == 'sklearn':
-            return - self.model.score_samples(data)
-        elif self.name in ['NNEnsemble', 'MCDropout']:
-            if kind == 'std':
+        elif self.name == "sklearn":
+            return -self.model.score_samples(data)
+        elif self.name in ["NNEnsemble", "MCDropout", "BNN"]:
+            if kind == "std":
                 return self.model.get_std(data)
-            elif kind == 'entropy':
+            elif kind == "entropy":
                 return entropy(self.model.predict_proba(data), axis=1)
             else:
                 print("Unknown type of uncertainty: ", kind)
-        elif self.name == 'NN':
+        elif self.name == "NN":
             return entropy(self.model.predict_proba(data), axis=1)
