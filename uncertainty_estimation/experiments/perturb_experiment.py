@@ -60,7 +60,7 @@ if __name__ == '__main__':
     torch.manual_seed(123)
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_origin',
-                        type=str, default='eICU',
+                        type=str, default='MIMIC',
                         help="Which data to use")
     args = parser.parse_args()
 
