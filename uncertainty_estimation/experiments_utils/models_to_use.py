@@ -6,6 +6,9 @@ from uncertainty_estimation.models.autoencoder import AE
 from uncertainty_estimation.models.mlp import MLP, BayesianMLP
 
 
+# TODO: Rename / refactor this?
+
+
 def get_models_to_use(input_dim):
     pca = NoveltyEstimator(PCA, dict(n_components=2), {}, "sklearn")
 
@@ -82,6 +85,7 @@ def get_models_to_use(input_dim):
         method_name="MCDropout",
     )
 
+    # TODO: Rewrite into separate dicts
     bayesian_nn_params = dict(nn_train_params)
     bayesian_nn_params["batch_size"] = 1024
     bayesian_nn_params["early_stopping_patience"] = 5

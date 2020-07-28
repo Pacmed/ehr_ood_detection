@@ -1,5 +1,7 @@
 from uncertainty_estimation.experiments_utils.metrics import entropy
 
+# TODO: Rename module?
+
 
 class NoveltyEstimator:
     """Wrapper class for novelty estimation methods

@@ -30,6 +30,7 @@ def plot_ood_from_pickle(data_origin, dummy_group_name=None):
             with open(os.path.join(detection_dir, kind, "recall.pkl"), "rb") as f:
                 recall_dict[name] = pickle.load(f)
 
+        # TODO: Avoid this
         if method in [
             "Single_NN",
             "BNN",
@@ -122,6 +123,7 @@ def plot_da_from_pickle():
             with open(os.path.join(detection_dir, kind, "recall.pkl"), "rb") as f:
                 recall_dict[name] = pickle.load(f)
 
+        # TODO: Avoid this
         if method in [
             "Single_NN",
             "MC_Dropout",
@@ -147,6 +149,7 @@ def plot_da_from_pickle():
             except FileNotFoundError:
                 pass
 
+    # TODO: Loop this
     ood_plots.boxplot_from_nested_listdict(
         auc_dict,
         name="OOD detection AUC",
@@ -236,6 +239,7 @@ def plot_perturbation_from_pickle(data_origin):
     perturb_dir_name = os.path.join("pickled_results", data_origin, "perturbation")
     perturb_plot_dir_name = os.path.join("plots", data_origin, "perturbation")
     auc_dict, recall_dict = dict(), dict()
+    # TODO: Avoid this
     models = [
         "Single_NN",
         "MC_Dropout (std)",
@@ -255,6 +259,8 @@ def plot_perturbation_from_pickle(data_origin):
             auc_dict[name] = pickle.load(f)
         with open(os.path.join(method_dir, "perturb_recall.pkl"), "rb") as f:
             recall_dict[name] = pickle.load(f)
+
+    # TODO: Loop this
     ood_plots.boxplot_from_nested_listdict(
         recall_dict,
         "perturbation 95% recall",
@@ -384,6 +390,7 @@ def confidence_performance_from_pickle(data_origin):
 
 
 if __name__ == "__main__":
+    # TODO: Add more args instead having to comment out
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--data_origin",

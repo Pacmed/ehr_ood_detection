@@ -7,13 +7,17 @@ from typing import Tuple, Callable, List, DefaultDict, Dict
 import itertools
 
 
+# TODO: Is this still being used?
 class UncertaintyAnalyzer:
-    def __init__(self, y: List[np.ndarray],
-                 y_pred_dict: DefaultDict,
-                 unc_dict: DefaultDict,
-                 metrics: List[Callable[[np.ndarray, np.ndarray], float]],
-                 min_size: int,
-                 step_size: int):
+    def __init__(
+        self,
+        y: List[np.ndarray],
+        y_pred_dict: DefaultDict,
+        unc_dict: DefaultDict,
+        metrics: List[Callable[[np.ndarray, np.ndarray], float]],
+        min_size: int,
+        step_size: int,
+    ):
         """Class that handles analyzing and plotting metrics, when excluding data points based
         on uncertainty. We do this in one class because calculating multiple metrics at once is
         much faster than doing the operations (sorting etc.) one at a time.
@@ -52,9 +56,16 @@ class UncertaintyAnalyzer:
         self.step_size = step_size
         self._calculate_incremental_metrics(metrics)
 
-    def plot_incremental_metric(self, metric: str, title: str = None, methods: List[str] = None,
-                                alpha: float = 0.1, ylim = None,
-                                key_mapping: dict = None, legend: bool = True):
+    def plot_incremental_metric(
+        self,
+        metric: str,
+        title: str = None,
+        methods: List[str] = None,
+        alpha: float = 0.1,
+        ylim=None,
+        key_mapping: dict = None,
+        legend: bool = True,
+    ):
         """Plot how a metric changes when adding more uncertain points. Do this for multiple
         methods, such as Bayesian NN and KNN.
 
@@ -74,12 +85,12 @@ class UncertaintyAnalyzer:
             Whether to plot a legend.
         """
 
-        sns.set_style('whitegrid')
+        sns.set_style("whitegrid")
         plt.figure(figsize=(5, 5))
         if not methods:  # if no methods are specified, plot all.
             methods = self.uncertainty_dict.keys()
         sns.set_palette("Set1", len(methods), desat=0.8)
-        marker = itertools.cycle(('X', 'o', '^', 'v', 'd', '*', '.'))
+        marker = itertools.cycle(("X", "o", "^", "v", "d", "*", "."))
         for m in methods:
             x_values = np.array(self.xs[m][metric]) / len(self.y[0])
             met = np.array(self.loss_dict[m][metric])
@@ -89,22 +100,22 @@ class UncertaintyAnalyzer:
             else:
                 label = m
             plt.plot(x_values, met, label=label, marker=next(marker), markersize=8)
-            plt.fill_between(x_values,
-                             met - std,
-                             met + std,
-                             alpha=alpha)
+            plt.fill_between(x_values, met - std, met + std, alpha=alpha)
             plt.ylim(ylim)
-        plt.xlabel("Fraction of included data points \n(most certain points are included first)")
+        plt.xlabel(
+            "Fraction of included data points \n(most certain points are included first)"
+        )
         if legend:
-            plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+            plt.legend(loc="center left", bbox_to_anchor=(1, 0.5))
         if title:
             plt.ylabel(title)
         else:
             plt.ylabel(metric)
         plt.tight_layout()
 
-    def _calculate_incremental_metrics(self,
-                                       metrics: List[Callable[[np.ndarray, np.ndarray], float]]):
+    def _calculate_incremental_metrics(
+        self, metrics: List[Callable[[np.ndarray, np.ndarray], float]]
+    ):
         """Calculate the specified metrics for an increasing number of uncertain points. This to
         be used later in plotting etc. It is done for each method and each specified metric.
         Apart from the mean, the standard deviation over seeds/runs is stored.
@@ -116,23 +127,27 @@ class UncertaintyAnalyzer:
             probabilities in this order: f(y, y_pred).
         """
         for key in self.uncertainty_dict.keys():
-            xs, loss_dict, score_std = get_incremental_loss(self.y, self.y_pred[key],
-                                                            self.uncertainty_dict[key],
-                                                            metrics, min_size=self.min_size,
-                                                            step_size=self.step_size)
+            xs, loss_dict, score_std = get_incremental_loss(
+                self.y,
+                self.y_pred[key],
+                self.uncertainty_dict[key],
+                metrics,
+                min_size=self.min_size,
+                step_size=self.step_size,
+            )
             self.xs[key] = xs
             self.loss_dict[key] = loss_dict
             self.loss_std_dict[key] = score_std
 
 
-def get_incremental_loss(y_test: List[np.ndarray],
-                         y_pred: List[np.ndarray],
-                         uncertainty: List[np.ndarray],
-                         metrics: List[Callable[[np.ndarray, np.ndarray], float]],
-                         min_size: int,
-                         step_size: int) -> Tuple[DefaultDict,
-                                                  DefaultDict,
-                                                  DefaultDict]:
+def get_incremental_loss(
+    y_test: List[np.ndarray],
+    y_pred: List[np.ndarray],
+    uncertainty: List[np.ndarray],
+    metrics: List[Callable[[np.ndarray, np.ndarray], float]],
+    min_size: int,
+    step_size: int,
+) -> Tuple[DefaultDict, DefaultDict, DefaultDict]:
     """Parameters
     ----------
     y_test: List[np.ndarray]
@@ -166,20 +181,22 @@ def get_incremental_loss(y_test: List[np.ndarray],
         # loop over each seed, take the average and standard deviation in the end.
         list_of_scores = []
         for n in range(number_of_seeds):
-            df = pd.DataFrame({
-                'y_pred': y_pred[n],
-                'minimum_y_pred': pd.DataFrame([1 - y_pred[n], y_pred[n]]).min(),
-                'uncertainty': uncertainty[n],
-                'y': y_test[n]
-            })
+            df = pd.DataFrame(
+                {
+                    "y_pred": y_pred[n],
+                    "minimum_y_pred": pd.DataFrame([1 - y_pred[n], y_pred[n]]).min(),
+                    "uncertainty": uncertainty[n],
+                    "y": y_test[n],
+                }
+            )
 
             temp_score, temp_xs = [], []
 
             # incrementally include more data points, sorted from certain to uncertain.
-            sorted_df = df.sort_values(by='uncertainty')
+            sorted_df = df.sort_values(by="uncertainty")
             for i in range(min_size, len(sorted_df), step_size):
                 temp = sorted_df[:i]
-                temp_score.append(metric(temp['y'], temp['y_pred']))
+                temp_score.append(metric(temp["y"], temp["y_pred"]))
                 temp_xs.append(i)
             list_of_scores.append(np.array(temp_score))
 

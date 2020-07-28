@@ -10,12 +10,14 @@ import uncertainty_estimation.experiments_utils.ood_experiments_utils as ood_uti
 from uncertainty_estimation.experiments_utils.models_to_use import get_models_to_use
 from uncertainty_estimation.experiments_utils.datahandler import DataHandler
 
+# TODO: Don't sample features with replacement
 SCALES = [10, 100, 1000, 10000]
 N_FEATURES = 100
 
 
-def run_perturbation_experiment(nov_an: ood_utils.NoveltyAnalyzer, X_test: np.ndarray,
-                                kind: str = None):
+def run_perturbation_experiment(
+    nov_an: ood_utils.NoveltyAnalyzer, X_test: np.ndarray, kind: str = None
+):
     """Runs the perturbation experiment for a single novelty estimator.
 
     Parameters
@@ -55,13 +57,13 @@ def run_perturbation_experiment(nov_an: ood_utils.NoveltyAnalyzer, X_test: np.nd
     return aucs_dict, recall_dict
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     np.random.seed(123)
     torch.manual_seed(123)
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data_origin',
-                        type=str, default='MIMIC',
-                        help="Which data to use")
+    parser.add_argument(
+        "--data_origin", type=str, default="MIMIC", help="Which data to use"
+    )
     args = parser.parse_args()
 
     # Loading the data
@@ -72,29 +74,40 @@ if __name__ == '__main__':
 
     for ne, kinds, name in get_models_to_use(len(feature_names)):
         print(name)
-        nov_an = ood_utils.NoveltyAnalyzer(ne, train_data[feature_names].values,
-                                           test_data[feature_names].values,
-                                           val_data[feature_names].values,
-                                           train_data[y_name].values,
-                                           test_data[y_name].values,
-                                           val_data[y_name].values)
+        nov_an = ood_utils.NoveltyAnalyzer(
+            ne,
+            train_data[feature_names].values,
+            test_data[feature_names].values,
+            val_data[feature_names].values,
+            train_data[y_name].values,
+            test_data[y_name].values,
+            val_data[y_name].values,
+        )
         nov_an.train()
         for kind in kinds:
-            aucs_dict, recall_dict = run_perturbation_experiment(nov_an, test_data[
-                feature_names], kind=kind)
+            aucs_dict, recall_dict = run_perturbation_experiment(
+                nov_an, test_data[feature_names], kind=kind
+            )
             if len(kinds) > 1:
-                dir_name = os.path.join('pickled_results', args.data_origin, 'perturbation',
-                                        name + " (" + kind + ")")
+                dir_name = os.path.join(
+                    "pickled_results",
+                    args.data_origin,
+                    "perturbation",
+                    name + " (" + kind + ")",
+                )
             else:
-                dir_name = os.path.join('pickled_results', args.data_origin, 'perturbation',
-                                        name)
+                dir_name = os.path.join(
+                    "pickled_results", args.data_origin, "perturbation", name
+                )
 
             if not os.path.exists(dir_name):
                 os.mkdir(dir_name)
-            with open(os.path.join(dir_name, 'model_info.pkl'), 'wb') as f:
-                pickle.dump({'train_params': ne.train_params, 'model_params': ne.model_params},
-                            f)
-            with open(os.path.join(dir_name, 'perturb_recall.pkl'), 'wb') as f:
+            with open(os.path.join(dir_name, "model_info.pkl"), "wb") as f:
+                pickle.dump(
+                    {"train_params": ne.train_params, "model_params": ne.model_params},
+                    f,
+                )
+            with open(os.path.join(dir_name, "perturb_recall.pkl"), "wb") as f:
                 pickle.dump(recall_dict, f)
-            with open(os.path.join(dir_name, 'perturb_detect_auc.pkl'), 'wb') as f:
+            with open(os.path.join(dir_name, "perturb_detect_auc.pkl"), "wb") as f:
                 pickle.dump(aucs_dict, f)

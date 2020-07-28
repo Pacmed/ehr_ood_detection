@@ -9,6 +9,9 @@ from uncertainty_estimation.experiments_utils.datahandler import DataHandler
 import numpy as np
 import torch
 
+# TODO: Comments, formatting
+# TODO: Avoid repeated lists
+
 N_SEEDS = 5
 if __name__ == "__main__":
     np.random.seed(123)

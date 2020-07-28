@@ -12,6 +12,7 @@ import uncertainty_estimation.experiments_utils.metrics as metrics
 
 from typing import Tuple, List, Optional, Callable, Union
 
+# TODO: Put into new module
 # CONST
 # I commented out groups that are too small
 MIMIC_OOD_MAPPINGS = {
@@ -66,6 +67,7 @@ METRICS_TO_USE = [
 N_SEEDS = 5
 
 
+# TODO: How did this end up here?
 def barplot_from_nested_dict(
     nested_dict: dict,
     xlim: Tuple[float, float],
@@ -160,6 +162,8 @@ def run_ood_experiment_on_group(
         val_non_ood[non_ood_y_name].values,
         impute_and_scale=impute_and_scale,
     )
+
+    # TODO: Rewrite as defaultdicts
     for kind in kinds:
         ood_detect_aucs[kind][ood_name] = []
         ood_recall[kind][ood_name] = []
@@ -181,9 +185,10 @@ def run_ood_experiment_on_group(
 
         if method_name in [
             "Single_NN",
-            "BNN" "NN_Ensemble",
+            "BNN",
             "MC_Dropout",
             "BNN",
+            "NN_Ensemble",
             "NN_Ensemble_bootstrapped",
             "NN_Ensemble_anchored",
         ]:
@@ -327,6 +332,7 @@ def validate_ood_data(
     return ks_p_values, percentage_sig
 
 
+# TODO: Put into separate module?
 class NoveltyAnalyzer:
     """Class to analyze the novelty estimates of a novelty estimator on i.d. data and ood data.
 

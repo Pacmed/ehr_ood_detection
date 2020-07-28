@@ -4,6 +4,7 @@ import pickle
 import uncertainty_estimation.experiments_utils.ood_experiments_utils as ood_utils
 import numpy as np
 
+# TODO: Put constants into diffeent file?
 VAL_FRAC = 0.15
 TEST_FRAC = 0.15
 TRAIN_FRAC = 0.7
@@ -13,9 +14,14 @@ eicu_processed_csv = (
     "/data/processed/eicu_processed/data/adult_data_with_indicators.csv"
 )
 
+# TODO: Remove hardcoded paths
+# TODO: Remove repeated lists
+
 
 class DataHandler:
+    # TODO: Add doc
     def __init__(self, origin="MIMIC"):
+        # TODO: Add assert
         self.origin = origin
 
     def load_train_test_val(self):
@@ -40,6 +46,9 @@ class DataHandler:
             return self.split_train_test_val(all_data)
 
     def load_feature_names(self):
+
+        # TODO: Rewrite this
+
         if self.origin == "MIMIC":
             with open(
                 "../experiments_utils/feature_names/common_mimic_params.pkl", "rb"
