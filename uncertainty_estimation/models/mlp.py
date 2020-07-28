@@ -58,6 +58,7 @@ class MLPModule(nn.Module):
 
 @variational_estimator
 class BayesianMLPModule(MLPModule):
+    # TODO: Doc
     def __init__(
         self,
         hidden_sizes: list,
@@ -287,6 +288,7 @@ class MLP:
                 break
 
     def predict_proba(self, X_test: np.ndarray, n_samples=None):
+        # TODO: Doc
         X_test_tensor = torch.tensor(X_test).float()
         if n_samples:
             # perform multiple forward passes with dropout activated.
@@ -307,6 +309,7 @@ class MLP:
         return np.stack([1 - predictions, predictions], axis=1)
 
     def get_std(self, X_test: np.ndarray, n_samples=50):
+        # TODO: Doc
         X_test_tensor = torch.tensor(X_test).float()
         # perform multiple forward passes with dropout activated.
         predictions_list = []
@@ -345,6 +348,7 @@ class BayesianMLP(MLP):
         )
 
     def get_loss_fn(self, mean_y: torch.Tensor, train: bool = True) -> Callable:
+        # TODO: Doc
         bce_loss = super().get_loss_fn(mean_y)
 
         # Return only BCE loss for validation
@@ -455,7 +459,6 @@ class AnchoredMLP(MLP):
         dropout_rate: float,
         class_weight: bool = True,
         output_size: int = 1,
-        batch_norm: bool = False,
         lr: float = 1e-3,
     ):
 
@@ -497,6 +500,7 @@ class AnchoredMLP(MLP):
         return anchors
 
     def anchor_loss(self, labels: torch.Tensor):
+        # TODO: Doc
         loss = 0
         N = labels.shape[0]
 

@@ -5,8 +5,12 @@ from sklearn.metrics import roc_auc_score, accuracy_score, brier_score_loss, log
 DEFAULT_N_BINS = 10
 
 
+# TODO: Remove unused metrics
+
+# TODO: Add docs
 def nll(y, y_pred):
     return log_loss(y, y_pred, eps=1e-5)
+
 
 def entropy(probabilities, axis):
     return -np.sum(probabilities * np.log2(probabilities + 1e-8), axis=axis)
@@ -21,7 +25,9 @@ def accuracy(y, y_pred, thresh=0.5):
     return accuracy_score(y, predicted_labels)
 
 
-def ood_detection_auc(ood_uncertainties: np.ndarray, test_uncertainties: np.ndarray) -> float:
+def ood_detection_auc(
+    ood_uncertainties: np.ndarray, test_uncertainties: np.ndarray
+) -> float:
     """ Calculate the AUC when using uncertainty to detect OOD.
 
     Parameters
@@ -37,7 +43,9 @@ def ood_detection_auc(ood_uncertainties: np.ndarray, test_uncertainties: np.ndar
         The AUC-ROC score.
     """
     all_uncertainties = np.concatenate([ood_uncertainties, test_uncertainties])
-    labels = np.concatenate([np.ones(len(ood_uncertainties)), np.zeros(len(test_uncertainties))])
+    labels = np.concatenate(
+        [np.ones(len(ood_uncertainties)), np.zeros(len(test_uncertainties))]
+    )
     return roc_auc_score(labels, all_uncertainties)
 
 
@@ -62,11 +70,13 @@ def ece(y: np.ndarray, y_pred: np.ndarray, n_bins: int = DEFAULT_N_BINS) -> floa
 
     """
     grouped = _get_binned_df(y, y_pred, n_bins)
-    weighed_diff = abs(grouped['y_pred'] - grouped['y']) * grouped['weight']
+    weighed_diff = abs(grouped["y_pred"] - grouped["y"]) * grouped["weight"]
     return weighed_diff.sum()
 
 
-def resolution(y: np.ndarray, y_pred: np.ndarray, n_bins: int = DEFAULT_N_BINS) -> float:
+def resolution(
+    y: np.ndarray, y_pred: np.ndarray, n_bins: int = DEFAULT_N_BINS
+) -> float:
     """Calculate the resolution as specified by the brier score decomposition: for each bin,
     the squared difference between the base rate and the fraction of positives is taken. The
     resolution is the weighed average of these differences.
@@ -87,10 +97,12 @@ def resolution(y: np.ndarray, y_pred: np.ndarray, n_bins: int = DEFAULT_N_BINS) 
     """
     base_rate = np.mean(y)
     grouped = _get_binned_df(y, y_pred, n_bins)
-    return (grouped['weight'] * (grouped['y'] - base_rate) ** 2).sum()
+    return (grouped["weight"] * (grouped["y"] - base_rate) ** 2).sum()
 
 
-def reliability(y: np.ndarray, y_pred: np.ndarray, n_bins: int = DEFAULT_N_BINS) -> float:
+def reliability(
+    y: np.ndarray, y_pred: np.ndarray, n_bins: int = DEFAULT_N_BINS
+) -> float:
     """Calculate the reliability as specified by the brier score decomposition. This is the same
     as the ECE, except for the squared term.
 
@@ -109,7 +121,7 @@ def reliability(y: np.ndarray, y_pred: np.ndarray, n_bins: int = DEFAULT_N_BINS)
         The reliability.
     """
     grouped = _get_binned_df(y, y_pred, n_bins)
-    return (grouped['weight'] * (grouped['y_pred'] - grouped['y']) ** 2).sum()
+    return (grouped["weight"] * (grouped["y_pred"] - grouped["y"]) ** 2).sum()
 
 
 def uncertainty(y: np.ndarray, y_pred: np.ndarray = None) -> float:
@@ -133,7 +145,9 @@ def uncertainty(y: np.ndarray, y_pred: np.ndarray = None) -> float:
     return base_rate * (1 - base_rate)
 
 
-def binned_brier_score(y: np.ndarray, y_pred: np.ndarray, n_bins: int = DEFAULT_N_BINS) -> float:
+def binned_brier_score(
+    y: np.ndarray, y_pred: np.ndarray, n_bins: int = DEFAULT_N_BINS
+) -> float:
     """Calculate the 'binned' brier score. This is calculated as the reliability - resolution +
     uncertainty.
 
@@ -151,7 +165,11 @@ def binned_brier_score(y: np.ndarray, y_pred: np.ndarray, n_bins: int = DEFAULT_
     bs: float
         The brier score.
     """
-    return reliability(y, y_pred, n_bins) - resolution(y, y_pred, n_bins) + uncertainty(y, y_pred)
+    return (
+        reliability(y, y_pred, n_bins)
+        - resolution(y, y_pred, n_bins)
+        + uncertainty(y, y_pred)
+    )
 
 
 def brier_skill_score(y: np.ndarray, y_pred: np.ndarray) -> float:
@@ -180,7 +198,9 @@ def brier_skill_score(y: np.ndarray, y_pred: np.ndarray) -> float:
     return 1 - bs / bs_base
 
 
-def cal(y: np.ndarray, y_pred: np.ndarray, step_size: int = 25, window_size: int = 100) -> float:
+def cal(
+    y: np.ndarray, y_pred: np.ndarray, step_size: int = 25, window_size: int = 100
+) -> float:
     """Calculate CAL/CalBin metric, similar to ECE, but with no fixed windows. Instead,
     a window is shifted to create many overlapping bins.
 
@@ -202,13 +222,13 @@ def cal(y: np.ndarray, y_pred: np.ndarray, step_size: int = 25, window_size: int
         The CAL/CalBin metric for the given data.
     """
     differences, n_windows = 0, 0
-    df = pd.DataFrame({'y': y, 'y_pred': y_pred})
-    df = df.sort_values(by='y_pred', ascending=True)
+    df = pd.DataFrame({"y": y, "y_pred": y_pred})
+    df = df.sort_values(by="y_pred", ascending=True)
 
     # slide a window and calculate the absolute calibration error per window position
     for i in range(0, len(y_pred) - window_size, step_size):
-        mean_y = np.mean(df.loc[i:i + window_size, 'y'])
-        mean_y_pred = np.mean(df.loc[i:i + window_size, 'y'])
+        mean_y = np.mean(df.loc[i : i + window_size, "y"])
+        mean_y_pred = np.mean(df.loc[i : i + window_size, "y"])
         differences += abs(mean_y - mean_y_pred)
         n_windows += 1
 
@@ -233,19 +253,17 @@ def _get_binned_df(y: np.ndarray, y_pred: np.ndarray, n_bins: int) -> pd.DataFra
     bins = np.arange(0.0, 1.0, 1.0 / n_bins)
     bins_per_prediction = np.digitize(y_pred, bins)
 
-    df = pd.DataFrame({'y_pred': y_pred,
-                       'y': y,
-                       'pred_bins': bins_per_prediction})
+    df = pd.DataFrame({"y_pred": y_pred, "y": y, "pred_bins": bins_per_prediction})
 
-    grouped_by_bins = df.groupby('pred_bins')
+    grouped_by_bins = df.groupby("pred_bins")
     # calculate the mean y and predicted probabilities per bin
     binned = grouped_by_bins.mean()
 
     # calculate the number of items per bin
-    binned_counts = grouped_by_bins['y'].count()
+    binned_counts = grouped_by_bins["y"].count()
 
     # calculate the proportion of data per bin
-    binned['weight'] = binned_counts / n
+    binned["weight"] = binned_counts / n
     return binned
 
 
