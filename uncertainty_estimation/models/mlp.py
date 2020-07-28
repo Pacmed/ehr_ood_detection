@@ -69,7 +69,12 @@ class BayesianMLPModule(MLPModule):
             dropout_rate=dropout_rate,
             output_size=output_size,
             layer_class=BayesianLinear,
-            layer_kwargs={"posterior_rho_init": -4.5, "prior_pi": 0.5},
+            # TODO: Make this hyperparams in models_to_use.py
+            layer_kwargs={
+                "posterior_rho_init": -4.5,
+                "prior_pi": 0.8,
+                "prior_sigma_1": 0.7,
+            },
         )
 
 
@@ -270,7 +275,7 @@ class MLP:
 
             if early_stopping:
                 val_loss = self.validate(X_val, y_val)
-                print("Val", val_loss)
+                # print("Val", val_loss)
                 if val_loss > prev_val_loss:
                     n_no_improvement += 1
                 else:
@@ -401,7 +406,7 @@ class BayesianMLP(MLP):
 
             if early_stopping:
                 val_loss = self.validate(X_val, y_val)
-                print("BNN val", val_loss)
+                # print("BNN val", val_loss)
                 if val_loss >= prev_val_loss:
                     n_no_improvement += 1
                 else:
