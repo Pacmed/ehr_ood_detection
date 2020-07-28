@@ -1,3 +1,5 @@
+from math import sqrt
+
 from typing import Tuple, Callable, Dict, Any
 import numpy as np
 import torch.nn as nn
@@ -275,7 +277,6 @@ class MLP:
 
             if early_stopping:
                 val_loss = self.validate(X_val, y_val)
-                # print("Val", val_loss)
                 if val_loss > prev_val_loss:
                     n_no_improvement += 1
                 else:
@@ -436,3 +437,87 @@ class BayesianMLP(MLP):
         preds = self.model(torch.tensor(X_val).float())
         val_loss = loss_fn(preds, torch.tensor(y_val).float().view(-1, 1))
         return val_loss
+
+
+class AnchoredMLP(MLP):
+    """
+    Implement a member of an anchored ensembles as described in [1]. The main difference compared to regular ensembles
+    of Deep Neural Networks is that they use a special kind of weight decay regularization, which makes the whole
+    process Bayesian.
+
+    [1] https://arxiv.org/pdf/1810.05546.pdf
+    """
+
+    def __init__(
+        self,
+        hidden_sizes: list,
+        input_size: int,
+        dropout_rate: float,
+        class_weight: bool = True,
+        output_size: int = 1,
+        batch_norm: bool = False,
+        lr: float = 1e-3,
+    ):
+
+        super().__init__(
+            hidden_sizes,
+            input_size,
+            dropout_rate=0,
+            class_weight=class_weight,
+            output_size=output_size,
+            batch_norm=False,
+            lr=lr,
+        )
+
+        self.anchors = self.sample_anchors_and_resample_weights()
+
+    def sample_anchors_and_resample_weights(self) -> Dict[str, torch.Tensor]:
+        """
+        Sample parameter anchors from the same prior normal distribution with zero mean and sqrt(prior_scale) variance.
+
+        Returns
+        -------
+        anchors: Dict[str, torch.FloatTensor]
+            Dictionary mapping from parameter name to the parameter's anchor.
+        """
+        anchors = {}
+
+        for name, param in self.model.mlp.named_parameters():
+            # Usually torch weight matrices are initialized by sampling from U[-sqrt(1/k), sqrt(1/k)]
+            # Because anchored ensembling requires initializing them from a normal distribution, use kaiming init
+            # instead which samples from N(0, sqrt(2/k))
+            k = (
+                param.shape[1] if len(param.shape) == 2 else param.shape[0]
+            )  # Distinguish between weights and biases
+            prior_scale = sqrt(2 / k)
+            std = sqrt(prior_scale)
+            anchors[name] = torch.normal(0, std, size=param.size())
+            param.data.normal_(0, std)  # Re-sample weights from normal distribution
+
+        return anchors
+
+    def anchor_loss(self, labels: torch.Tensor):
+        loss = 0
+        N = labels.shape[0]
+
+        for name, param in self.model.mlp.named_parameters():
+            anchor = self.anchors[name]
+
+            # Create diagonal Lambda matrix
+            k = param.shape[1] if len(param.shape) == 2 else param.shape[0]
+            prior_scale = sqrt(2 / k)
+            Lambda = torch.diag(
+                torch.ones(size=(param.shape[0],)) * sqrt(1 / 2 * prior_scale)
+            )
+
+            loss += torch.norm(Lambda @ (param - anchor)) / N
+
+        return loss
+
+    def get_loss_fn(self, mean_y: torch.Tensor) -> Callable:
+        """
+        Return a modified loss function which includes the anchored ensembles loss.
+        """
+        bce_loss = super().get_loss_fn(mean_y)
+
+        return lambda pred, labels: bce_loss(pred, labels) + self.anchor_loss(labels)

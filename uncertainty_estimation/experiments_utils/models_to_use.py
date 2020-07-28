@@ -1,6 +1,6 @@
 from sklearn.decomposition import PCA
 from uncertainty_estimation.models.novelty_estimator_wrapper import NoveltyEstimator
-from uncertainty_estimation.models.nn_ensemble import NNEnsemble
+from uncertainty_estimation.models.nn_ensemble import NNEnsemble, AnchoredNNEnsemble
 from uncertainty_estimation.models.autoencoder import AE
 from uncertainty_estimation.models.mlp import MLP, BayesianMLP
 
@@ -44,6 +44,12 @@ def get_models_to_use(input_dim):
         {"n_models": 10, "bootstrap": True, "model_params": nn_model_params},
         train_params=nn_train_params,
         method_name="NNEnsemble",
+    )
+    nn_anchored_ensemble = NoveltyEstimator(
+        AnchoredNNEnsemble,
+        {"n_models": 10, "model_params": nn_model_params},
+        train_params=nn_train_params,
+        method_name="AnchoredNNEnsemble",
     )
 
     ae = NoveltyEstimator(
@@ -93,6 +99,7 @@ def get_models_to_use(input_dim):
         (bayesian_nn, ["std", "entropy"], "BNN"),
         (nn_ensemble, ("std", "entropy"), "NN_Ensemble"),
         (nn_ensemble_bootstrapped, ("std", "entropy"), "NN_Ensemble_bootstrapped"),
+        (nn_anchored_ensemble, ("std", "entropy"), "NN_Ensemble_anchored"),
         (pca, [None], "PPCA"),
         (ae, [None], "AE"),
     ]
