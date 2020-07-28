@@ -53,7 +53,7 @@ class UncertaintyAnalyzer:
         self._calculate_incremental_metrics(metrics)
 
     def plot_incremental_metric(self, metric: str, title: str = None, methods: List[str] = None,
-                                alpha: float = 0.1,
+                                alpha: float = 0.1, ylim = None,
                                 key_mapping: dict = None, legend: bool = True):
         """Plot how a metric changes when adding more uncertain points. Do this for multiple
         methods, such as Bayesian NN and KNN.
@@ -93,9 +93,10 @@ class UncertaintyAnalyzer:
                              met - std,
                              met + std,
                              alpha=alpha)
+            plt.ylim(ylim)
         plt.xlabel("Fraction of included data points \n(most certain points are included first)")
         if legend:
-            plt.legend()
+            plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
         if title:
             plt.ylabel(title)
         else:
