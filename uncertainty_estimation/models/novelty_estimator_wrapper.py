@@ -36,7 +36,7 @@ class NoveltyEstimator:
         elif self.name == "sklearn":
             self.model = self.model_type(**self.model_params)
             self.model.fit(X_train)
-        elif self.name == "NNEnsemble":
+        elif self.name in ("NNEnsemble", "AnchoredNNEnsemble"):
             self.model = self.model_type(**self.model_params)
             self.model.train(
                 X_train, y_train, X_val, y_val, training_params=self.train_params
@@ -63,7 +63,7 @@ class NoveltyEstimator:
             return self.model.get_reconstr_error(data)
         elif self.name == "sklearn":
             return -self.model.score_samples(data)
-        elif self.name in ["NNEnsemble", "MCDropout", "BNN"]:
+        elif self.name in ["NNEnsemble", "MCDropout", "BNN", "AnchoredNNEnsemble"]:
             if kind == "std":
                 return self.model.get_std(data)
             elif kind == "entropy":

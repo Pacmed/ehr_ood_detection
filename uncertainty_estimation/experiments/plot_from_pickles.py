@@ -33,6 +33,7 @@ def plot_ood_from_pickle(data_origin):
             "MC_Dropout",
             "NN_Ensemble",
             "Bootstrapped_NN_Ensemble",
+            "NN_Ensemble_anchored",
         ]:
             metrics_dir = os.path.join(method_dir, "metrics")
             for metric in os.listdir(metrics_dir):
