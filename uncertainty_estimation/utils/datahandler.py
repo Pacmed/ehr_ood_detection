@@ -79,7 +79,7 @@ class DataHandler:
         elif self.origin == "eICU_with_indicators":
             with open("common_eicu_params.pkl", "rb") as f:
                 feature_names = pickle.load(f)
-            with open("../experiments_utils/eICU_indicator_names.pkl", "rb") as f:
+            with open("/eICU_indicator_names.pkl", "rb") as f:
                 indicator_names = pickle.load(f)
             return feature_names + indicator_names
 
