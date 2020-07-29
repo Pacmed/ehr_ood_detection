@@ -11,12 +11,14 @@ from experiments_utils import get_models_to_use
 from experiments_utils.datahandler import DataHandler
 
 # TODO: Don't sample features with replacement
+import utils.novelty_analyzer
+
 SCALES = [10, 100, 1000, 10000]
 N_FEATURES = 100
 
 
 def run_perturbation_experiment(
-    nov_an: ood_utils.NoveltyAnalyzer, X_test: np.ndarray, kind: str = None
+    nov_an: utils.novelty_analyzer.NoveltyAnalyzer, X_test: np.ndarray, kind: str = None
 ):
     """Runs the perturbation experiment for a single novelty estimator.
 
@@ -74,7 +76,7 @@ if __name__ == "__main__":
 
     for ne, kinds, name in get_models_to_use(len(feature_names)):
         print(name)
-        nov_an = ood_utils.NoveltyAnalyzer(
+        nov_an = utils.novelty_analyzer.NoveltyAnalyzer(
             ne,
             train_data[feature_names].values,
             test_data[feature_names].values,
