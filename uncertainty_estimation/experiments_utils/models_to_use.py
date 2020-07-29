@@ -1,9 +1,8 @@
 from sklearn.decomposition import PCA
-from sklearn.svm import OneClassSVM
-from uncertainty_estimation.models.novelty_estimator_wrapper import NoveltyEstimator
-from uncertainty_estimation.models.nn_ensemble import NNEnsemble, AnchoredNNEnsemble
-from uncertainty_estimation.models.autoencoder import AE
-from uncertainty_estimation.models.mlp import MLP, BayesianMLP
+from models.novelty_estimator_wrapper import NoveltyEstimator
+from models import NNEnsemble, AnchoredNNEnsemble
+from models import AE
+from models import MLP, BayesianMLP
 
 
 # TODO: Rename / refactor this?

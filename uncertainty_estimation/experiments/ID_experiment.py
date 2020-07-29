@@ -4,8 +4,8 @@ import argparse
 from sklearn.impute import SimpleImputer
 from sklearn import pipeline
 from sklearn.preprocessing import StandardScaler
-from uncertainty_estimation.experiments_utils.models_to_use import get_models_to_use
-from uncertainty_estimation.experiments_utils.datahandler import DataHandler
+from experiments_utils import get_models_to_use
+from experiments_utils.datahandler import DataHandler
 import numpy as np
 import torch
 

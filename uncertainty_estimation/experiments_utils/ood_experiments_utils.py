@@ -8,9 +8,9 @@ from sklearn.impute import SimpleImputer
 from scipy.stats import ks_2samp, ttest_ind, shapiro
 from tqdm import tqdm
 
-import uncertainty_estimation.experiments_utils.metrics as metrics
+import experiments_utils.metrics as metrics
 
-from typing import Tuple, List, Optional, Callable, Union
+from typing import Tuple, List, Optional
 
 # TODO: Put into new module
 # CONST
