@@ -1,13 +1,12 @@
 import os
-import uncertainty_estimation.visualizing.ood_plots as ood_plots
-import uncertainty_estimation.visualizing.confidence_performance_plots as cp
-import uncertainty_estimation.experiments_utils.metrics as metrics
-from uncertainty_estimation.experiments_utils.models_to_use import get_models_to_use
+import visualizing.ood_plots as ood_plots
+import visualizing.confidence_performance_plots as cp
+import experiments_utils.metrics as metrics
+from experiments_utils import get_models_to_use
 import pickle
 from collections import defaultdict
 import matplotlib.pyplot as plt
 import argparse
-import numpy as np
 
 N_SEEDS = 5
 

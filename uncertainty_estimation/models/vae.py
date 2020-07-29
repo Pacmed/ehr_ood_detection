@@ -4,7 +4,7 @@ import numpy as np
 import torch.distributions as dist
 import torch.utils.data
 from typing import List, Tuple
-import uncertainty_estimation.models.constants as constants
+import models.constants as constants
 
 
 class Encoder(nn.Module):
@@ -28,7 +28,9 @@ class Encoder(nn.Module):
             self.hidden_layers = []
         else:
             for i in range(len(architecture) - 1):
-                self.hidden_layers.append(nn.Linear(architecture[i], architecture[i + 1]))
+                self.hidden_layers.append(
+                    nn.Linear(architecture[i], architecture[i + 1])
+                )
                 self.hidden_layers.append(nn.Sigmoid())
         self.hidden = nn.Sequential(*self.hidden_layers)
         self.mean = nn.Linear(architecture[-1], z_dim)
@@ -73,7 +75,9 @@ class Decoder(nn.Module):
             self.hidden_layers = []
         else:
             for i in range(len(architecture) - 1):
-                self.hidden_layers.append(nn.Linear(architecture[i], architecture[i + 1]))
+                self.hidden_layers.append(
+                    nn.Linear(architecture[i], architecture[i + 1])
+                )
                 self.hidden_layers.append(nn.Sigmoid())
         self.hidden = nn.Sequential(*self.hidden_layers)
         self.mean = nn.Linear(architecture[-1], input_dim)
@@ -120,7 +124,10 @@ class VAEModule(nn.Module):
         self.decoder = Decoder(input_dim, hidden_dims, z_dim)
 
     def forward(
-            self, input_tensor: torch.Tensor, reconstr_error_weight: float, mse_loss: bool = True
+        self,
+        input_tensor: torch.Tensor,
+        reconstr_error_weight: float,
+        mse_loss: bool = True,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Perform an encoding and decoding step and return the
         reconstruction error, KL-divergence and negative average elbo for the given batch.
@@ -156,14 +163,15 @@ class VAEModule(nn.Module):
         output_mean, output_std = self.decoder(z)
 
         if mse_loss:
-            mse = torch.nn.MSELoss(reduction='none')
+            mse = torch.nn.MSELoss(reduction="none")
             reconstr_error = mse(output_mean, input_tensor).mean(dim=1)
         else:
-            distribution = dist.independent.Independent(dist.normal.Normal(
-                output_mean, output_std), 1)
+            distribution = dist.independent.Independent(
+                dist.normal.Normal(output_mean, output_std), 1
+            )
 
             # calculating losses
-            reconstr_error = - distribution.log_prob(input_tensor)
+            reconstr_error = -distribution.log_prob(input_tensor)
 
         d = mean.shape[1]
 
@@ -207,13 +215,21 @@ class VAE:
         correct, but more stable)
     """
 
-    def __init__(self, input_dim: int, hidden_dims: List[int], latent_dim: int,
-                 train_data: np.ndarray, val_data: np.ndarray = None,
-                 batch_size: int = constants.DEFAULT_BATCH_SIZE,
-                 learning_rate=constants.DEFAULT_LEARNING_RATE,
-                 reconstr_error_weight=constants.DEFAULT_RECONSTR_ERROR_WEIGHT,
-                 mse_loss: bool = True):
-        self.model = VAEModule(input_dim=input_dim, hidden_dims=hidden_dims, z_dim=latent_dim)
+    def __init__(
+        self,
+        input_dim: int,
+        hidden_dims: List[int],
+        latent_dim: int,
+        train_data: np.ndarray,
+        val_data: np.ndarray = None,
+        batch_size: int = constants.DEFAULT_BATCH_SIZE,
+        learning_rate=constants.DEFAULT_LEARNING_RATE,
+        reconstr_error_weight=constants.DEFAULT_RECONSTR_ERROR_WEIGHT,
+        mse_loss: bool = True,
+    ):
+        self.model = VAEModule(
+            input_dim=input_dim, hidden_dims=hidden_dims, z_dim=latent_dim
+        )
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
         self.reconstr_error_weight = reconstr_error_weight
         self.mse_loss = mse_loss
@@ -235,8 +251,11 @@ class VAE:
                 self.model.eval()
                 val_elbo = self._epoch_iter(self.val_data)
 
-    def _initialize_dataloaders(self, train_data: np.ndarray, val_data: np.ndarray,
-                                batch_size: int):
+        return train_elbo, val_elbo
+
+    def _initialize_dataloaders(
+        self, train_data: np.ndarray, val_data: np.ndarray, batch_size: int
+    ):
         """Initialize the dataloaders from original numpy data.
 
         Parameters
@@ -250,10 +269,14 @@ class VAE:
         """
 
         train_dataset = torch.from_numpy(train_data).float()
-        self.train_data = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size)
+        self.train_data = torch.utils.data.DataLoader(
+            train_dataset, batch_size=batch_size
+        )
         if val_data is not None:
             val_dataset = torch.from_numpy(val_data).float()
-            self.val_data = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size)
+            self.val_data = torch.utils.data.DataLoader(
+                val_dataset, batch_size=batch_size
+            )
         else:
             self.val_data = None
 
@@ -275,9 +298,11 @@ class VAE:
 
         average_epoch_elbo, i = 0, 0
         for i, batch in enumerate(data):
-            _, _, average_negative_elbo = self.model(batch,
-                                                     reconstr_error_weight=self.reconstr_error_weight,
-                                                     mse_loss=self.mse_loss)
+            _, _, average_negative_elbo = self.model(
+                batch,
+                reconstr_error_weight=self.reconstr_error_weight,
+                mse_loss=self.mse_loss,
+            )
             average_epoch_elbo += average_negative_elbo.item()
 
             if self.model.training:
@@ -289,8 +314,9 @@ class VAE:
         average_epoch_elbo = average_epoch_elbo / (i + 1)
         return average_epoch_elbo
 
-    def get_reconstr_error(self, data: np.ndarray, n_samples: int =
-    constants.DEFAULT_N_VAE_SAMPLES) -> np.ndarray:
+    def get_reconstr_error(
+        self, data: np.ndarray, n_samples: int = constants.DEFAULT_N_VAE_SAMPLES
+    ) -> np.ndarray:
         """Calculate the reconstruction error for some data (assumed to be a numpy array).
         The reconstruction error is averaged over a number of samples.
 
@@ -309,8 +335,9 @@ class VAE:
         self.model.eval()
         reconstructions = []
         for i in range(n_samples):
-            reconstr_error, _, _ = self.model(torch.from_numpy(data),
-                                              reconstr_error_weight=self.reconstr_error_weight)
+            reconstr_error, _, _ = self.model(
+                torch.from_numpy(data), reconstr_error_weight=self.reconstr_error_weight
+            )
             reconstructions.append(reconstr_error.unsqueeze(0).detach().numpy())
         concatenated_rec = np.concatenate(reconstructions, axis=0)
         avg_reconstruction_error = np.mean(concatenated_rec, axis=0)
@@ -335,7 +362,8 @@ class VAE:
         """
         self.model.eval()
         encoding_mean, encoding_std = self.model.encoder(
-            torch.from_numpy(data).unsqueeze(0).float())
+            torch.from_numpy(data).unsqueeze(0).float()
+        )
         encoding_mean = encoding_mean.squeeze(0).detach().numpy()
         encoding_std = encoding_std.squeeze(0).detach().numpy()
         return encoding_mean, encoding_std

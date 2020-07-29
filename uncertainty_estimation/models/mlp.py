@@ -9,7 +9,7 @@ from torch.utils.data import Dataset, DataLoader
 from blitz.modules import BayesianLinear
 from blitz.utils import variational_estimator
 
-import uncertainty_estimation.models.constants as constants
+import models.constants as constants
 
 
 class MLPModule(nn.Module):

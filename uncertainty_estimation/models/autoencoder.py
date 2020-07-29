@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 import torch.utils.data
-import uncertainty_estimation.models.constants as constants
+import models.constants as constants
 
 from typing import List
 
@@ -127,7 +127,7 @@ class AEModule(nn.Module):
         reconstruction = self.decoder(z)
 
         # calculating losses
-        mse = torch.nn.MSELoss(reduction='none')
+        mse = torch.nn.MSELoss(reduction="none")
         reconstr_error = mse(reconstruction, input_tensor).mean(dim=1)
         return reconstr_error
 
@@ -165,11 +165,20 @@ class AE:
         Whether to print the loss during training.
     """
 
-    def __init__(self, input_dim: int, hidden_dims: List[int], latent_dim: int,
-                 train_data: np.ndarray, val_data: np.ndarray = None,
-                 batch_size: int = constants.DEFAULT_BATCH_SIZE,
-                 learning_rate=constants.DEFAULT_LEARNING_RATE, verbose=False):
-        self.model = AEModule(input_dim=input_dim, hidden_dims=hidden_dims, latent_dim=latent_dim)
+    def __init__(
+        self,
+        input_dim: int,
+        hidden_dims: List[int],
+        latent_dim: int,
+        train_data: np.ndarray,
+        val_data: np.ndarray = None,
+        batch_size: int = constants.DEFAULT_BATCH_SIZE,
+        learning_rate=constants.DEFAULT_LEARNING_RATE,
+        verbose=False,
+    ):
+        self.model = AEModule(
+            input_dim=input_dim, hidden_dims=hidden_dims, latent_dim=latent_dim
+        )
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
         self.verbose = verbose
         self._initialize_dataloaders(train_data, val_data, batch_size)
@@ -194,10 +203,12 @@ class AE:
                         f"[Epoch {epoch}] train reconstruction error: "
                         f"{train_reconstruction_error} "
                         f"validation reconstruction error: "
-                        f"{val_reconstruction_error}")
+                        f"{val_reconstruction_error}"
+                    )
 
-    def _initialize_dataloaders(self, train_data: np.ndarray, val_data: np.ndarray,
-                                batch_size: int):
+    def _initialize_dataloaders(
+        self, train_data: np.ndarray, val_data: np.ndarray, batch_size: int
+    ):
         """Initialize the dataloaders from original numpy data.
 
         Parameters
@@ -211,10 +222,14 @@ class AE:
         """
 
         train_dataset = torch.from_numpy(train_data).float()
-        self.train_data = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size)
+        self.train_data = torch.utils.data.DataLoader(
+            train_dataset, batch_size=batch_size
+        )
         if val_data is not None:
             val_dataset = torch.from_numpy(val_data).float()
-            self.val_data = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size)
+            self.val_data = torch.utils.data.DataLoader(
+                val_dataset, batch_size=batch_size
+            )
         else:
             self.val_data = None
 
@@ -247,8 +262,7 @@ class AE:
         average_epoch_rec_error = average_reconstruction_error / (i + 1)
         return average_epoch_rec_error
 
-    def get_reconstr_error(self, data: np.ndarray) -> \
-            np.ndarray:
+    def get_reconstr_error(self, data: np.ndarray) -> np.ndarray:
         """Calculate the (mean squared) reconstruction error for some data.
 
         Parameters

@@ -1,4 +1,4 @@
-from uncertainty_estimation.experiments_utils.metrics import entropy
+from experiments_utils.metrics import entropy
 
 # TODO: Rename module?
 

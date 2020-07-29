@@ -2,9 +2,6 @@
 Validate that the data distribution of OOD groups is sufficiently different by performing a Kolmogorov-Smirnoff test.
 """
 
-import os
-import pickle
-from collections import defaultdict
 from typing import List, Dict
 
 from tqdm import tqdm
@@ -13,11 +10,11 @@ import pandas as pd
 import numpy as np
 
 from sklearn.preprocessing import StandardScaler
-from sklearn.impute import SimpleImputer, KNNImputer
+from sklearn.impute import SimpleImputer
 from sklearn import pipeline
 
-import uncertainty_estimation.experiments_utils.ood_experiments_utils as ood_utils
-from uncertainty_estimation.experiments_utils.datahandler import DataHandler
+import experiments_utils.ood_experiments_utils as ood_utils
+from experiments_utils.datahandler import DataHandler
 
 
 def validate_ood_group(

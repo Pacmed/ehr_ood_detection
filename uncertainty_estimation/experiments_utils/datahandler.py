@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 import pickle
-import uncertainty_estimation.experiments_utils.ood_experiments_utils as ood_utils
+import experiments_utils.ood_experiments_utils as ood_utils
 import numpy as np
 
 # TODO: Put constants into diffeent file?
@@ -50,40 +50,34 @@ class DataHandler:
         # TODO: Rewrite this
 
         if self.origin == "MIMIC":
-            with open(
-                "../experiments_utils/feature_names/common_mimic_params.pkl", "rb"
-            ) as f:
+            with open("../../data/feature_names/common_mimic_params.pkl", "rb") as f:
                 feature_names = pickle.load(f)
             return feature_names
 
         elif self.origin == "MIMIC_with_indicators":
-            with open("../experiments_utils/common_mimic_params.pkl", "rb") as f:
+            with open("common_mimic_params.pkl", "rb") as f:
                 feature_names = pickle.load(f)
-            with open("../experiments_utils/MIMIC_indicator_names.pkl", "rb") as f:
+            with open("../../data/feature_names/MIMIC_indicator_names.pkl", "rb") as f:
                 indicator_names = pickle.load(f)
             return feature_names + indicator_names
 
         elif self.origin == "MIMIC_for_DA":
-            with open(
-                "../experiments_utils/feature_names/common_mimic_params.pkl", "rb"
-            ) as f:
+            with open("../../data/feature_names/common_mimic_params.pkl", "rb") as f:
                 feature_names = pickle.load(f)
             return feature_names
 
         elif self.origin == "eICU":
-            with open("../experiments_utils/common_eicu_params.pkl", "rb") as f:
+            with open("common_eicu_params.pkl", "rb") as f:
                 feature_names = pickle.load(f)
             return feature_names
 
         elif self.origin == "eICU_for_DA":
-            with open(
-                "../experiments_utils/feature_names/common_eicu_params.pkl", "rb"
-            ) as f:
+            with open("../../data/feature_names/common_eicu_params.pkl", "rb") as f:
                 feature_names = pickle.load(f)
             return feature_names
 
         elif self.origin == "eICU_with_indicators":
-            with open("../experiments_utils/common_eicu_params.pkl", "rb") as f:
+            with open("common_eicu_params.pkl", "rb") as f:
                 feature_names = pickle.load(f)
             with open("../experiments_utils/eICU_indicator_names.pkl", "rb") as f:
                 indicator_names = pickle.load(f)

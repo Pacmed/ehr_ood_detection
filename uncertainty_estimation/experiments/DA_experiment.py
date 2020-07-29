@@ -2,9 +2,9 @@ import os
 import pickle
 from collections import defaultdict
 
-import uncertainty_estimation.experiments_utils.ood_experiments_utils as ood_utils
-from uncertainty_estimation.experiments_utils.models_to_use import get_models_to_use
-from uncertainty_estimation.experiments_utils.datahandler import DataHandler
+import experiments_utils.ood_experiments_utils as ood_utils
+from experiments_utils import get_models_to_use
+from experiments_utils.datahandler import DataHandler
 
 # TODO: Add main func
 
