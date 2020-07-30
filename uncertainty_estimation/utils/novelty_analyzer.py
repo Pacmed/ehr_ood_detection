@@ -8,6 +8,7 @@ from sklearn.preprocessing import StandardScaler
 import uncertainty_estimation.utils.metrics as metrics
 
 
+# TODO: Update docs
 class NoveltyAnalyzer:
     """Class to analyze the novelty estimates of a novelty estimator on i.d. data and ood data.
 

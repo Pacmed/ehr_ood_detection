@@ -14,20 +14,21 @@ from uncertainty_estimation.models.novelty_estimator import NoveltyEstimator
 from uncertainty_estimation.models.nn_ensemble import NNEnsemble, AnchoredNNEnsemble
 from uncertainty_estimation.models.autoencoder import AE
 from uncertainty_estimation.models.mlp import MLP, BayesianMLP
-from uncertainty_estimation.models.infos import (
+from uncertainty_estimation.models.info import (
     AVAILABLE_MODELS,
     AVAILABLE_SCORING_FUNCS,
     NEURAL_MODELS,
     TRAIN_PARAMS,
     MODEL_PARAMS,
 )
+from uncertainty_estimation.utils.types import ModelInfo
 
 
 def init_models(
     input_dim: int,
     selection: Iterable[str] = AVAILABLE_MODELS,
     scoring_funcs: Dict[str, Tuple[Optional[str], ...]] = AVAILABLE_SCORING_FUNCS,
-) -> List[Tuple[NoveltyEstimator, Tuple[Optional[str], ...], str]]:
+) -> List[ModelInfo]:
     """
     Initialize the models for the experiments.
 
@@ -43,7 +44,7 @@ def init_models(
 
     Returns
     -------
-    List[Tuple[NoveltyEstimator, Tuple[str, ...], str]]
+    List[ModelInfo]
         A list of tuples containing the model, the names of metrics used for uncertainty estimation as a tuple as well
         as the model name.
     """

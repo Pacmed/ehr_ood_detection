@@ -38,7 +38,7 @@ for model_info in get_models_to_use(len(feature_names_eicu)):
         model_info=model_info,
         ood_detect_aucs=ood_detect_aucs,
         ood_recall=ood_recall,
-        metrics=metrics,
+        ood_metrics=metrics,
         impute_and_scale=True,
     )
 
@@ -57,7 +57,7 @@ for model_info in get_models_to_use(len(feature_names_eicu)):
         model_info=model_info,
         ood_detect_aucs=ood_detect_aucs,
         ood_recall=ood_recall,
-        metrics=metrics,
+        ood_metrics=metrics,
         impute_and_scale=True,
     )
 
@@ -84,7 +84,7 @@ for model_info in get_models_to_use(len(feature_names_eicu)):
         model_info=model_info,
         ood_detect_aucs=ood_detect_aucs_id,
         ood_recall=ood_recall_id,
-        metrics=metrics_id,
+        ood_metrics=metrics_id,
         impute_and_scale=True,
     )
 
@@ -107,7 +107,7 @@ for model_info in get_models_to_use(len(feature_names_eicu)):
         model_info=model_info,
         ood_detect_aucs=ood_detect_aucs_id,
         ood_recall=ood_recall_id,
-        metrics=metrics_id,
+        ood_metrics=metrics_id,
         impute_and_scale=True,
     )
 
