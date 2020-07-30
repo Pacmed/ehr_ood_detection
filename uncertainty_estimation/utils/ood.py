@@ -10,15 +10,14 @@ from typing import Tuple, List, Optional, Callable
 import numpy as np
 import pandas as pd
 from scipy.stats import ks_2samp, ttest_ind, shapiro
+from sklearn.metrics import brier_score_loss, roc_auc_score
 from tqdm import tqdm
 
 # PROJECT
 from uncertainty_estimation.models.info import NEURAL_PREDICTORS
 from uncertainty_estimation.utils.metrics import (
     ece,
-    roc_auc_score,
     accuracy,
-    brier_score_loss,
     nll,
 )
 from uncertainty_estimation.utils.novelty_analyzer import NoveltyAnalyzer
