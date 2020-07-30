@@ -10,12 +10,12 @@ from experiments_utils.datahandler import DataHandler
 
 dh_mimic = DataHandler("MIMIC_for_DA")
 feature_names_mimic = dh_mimic.load_feature_names()
-train_mimic, test_mimic, val_mimic = dh_mimic.load_train_test_val()
+train_mimic, test_mimic, val_mimic = dh_mimic.load_data_splits()
 y_mimic = dh_mimic.load_target_name()
 
 dh_eicu = DataHandler("eICU_for_DA")
 feature_names_eicu = dh_eicu.load_feature_names()
-train_eicu, test_eicu, val_eicu = dh_eicu.load_train_test_val()
+train_eicu, test_eicu, val_eicu = dh_eicu.load_data_splits()
 y_eicu = dh_eicu.load_target_name()
 
 

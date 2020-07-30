@@ -22,7 +22,7 @@ if __name__ == "__main__":
     dh = DataHandler(args.data_origin)
     feature_names = dh.load_feature_names()
 
-    train_data, test_data, val_data = dh.load_train_test_val()
+    train_data, test_data, val_data = dh.load_data_splits()
     y_name = dh.load_target_name()
 
     if args.data_origin in ["MIMIC", "MIMIC_with_indicators"]:

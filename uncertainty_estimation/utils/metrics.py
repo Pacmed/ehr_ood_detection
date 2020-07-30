@@ -1,27 +1,94 @@
+"""
+Define evaluation metrics.
+"""
+
+# EXT
 import pandas as pd
 import numpy as np
-from sklearn.metrics import roc_auc_score, accuracy_score, brier_score_loss, log_loss
+from sklearn.metrics import accuracy_score, log_loss, roc_auc_score
 
+# CONST
 DEFAULT_N_BINS = 10
 
 
-# TODO: Remove unused metrics
+def nll(y: np.array, y_pred: np.array) -> float:
+    """
+    Negative log-likelihood loss.
 
-# TODO: Add docs
-def nll(y, y_pred):
+    Parameters
+    ----------
+    y: np.array
+        Labels.
+    y_pred: np.array
+        Predicted probabilities.
+
+    Returns
+    -------
+    float
+        NLL loss.
+    """
     return log_loss(y, y_pred, eps=1e-5)
 
 
-def entropy(probabilities, axis):
+def entropy(probabilities: np.array, axis: int) -> float:
+    """
+    Entropy of a probability distribution.
+
+    Parameters
+    ----------
+    probabilities: np.array
+        Probabilities per class.
+    axis: int
+        Axis over which the entropy should be calculated.
+
+    Returns
+    -------
+    float
+        Entropy of the predicted distribution.
+    """
     return -np.sum(probabilities * np.log2(probabilities + 1e-8), axis=axis)
 
 
-def get_hard_labels(probabilities, thresh=0.5):
+def get_hard_labels(probabilities: np.array, thresh: float = 0.5) -> np.array:
+    """
+    Retrieve the hard class labels for a binary classification problem given a probability
+    distribution and a threshold.
+
+    Parameters
+    ----------
+    probabilities: np.array
+        Probabilities per class.
+    thresh: float
+        Threshold to determine classes.
+
+    Returns
+    -------
+    np.array
+        Hard labels.
+    """
     return (probabilities >= thresh).astype(int)
 
 
-def accuracy(y, y_pred, thresh=0.5):
+def accuracy(y: np.array, y_pred: np.array, thresh: float = 0.5):
+    """
+    Calculate the accuracy for a binary classification problem given a probability threshold.
+
+    Parameters
+    ----------
+    y: np.array
+        Labels.
+    y_pred: np.array
+        Predicted probabilities.
+    thresh: float
+        Threshold to determine classes.
+
+    Returns
+    -------
+    float
+        Accuracy score.
+    """
     predicted_labels = get_hard_labels(y_pred, thresh)
+
     return accuracy_score(y, predicted_labels)
 
 
@@ -74,168 +141,6 @@ def ece(y: np.ndarray, y_pred: np.ndarray, n_bins: int = DEFAULT_N_BINS) -> floa
     return weighed_diff.sum()
 
 
-def resolution(
-    y: np.ndarray, y_pred: np.ndarray, n_bins: int = DEFAULT_N_BINS
-) -> float:
-    """Calculate the resolution as specified by the brier score decomposition: for each bin,
-    the squared difference between the base rate and the fraction of positives is taken. The
-    resolution is the weighed average of these differences.
-
-    Parameters
-    ----------
-    y: np.ndarray
-        The true labels.
-    y_pred: np.ndarray
-        The predicted probabilities
-    n_bins: int
-        The number of bins to use.
-
-    Returns
-    -------
-    res: float
-        The resolution.
-    """
-    base_rate = np.mean(y)
-    grouped = _get_binned_df(y, y_pred, n_bins)
-    return (grouped["weight"] * (grouped["y"] - base_rate) ** 2).sum()
-
-
-def reliability(
-    y: np.ndarray, y_pred: np.ndarray, n_bins: int = DEFAULT_N_BINS
-) -> float:
-    """Calculate the reliability as specified by the brier score decomposition. This is the same
-    as the ECE, except for the squared term.
-
-    Parameters
-    ----------
-    y: np.ndarray
-        The true labels.
-    y_pred: np.ndarray
-        The predicted probabilities
-    n_bins: int
-        The number of bins to use.
-
-    Returns
-    -------
-    rel: float
-        The reliability.
-    """
-    grouped = _get_binned_df(y, y_pred, n_bins)
-    return (grouped["weight"] * (grouped["y_pred"] - grouped["y"]) ** 2).sum()
-
-
-def uncertainty(y: np.ndarray, y_pred: np.ndarray = None) -> float:
-    """Calculate the uncertainty as specified by the brier score decomposition. This is
-    independent of the predicted probabilities, but the argument is included for coherence with
-    other methods.
-
-    Parameters
-    ----------
-    y: np.ndarray
-        The true labels.
-    y_pred: np.ndarray (optional, unused)
-        The predicted probabilities.
-
-    Returns
-    -------
-    unc: float
-        The uncertainty.
-    """
-    base_rate = np.mean(y)
-    return base_rate * (1 - base_rate)
-
-
-def binned_brier_score(
-    y: np.ndarray, y_pred: np.ndarray, n_bins: int = DEFAULT_N_BINS
-) -> float:
-    """Calculate the 'binned' brier score. This is calculated as the reliability - resolution +
-    uncertainty.
-
-    Parameters
-    ----------
-    y: np.ndarray
-        The true labels.
-    y_pred: np.ndarray (optional, unused)
-        The predicted probabilities.
-    n_bins: int
-        The number of bins to use.
-
-    Returns
-    -------
-    bs: float
-        The brier score.
-    """
-    return (
-        reliability(y, y_pred, n_bins)
-        - resolution(y, y_pred, n_bins)
-        + uncertainty(y, y_pred)
-    )
-
-
-def brier_skill_score(y: np.ndarray, y_pred: np.ndarray) -> float:
-    """Calculate the brier skill score. The BSS is perfect when equal to one, a BSS of 0 means
-    that there is no improvement to just predicting the average observation rate. If the BSS is
-    negative, it is worse than just predicting the average observation rate.
-
-    Parameters
-    ----------
-    y: np.ndarray
-        The true labels.
-    y_pred: np.ndarray (optional, unused)
-        The predicted probabilities.
-
-    Returns
-    -------
-    bss: float
-        The brier skill score.
-    """
-    # brier score of our probability predictions
-    bs = binned_brier_score(y, y_pred)
-
-    # brier score when always predicting the mean observation rate
-    base_y_pred = np.ones(len(y_pred)) * np.mean(y)
-    bs_base = binned_brier_score(y, base_y_pred)
-    return 1 - bs / bs_base
-
-
-def cal(
-    y: np.ndarray, y_pred: np.ndarray, step_size: int = 25, window_size: int = 100
-) -> float:
-    """Calculate CAL/CalBin metric, similar to ECE, but with no fixed windows. Instead,
-    a window is shifted to create many overlapping bins.
-
-    Parameters
-    ----------
-    y: np.ndarray
-        The true labels.
-    y_pred: np.ndarray
-        The predicted probabilities
-    step_size: int
-        The steps between each sliding window. By default this is 1, so the window slides with one
-        step at a time.
-    window_size: int
-        The size of the window. By default this is 100.
-
-    Returns
-    -------
-    type: float
-        The CAL/CalBin metric for the given data.
-    """
-    differences, n_windows = 0, 0
-    df = pd.DataFrame({"y": y, "y_pred": y_pred})
-    df = df.sort_values(by="y_pred", ascending=True)
-
-    # slide a window and calculate the absolute calibration error per window position
-    for i in range(0, len(y_pred) - window_size, step_size):
-        mean_y = np.mean(df.loc[i : i + window_size, "y"])
-        mean_y_pred = np.mean(df.loc[i : i + window_size, "y"])
-        differences += abs(mean_y - mean_y_pred)
-        n_windows += 1
-
-    # the cal score is the average calibration error of all windows.
-    return differences / n_windows
-
-
 def _get_binned_df(y: np.ndarray, y_pred: np.ndarray, n_bins: int) -> pd.DataFrame:
     """Calculate a dataframe with average observations, predictions and the weight
     (bincount/totalcount) per bin. The bins are assumed to be of fixed size.
@@ -265,21 +170,3 @@ def _get_binned_df(y: np.ndarray, y_pred: np.ndarray, n_bins: int) -> pd.DataFra
     # calculate the proportion of data per bin
     binned["weight"] = binned_counts / n
     return binned
-
-
-def average_y(y: np.ndarray, y_pred: np.ndarray) -> float:
-    """Calculate the average y (fraction of positives). This function is just made for
-    compatibility with functionality in UncertaintyAnalyzer.
-
-    Parameters
-    ----------
-    y: np.ndarray
-        The true labels.
-    y_pred: np.ndarray, not used
-
-    Returns
-    -------
-    type: float
-        The mean y value.
-    """
-    return y.mean()

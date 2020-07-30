@@ -9,7 +9,7 @@ df = dict()
 for data_origin in ["MIMIC", "eICU"]:
     dh = DataHandler(data_origin)
     feature_names = dh.load_feature_names()
-    train_data, test_data, val_data = dh.load_train_test_val()
+    train_data, test_data, val_data = dh.load_data_splits()
     y_name = dh.load_target_name()
     ood_mappings = dh.load_ood_mappings()
     df[data_origin] = defaultdict(dict)
