@@ -24,9 +24,11 @@ MULTIPLE_PRED_NN_MODELS = {
 SINGLE_PRED_MODELS = (
     BASELINES | SINGLE_PRED_NN_MODELS
 )  # All models only making a single prediction
+
 NEURAL_PREDICTORS = (
     SINGLE_PRED_NN_MODELS | MULTIPLE_PRED_NN_MODELS
 )  # All neural network-based discriminators
+
 NEURAL_MODELS = NEURAL_PREDICTORS | {"AE"}  # All neural models
 AVAILABLE_MODELS = NEURAL_MODELS | BASELINES  # All available models in this project
 

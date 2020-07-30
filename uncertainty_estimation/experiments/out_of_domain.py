@@ -4,9 +4,12 @@ from collections import defaultdict
 from tqdm import tqdm
 import argparse
 
-import experiments_utils.ood_experiments_utils as ood_utils
-from experiments_utils import get_models_to_use
-from experiments_utils.datahandler import DataHandler
+import uncertainty_estimation.utils.ood as ood_utils
+from uncertainty_estimation.utils.model_init import init_models
+from uncertainty_estimation.utils.datahandler import DataHandler
+
+
+N_SEEDS = 5
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -28,10 +31,14 @@ if __name__ == "__main__":
     ood_mappings = dh.load_ood_mappings()
 
     # loop over the different methods
-    for model_info in get_models_to_use(len(feature_names)):
+    # TODO: Add arg to determine models for experiments
+    for model_info in init_models(input_dim=len(feature_names)):
         print(model_info[2])
-        ood_detect_aucs, ood_recall = defaultdict(dict), defaultdict(dict)
-        metrics = defaultdict(dict)
+        ood_detect_aucs, ood_recall = (
+            defaultdict(lambda: defaultdict(list)),
+            defaultdict(lambda: defaultdict(list)),
+        )
+        metrics = defaultdict(lambda: defaultdict(list))
 
         # Experiments on Newborns, only on MIMIC for now
         if args.data_origin in ["MIMIC", "MIMIC_with_indicators"]:
@@ -54,6 +61,7 @@ if __name__ == "__main__":
                 ood_detect_aucs,
                 ood_recall,
                 metrics,
+                n_seeds=N_SEEDS,
                 impute_and_scale=True,
             )
 
@@ -90,6 +98,7 @@ if __name__ == "__main__":
                 ood_detect_aucs,
                 ood_recall,
                 metrics,
+                n_seeds=N_SEEDS,
                 impute_and_scale=True,
             )
 

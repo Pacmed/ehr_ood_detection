@@ -14,6 +14,48 @@ eicu_processed_csv = (
     "/data/processed/eicu_processed/data/adult_data_with_indicators.csv"
 )
 
+MIMIC_OOD_MAPPINGS = {
+    "Emergency/\nUrgent admissions": ("ADMISSION_TYPE", "EMERGENCY"),
+    "Elective admissions": ("ADMISSION_TYPE", "ELECTIVE"),
+    # 'Ethnicity: Asian': ('Ethnicity', 1)
+    "Ethnicity: Black/African American": ("Ethnicity", 2),
+    # 'Ethnicity: Hispanic/Latino': ('Ethnicity', 3),
+    "Ethnicity: White": ("Ethnicity", 4),
+    "Female": ("GENDER", "F"),
+    "Male": ("GENDER", "M"),
+    "Thyroid disorders": ("Thyroid disorders", True),
+    "Acute and unspecified renal failure": (
+        "Acute and unspecified renal failure",
+        True,
+    ),
+    # 'Pancreatic disorders \n(not diabetes)': (
+    # 'Pancreatic disorders (not diabetes)', True),
+    "Epilepsy; convulsions": ("Epilepsy; convulsions", True),
+    "Hypertension with complications \n and secondary hypertension": (
+        "Hypertension with complications and secondary hypertension",
+        True,
+    ),
+}
+
+EICU_OOD_MAPPINGS = {
+    "Emergency/\nUrgent admissions": ("emergency", 1),
+    "Elective admissions": ("elective", 1),
+    "Ethnicity: Black/African American": ("ethnicity", 2),
+    "Ethnicity: White": ("ethnicity", 3),
+    "Female": ("gender", 0),
+    "Male": ("gender", 1),
+    "Thyroid disorders": ("Thyroid disorders", True),
+    "Acute and unspecified renal failure": (
+        "Acute and unspecified renal failure",
+        True,
+    ),
+    "Epilepsy; convulsions": ("Epilepsy; convulsions", True),
+    "Hypertension with complications \n and secondary hypertension": (
+        "Hypertension with complications and secondary hypertension",
+        True,
+    ),
+}
+
 # TODO: Remove hardcoded paths
 # TODO: Remove repeated lists
 

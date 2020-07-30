@@ -1,146 +1,131 @@
+"""
+Define utility functions for OOD experiments.
+"""
+
+# STD
+from collections import namedtuple
+from typing import Tuple, List, Optional, Callable
+
+# EXT
 import numpy as np
 import pandas as pd
 from scipy.stats import ks_2samp, ttest_ind, shapiro
 from tqdm import tqdm
 
-import experiments_utils.metrics as metrics
+# PROJECT
+from uncertainty_estimation.models.info import NEURAL_PREDICTORS
+from uncertainty_estimation.utils.metrics import (
+    ece,
+    roc_auc_score,
+    accuracy,
+    brier_score_loss,
+    nll,
+)
+from uncertainty_estimation.utils.novelty_analyzer import NoveltyAnalyzer
+from uncertainty_estimation.utils.types import ModelInfo, ResultDict
 
-from typing import Tuple, List, Optional
+# TYPES
+DomainData = namedtuple(
+    "DomainData", ["train", "test", "val", "feature_names", "target", "name"]
+)
 
-# TODO: Put into new module
 # CONST
-# I commented out groups that are too small
-from utils.novelty_analyzer import NoveltyAnalyzer
-
-MIMIC_OOD_MAPPINGS = {
-    "Emergency/\nUrgent admissions": ("ADMISSION_TYPE", "EMERGENCY"),
-    "Elective admissions": ("ADMISSION_TYPE", "ELECTIVE"),
-    # 'Ethnicity: Asian': ('Ethnicity', 1)
-    "Ethnicity: Black/African American": ("Ethnicity", 2),
-    # 'Ethnicity: Hispanic/Latino': ('Ethnicity', 3),
-    "Ethnicity: White": ("Ethnicity", 4),
-    "Female": ("GENDER", "F"),
-    "Male": ("GENDER", "M"),
-    "Thyroid disorders": ("Thyroid disorders", True),
-    "Acute and unspecified renal failure": (
-        "Acute and unspecified renal failure",
-        True,
-    ),
-    # 'Pancreatic disorders \n(not diabetes)': (
-    # 'Pancreatic disorders (not diabetes)', True),
-    "Epilepsy; convulsions": ("Epilepsy; convulsions", True),
-    "Hypertension with complications \n and secondary hypertension": (
-        "Hypertension with complications and secondary hypertension",
-        True,
-    ),
-}
-
-EICU_OOD_MAPPINGS = {
-    "Emergency/\nUrgent admissions": ("emergency", 1),
-    "Elective admissions": ("elective", 1),
-    "Ethnicity: Black/African American": ("ethnicity", 2),
-    "Ethnicity: White": ("ethnicity", 3),
-    "Female": ("gender", 0),
-    "Male": ("gender", 1),
-    "Thyroid disorders": ("Thyroid disorders", True),
-    "Acute and unspecified renal failure": (
-        "Acute and unspecified renal failure",
-        True,
-    ),
-    "Epilepsy; convulsions": ("Epilepsy; convulsions", True),
-    "Hypertension with complications \n and secondary hypertension": (
-        "Hypertension with complications and secondary hypertension",
-        True,
-    ),
-}
-
-METRICS_TO_USE = [
-    metrics.ece,
-    metrics.roc_auc_score,
-    metrics.accuracy,
-    metrics.brier_score_loss,
-    metrics.nll,
-]
-N_SEEDS = 5
+METRICS_TO_USE = (ece, roc_auc_score, accuracy, brier_score_loss, nll)
 
 
 def run_ood_experiment_on_group(
-    train_non_ood,
-    test_non_ood,
-    val_non_ood,
-    train_ood,
-    test_ood,
-    val_ood,
-    non_ood_feature_names,
-    ood_feature_names,
-    non_ood_y_name,
-    ood_y_name,
-    ood_name,
-    model_info,
-    ood_detect_aucs,
-    ood_recall,
-    metrics,
-    impute_and_scale=True,
-):
-    ne, kinds, method_name = model_info
-    all_ood = pd.concat([train_ood, test_ood, val_ood])
+    id_data: DomainData,
+    ood_data: DomainData,
+    model_info: ModelInfo,
+    ood_detect_aucs: ResultDict,
+    ood_recall: ResultDict,
+    ood_metrics: ResultDict,
+    n_seeds: int,
+    metrics: List[Callable] = METRICS_TO_USE,
+    impute_and_scale: bool = True,
+) -> Tuple[ResultDict, ResultDict, ResultDict]:
+    """
+    Run an experiment for a specific OOD group. During the experiment, the results for the given metrics for one model
+    will be recorded and returned.
+
+    Parameters
+    ----------
+    id_data: DomainData
+        Named tuple containing the in-domain data splits and feature and target names.
+    ood_data: DomainData
+        Named tuple containing the out-of-domain data splits and feature and target names.
+    model_info: ModelInfo
+        A tuple containing the model, the names of metrics used for uncertainty estimation as a tuple as well
+        as the model name.
+    ood_detect_aucs: ResultDict
+        Nested dict containing all the AUC-ROCs over different random seeds for every model and scoring function.
+    ood_recall: ResultDict
+        Nested dict containing all the recall measures over different random seeds for every model and scoring function.
+    ood_metrics: ResultDict
+        Nested dict containing all the results over different random seeds for every model and metric.
+    n_seeds: int
+        Number of model runs using distinct seeds.
+    metrics: List[Callable]
+        List of metric functions that are used to assess the performance of the model on the OOD data.
+    impute_and_scale: bool
+        Indicate whether data should be imputed and scaled before performing the experiment.
+
+    Returns
+    -------
+    ood_detect_aucs, ood_recall, ood_metrics: Tuple[ResultDict, ResultDict, ResultDict]
+        Updated result dicts.
+    """
+    ne, scoring_funcs, method_name = model_info
+    all_ood = pd.concat([ood_data.train, ood_data.test, ood_data.val])
+
     print("Number of OOD:", len(all_ood))
-    print("Fraction of positives:", all_ood[ood_y_name].mean())
+    print("Fraction of positives:", all_ood[ood_data.target].mean())
+
     nov_an = NoveltyAnalyzer(
         ne,
-        train_non_ood[non_ood_feature_names].values,
-        test_non_ood[non_ood_feature_names].values,
-        val_non_ood[non_ood_feature_names].values,
-        train_non_ood[non_ood_y_name].values,
-        test_non_ood[non_ood_y_name].values,
-        val_non_ood[non_ood_y_name].values,
+        *map(
+            lambda spl: spl[id_data.feature_names],
+            [id_data.train, id_data.test, id_data.val],
+        ),
+        *map(
+            lambda spl: spl[id_data.target], [id_data.train, id_data.test, id_data.val]
+        ),
         impute_and_scale=impute_and_scale,
     )
 
-    # TODO: Rewrite as defaultdicts
-    for kind in kinds:
-        ood_detect_aucs[kind][ood_name] = []
-        ood_recall[kind][ood_name] = []
-
-    for metric in METRICS_TO_USE:
-        metrics[metric.__name__][ood_name] = []
-
-    for _ in tqdm(range(N_SEEDS)):
+    for _ in tqdm(range(n_seeds)):
         nov_an.train()
-        nov_an.set_ood(all_ood[ood_feature_names], impute_and_scale=True)
+        nov_an.set_ood(
+            all_ood[ood_data.feature_names], impute_and_scale=impute_and_scale
+        )
+        nov_an.set_ood(
+            all_ood[ood_data.feature_names], impute_and_scale=impute_and_scale
+        )
 
-        nov_an.set_ood(all_ood[ood_feature_names], impute_and_scale=True)
-        for kind in kinds:
-            nov_an.calculate_novelty(kind=kind)
-            ood_detect_aucs[kind][ood_name] += [
+        for scoring_func in scoring_funcs:
+            nov_an.calculate_novelty(kind=scoring_func)
+            ood_detect_aucs[scoring_func][ood_data.name] += [
                 nov_an.get_ood_detection_auc(balanced=False)
             ]
-            ood_recall[kind][ood_name] += [nov_an.get_ood_recall()]
+            ood_recall[scoring_func][ood_data.name] += [nov_an.get_ood_recall()]
 
-        if method_name in [
-            "Single_NN",
-            "BNN",
-            "MC_Dropout",
-            "BNN",
-            "NN_Ensemble",
-            "NN_Ensemble_bootstrapped",
-            "NN_Ensemble_anchored",
-        ]:
+        if method_name in NEURAL_PREDICTORS:
             y_pred = nov_an.ne.model.predict_proba(nov_an.X_ood)[:, 1]
 
-            for metric in METRICS_TO_USE:
+            for metric in metrics:
                 try:
-                    metrics[metric.__name__][ood_name] += [
-                        metric(all_ood[ood_y_name].values, y_pred)
+                    ood_metrics[metric.__name__][ood_data.name] += [
+                        metric(all_ood[ood_data.name].values, y_pred)
                     ]
                 except ValueError:
-                    print("Fraction of positives:", all_ood[ood_y_name].mean())
+                    print("Fraction of positives:", all_ood[ood_data.name].mean())
 
-    return ood_detect_aucs, ood_recall, metrics
+    return ood_detect_aucs, ood_recall, ood_metrics
 
 
 def split_by_ood_name(df: pd.DataFrame, ood_name: str, ood_value):
-    """Split a dataframe by OOD column name and corresponding OOD value.
+    """
+    Split a dataframe by OOD column name and corresponding OOD value.
 
     Parameters
     ----------
@@ -160,13 +145,14 @@ def split_by_ood_name(df: pd.DataFrame, ood_name: str, ood_value):
     """
     ood_df = df[df[ood_name] == ood_value]
     non_ood_df = df[~(df[ood_name] == ood_value)]
+
     return ood_df, non_ood_df
 
 
 def validate_ood_data(
     X_train: np.array,
     X_ood: np.array,
-    test: str = "kolmogorov-smirnov",
+    test: str = "welch",
     p_thresh: float = 0.01,
     feature_names: Optional[List[str]] = None,
     verbose: bool = True,
