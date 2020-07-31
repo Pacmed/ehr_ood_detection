@@ -1,10 +1,24 @@
+"""
+Module providing an implementation of a Variational Auto-Encoder.
+"""
+
+# STD
+from typing import List, Tuple
+
+# EXT
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
 import torch.distributions as dist
 import torch.utils.data
-from typing import List, Tuple
-import models.constants as constants
+
+# PROJECT
+from uncertainty_estimation.models.info import (
+    DEFAULT_BATCH_SIZE,
+    DEFAULT_LEARNING_RATE,
+    DEFAULT_RECONSTR_ERROR_WEIGHT,
+    DEFAULT_N_VAE_SAMPLES,
+)
 
 
 class Encoder(nn.Module):
@@ -222,9 +236,9 @@ class VAE:
         latent_dim: int,
         train_data: np.ndarray,
         val_data: np.ndarray = None,
-        batch_size: int = constants.DEFAULT_BATCH_SIZE,
-        learning_rate=constants.DEFAULT_LEARNING_RATE,
-        reconstr_error_weight=constants.DEFAULT_RECONSTR_ERROR_WEIGHT,
+        batch_size: int = DEFAULT_BATCH_SIZE,
+        learning_rate: float = DEFAULT_LEARNING_RATE,
+        reconstr_error_weight: float = DEFAULT_RECONSTR_ERROR_WEIGHT,
         mse_loss: bool = True,
     ):
         self.model = VAEModule(
@@ -315,7 +329,7 @@ class VAE:
         return average_epoch_elbo
 
     def get_reconstr_error(
-        self, data: np.ndarray, n_samples: int = constants.DEFAULT_N_VAE_SAMPLES
+        self, data: np.ndarray, n_samples: int = DEFAULT_N_VAE_SAMPLES
     ) -> np.ndarray:
         """Calculate the reconstruction error for some data (assumed to be a numpy array).
         The reconstruction error is averaged over a number of samples.

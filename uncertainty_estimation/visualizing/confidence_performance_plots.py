@@ -1,13 +1,19 @@
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
+"""
+Code to create confidence / performance plots.
+"""
+
+# STD
 from collections import defaultdict
 from typing import Tuple, Callable, List, DefaultDict, Dict
 import itertools
 
+# EXT
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-# TODO: Is this still being used?
+
 class UncertaintyAnalyzer:
     def __init__(
         self,
@@ -204,4 +210,5 @@ def get_incremental_loss(
         score[metric.__name__] = list(np.array(list_of_scores).mean(axis=0))
         score_std[metric.__name__] = list(np.array(list_of_scores).std(axis=0))
         xs[metric.__name__] = list(range(min_size, len(sorted_df), step_size))
+
     return xs, score, score_std

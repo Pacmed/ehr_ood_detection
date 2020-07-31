@@ -13,13 +13,16 @@ BASELINES = {
 
 SINGLE_PRED_NN_MODELS = {"NN"}  # Single neural discriminator
 
-MULTIPLE_PRED_NN_MODELS = {
-    "MCDropout",  # Single neural discriminator using MC Dropout for uncertainty estimation
-    "BNN",  # Bayesian Neural Network
+ENSEMBLE_MODELS = {
     "NNEnsemble",  # Ensemble of neural discriminators
     "BootstrappedNNEnsemble",  # Ensemble of neural discriminators, each trained on a different subset of the data
     "AnchoredNNEnsemble",  # Bayesian ensemble of neural discriminators with special regularization
 }
+
+MULTIPLE_PRED_NN_MODELS = {
+    "MCDropout",  # Single neural discriminator using MC Dropout for uncertainty estimation
+    "BNN",  # Bayesian Neural Network
+} | ENSEMBLE_MODELS
 
 SINGLE_PRED_MODELS = (
     BASELINES | SINGLE_PRED_NN_MODELS
@@ -75,6 +78,11 @@ MODEL_PARAMS = {
         "early_stopping_patience": 5,
         "lr": 0.005,
         "class_weight": False,
+        "posterior_rho_init": -4.5,
+        "posterior_mu_init": 0,
+        "prior_pi": 0.8,
+        "prior_sigma_1": 0.7,
+        "prior_sigma_2": 0.4,
     },
     "NNEnsemble": {
         "hidden_sizes": [50, 50],
@@ -132,3 +140,12 @@ TRAIN_PARAMS = {
         "n_epochs": 100,
     },
 }
+
+# Default training hyperparameters
+DEFAULT_LEARNING_RATE: float = 1e-2
+DEFAULT_BATCH_SIZE: int = 32
+DEFAULT_N_EPOCHS: int = 20
+DEFAULT_EARLY_STOPPING_PAT: int = 2
+
+DEFAULT_RECONSTR_ERROR_WEIGHT: float = 1e20
+DEFAULT_N_VAE_SAMPLES: int = 100

@@ -1,15 +1,25 @@
-from math import sqrt
+"""
+Module containing implementations of (different variations of) multi-layer perceptrons.
+"""
 
-from typing import Tuple, Callable, Dict, Any
+# STD
+from math import sqrt
+from typing import Tuple, Dict, Any, Optional, List, Type
+
+# EXT
+from blitz.modules import BayesianLinear
+from blitz.utils import variational_estimator
 import numpy as np
 import torch.nn as nn
 import torch
 from torch.utils.data import Dataset, DataLoader
 
-from blitz.modules import BayesianLinear
-from blitz.utils import variational_estimator
-
-import models.constants as constants
+# PROJECT
+from uncertainty_estimation.models.info import (
+    DEFAULT_BATCH_SIZE,
+    DEFAULT_EARLY_STOPPING_PAT,
+    DEFAULT_N_EPOCHS,
+)
 
 
 class MLPModule(nn.Module):
@@ -19,29 +29,50 @@ class MLPModule(nn.Module):
 
     def __init__(
         self,
-        hidden_sizes: list,
+        hidden_sizes: List[int],
         input_size: int,
         dropout_rate: float,
         output_size: int = 1,
         layer_class: nn.Module = nn.Linear,
-        layer_kwargs: Dict[str, Any] = {},
+        layer_kwargs: Optional[Dict[str, Any]] = None,
     ):
+        """
+        Initialize a multi-layer perceptron.
+
+        Parameters
+        ----------
+        hidden_sizes: List[int]
+            List specifying the sizes of hidden layers.
+        input_size: int
+            Dimensionality of input samples.
+        dropout_rate: float
+            Dropout rate for linear layers.
+        output_size: int
+            Number of output units, default is 1.
+        layer_class: Type
+            Class of the linear layer, default is nn.Linear.
+        layer_kwargs: Optional[Dict[str, Any]]
+            Key-word arguments for layer class.
+        """
         super().__init__()
+        layer_kwargs = {} if layer_kwargs is None else layer_kwargs
+
         layers = []
 
         hidden_sizes = [input_size] + hidden_sizes + [output_size]
 
         for l, (in_dim, out_dim) in enumerate(zip(hidden_sizes[:-1], hidden_sizes[1:])):
             layers.append(layer_class(in_dim, out_dim, **layer_kwargs))
-            layers.append(nn.ReLU())
 
             if l < len(hidden_sizes):
+                layers.append(nn.ReLU())
                 layers.append(nn.Dropout(dropout_rate))
 
         self.mlp = nn.Sequential(*layers)
 
     def forward(self, _input: torch.Tensor) -> torch.Tensor:
-        """Perform a forward pass of the MLP.
+        """
+        Perform a forward pass of the MLP.
 
         Parameters
         ----------
@@ -58,31 +89,65 @@ class MLPModule(nn.Module):
 
 @variational_estimator
 class BayesianMLPModule(MLPModule):
-    # TODO: Doc
+    """
+    Implementation of a Bayesian Neural Network.
+    """
+
     def __init__(
         self,
         hidden_sizes: list,
         input_size: int,
         dropout_rate: float,
+        posterior_rho_init: float,
+        posterior_mu_init: float,
+        prior_pi: float,
+        prior_sigma_1: float,
+        prior_sigma_2: float,
         output_size: int = 1,
     ):
+        """
+        Initialize a BNN.
+
+        Parameters
+        ----------
+        hidden_sizes: List[int]
+            List specifying the sizes of hidden layers.
+        input_size: int
+            Dimensionality of input samples.
+        dropout_rate: float
+            Dropout rate for linear layers.
+        posterior_rho_init: float
+            Posterior mean for the weight rho init.
+        posterior_mu_init: float
+            Posterior mean for the weight mu init.
+        prior_pi: float
+            Mixture weight of the prior.
+        prior_sigma_1: float
+            Prior sigma on the mixture prior distribution 1.
+        prior_sigma_2: float
+            Prior sigma on the mixture prior distribution 2.
+        output_size: int
+            Number of output units, default is 1.
+        """
         super().__init__(
             hidden_sizes,
             input_size,
             dropout_rate=dropout_rate,
             output_size=output_size,
             layer_class=BayesianLinear,
-            # TODO: Make this hyperparams in models_to_use.py
             layer_kwargs={
-                "posterior_rho_init": -4.5,
-                "prior_pi": 0.8,
-                "prior_sigma_1": 0.7,
+                "posterior_rho_init": posterior_rho_init,
+                "posterior_mu_init": posterior_mu_init,
+                "prior_pi": prior_pi,
+                "prior_sigma_1": prior_sigma_1,
+                "prior_sigma_2": prior_sigma_2,
             },
         )
 
 
 class SimpleDataset(Dataset):
-    """Create a new (simple) PyTorch Dataset instance.
+    """
+    Create a new (simple) PyTorch Dataset instance.
 
     Parameters
     ----------
@@ -122,8 +187,89 @@ class SimpleDataset(Dataset):
         return self.X[idx], self.y[idx]
 
 
+class MultiplePredictionsMixin:
+    """
+    Mixin class adding functions that are used for models that are able to produce multiple, different predictions
+    (but which are not ensembles).
+    """
+
+    def predict_proba(
+        self, X_test: np.array, n_samples: Optional[int] = None
+    ) -> np.array:
+        """
+        Predict the probabilities for a batch of samples.
+
+        Parameters
+        ----------
+        X_test: np.array
+            Batch of samples as numpy array.
+        n_samples: Optional[int]
+            Number of forward passes in the case of MC Dropout.
+
+        Returns
+        -------
+        np.array
+            Predictions for every sample.
+        """
+        X_test_tensor = torch.tensor(X_test).float()
+
+        if n_samples:
+            # perform multiple forward passes with dropout activated.
+            predictions = self._predict_n_times(X_test_tensor, n_samples)
+            predictions = np.mean(np.array(predictions), axis=0)
+
+        else:
+            self.model.eval()
+            predictions = (
+                torch.sigmoid(self.model(X_test_tensor)).detach().squeeze().numpy()
+            )
+
+        return np.stack([1 - predictions, predictions], axis=1)
+
+    def get_std(self, X_test: np.ndarray, n_samples: int = 50) -> np.array:
+        """
+        Predict standard deviation between predictions.
+
+        Parameters
+        ----------
+        X_test: np.array
+            Batch of samples as numpy array.
+        n_samples: int
+            Number of forward passes.
+
+        Returns
+        -------
+        np.array
+            Predictions for every sample.
+        """
+        X_test_tensor = torch.tensor(X_test).float()
+
+        predictions = self._predict_n_times(X_test_tensor, n_samples)
+
+        return np.std(np.array(predictions), axis=0)
+
+    def _predict_n_times(self, X: torch.Tensor, n: int) -> List[float]:
+        """
+        Make predictions based on n forward passes.
+
+        Parameters
+        ----------
+        X: torch.Tensor
+            Input.
+        n: int
+            Number of forward passes.
+        """
+        predictions = []
+
+        for _ in range(n):
+            predictions.append(torch.sigmoid(self.model(X)).detach().squeeze().numpy())
+
+        return predictions
+
+
 class MLP:
-    """Handles training of an MLPModule.
+    """
+    Handles training of an MLPModule.
 
     Parameters
     ----------
@@ -131,10 +277,10 @@ class MLP:
         The sizes of the hidden layers.
     input_size: int
         The input size.
-    output_size: int
-        The output size.
     dropout_rate: float
         The dropout rate applied after each layer (except the output layer)
+    output_size: int
+        The output size.
     batch_norm: bool
         Whether to apply batch normalization after each layer.
     """
@@ -159,7 +305,8 @@ class MLP:
     def _initialize_dataloader(
         self, X_train: np.ndarray, y_train: np.ndarray, batch_size: int
     ):
-        """Initialize the dataloader of the train data.
+        """
+        Initialize the dataloader of the train data.
 
         Parameters
         ----------
@@ -173,25 +320,29 @@ class MLP:
         train_set = SimpleDataset(torch.from_numpy(X_train), torch.from_numpy(y_train))
         self.train_loader = DataLoader(train_set, batch_size, shuffle=True)
 
-    def get_loss_fn(
-        self, mean_y: torch.Tensor, train: bool = True
-    ) -> torch.nn.modules.loss.BCEWithLogitsLoss:
-        """Obtain the loss function to be used, which is (in case we use class weighting)
-        dependent on the class imbalance in the batch.
+    def get_loss(
+        self, X: torch.Tensor, y: torch.Tensor, train: bool = True
+    ) -> torch.Tensor:
+        """
+        Obtain the loss for the current batch.
 
         Parameters
         ----------
-        mean_y: torch.Tensor
-            The fraction of positives in the batch.
+        X: torch.Tensor
+            Data sample for which the loss should be computed for.
+        y: torch.Tensor
+            Labels for the current batch.
         train: bool
             Specify whether the training or validation loss function is used (differs for BNNs).
 
         Returns
         -------
-        type: torch.nn.modules.loss.BCEWithLogitsLoss
-            X and y at index idx
-
+        loss: torch.FloatTensor
+            Loss for current batch.
         """
+        y_pred = self.model(X)
+        mean_y = y.mean()
+
         if self.class_weight:
             if mean_y == 0:
                 pos_weight = torch.tensor(0.0)
@@ -203,12 +354,15 @@ class MLP:
         else:
             # When not using class weighting, the weight is simply 1.
             pos_weight = torch.tensor(1.0)
-        loss_fn = torch.nn.BCEWithLogitsLoss(pos_weight=pos_weight)
 
-        return loss_fn
+        loss_fn = torch.nn.BCEWithLogitsLoss(pos_weight=pos_weight)
+        loss = loss_fn(y_pred, y.view(-1, 1))
+
+        return loss
 
     def validate(self, X_val: np.ndarray, y_val: np.ndarray) -> torch.Tensor:
-        """Calculate the validation loss.
+        """
+        Calculate the validation loss.
 
         Parameters
         ----------
@@ -223,9 +377,11 @@ class MLP:
             The validation loss.
         """
         self.model.eval()
-        y_pred = self.model(torch.tensor(X_val).float())
-        loss_fn = self.get_loss_fn(torch.tensor(y_val).float().mean())
-        val_loss = loss_fn(y_pred, torch.tensor(y_val).float().view(-1, 1))
+        X = torch.tensor(X_val).float()
+        y = torch.tensor(y_val).float()
+
+        val_loss = self.get_loss(X, y, train=False)
+
         return val_loss
 
     def train(
@@ -234,12 +390,13 @@ class MLP:
         y_train: np.ndarray,
         X_val: np.ndarray,
         y_val: np.ndarray,
-        batch_size: int = constants.DEFAULT_BATCH_SIZE,
-        n_epochs: int = constants.DEFAULT_N_EPOCHS,
+        batch_size: int = DEFAULT_BATCH_SIZE,
+        n_epochs: int = DEFAULT_N_EPOCHS,
         early_stopping: bool = True,
-        early_stopping_patience: int = constants.DEFAULT_EARLY_STOPPING_PAT,
+        early_stopping_patience: int = DEFAULT_EARLY_STOPPING_PAT,
     ):
-        """Train the MLP.
+        """
+        Train the MLP.
 
         Parameters
         ----------
@@ -260,7 +417,6 @@ class MLP:
         early_stopping_patience: int
             The early stopping patience, default 2.
         """
-
         self._initialize_dataloader(X_train, y_train, batch_size)
         prev_val_loss = float("inf")
         n_no_improvement = 0
@@ -268,10 +424,8 @@ class MLP:
 
             self.model.train()
             for batch_X, batch_y in self.train_loader:
-                y_pred = self.model(batch_X.float())
-                loss_fn = self.get_loss_fn(batch_y.float().mean())
 
-                loss = loss_fn(y_pred.view(-1, 1), batch_y.float().view(-1, 1))
+                loss = self.get_loss(batch_X.float(), batch_y.float())
                 self.optimizer.zero_grad()
                 loss.backward()
                 self.optimizer.step()
@@ -287,43 +441,49 @@ class MLP:
                 print("Early stopping after", epoch, "epochs.")
                 break
 
-    def predict_proba(self, X_test: np.ndarray, n_samples=None):
-        # TODO: Doc
+    def predict_proba(
+        self, X_test: np.array, n_samples: Optional[int] = None
+    ) -> np.array:
+        """
+        Predict the probabilities for a batch of samples.
+
+        Parameters
+        ----------
+        X_test: np.array
+            Batch of samples as numpy array.
+        n_samples: Optional[int]
+            Number of forward passes in the case of MC Dropout.
+
+        Returns
+        -------
+        np.array
+            Predictions for every sample.
+        """
         X_test_tensor = torch.tensor(X_test).float()
-        if n_samples:
-            # perform multiple forward passes with dropout activated.
-            predictions_list = []
-            for m in self.model.modules():
-                if m.__class__.__name__.startswith("Dropout"):
-                    m.train()
-            for i in range(n_samples):
-                predictions_list.append(
-                    torch.sigmoid(self.model(X_test_tensor)).detach().squeeze().numpy()
-                )
-            predictions = np.mean(np.array(predictions_list), axis=0)
-        else:
-            self.model.eval()
-            predictions = (
-                torch.sigmoid(self.model(X_test_tensor)).detach().squeeze().numpy()
-            )
+
+        self.model.eval()
+        predictions = (
+            torch.sigmoid(self.model(X_test_tensor)).detach().squeeze().numpy()
+        )
+
         return np.stack([1 - predictions, predictions], axis=1)
 
-    def get_std(self, X_test: np.ndarray, n_samples=50):
-        # TODO: Doc
-        X_test_tensor = torch.tensor(X_test).float()
-        # perform multiple forward passes with dropout activated.
-        predictions_list = []
+
+class MCDropoutMLP(MLP, MultiplePredictionsMixin):
+    """
+    Class for a MLP using MC Dropout.
+    """
+
+    def eval(self):
+        """
+        Ensure that dropout is still being used even if model is in eval mode.
+        """
         for m in self.model.modules():
             if m.__class__.__name__.startswith("Dropout"):
                 m.train()
-        for i in range(n_samples):
-            predictions_list.append(
-                torch.sigmoid(self.model(X_test_tensor)).detach().squeeze().numpy()
-            )
-        return np.std(np.array(predictions_list), axis=0)
 
 
-class BayesianMLP(MLP):
+class BayesianMLP(MLP, MultiplePredictionsMixin):
     """
     Implement the training of a Bayesian Multi-layer perceptron.
     """
@@ -337,6 +497,24 @@ class BayesianMLP(MLP):
         output_size: int = 1,
         lr: float = 1e-3,
     ):
+        """
+        Initialize a Bayesian MLP.
+
+        Parameters
+        ----------
+        hidden_sizes: List[int]
+            List specifying the sizes of hidden layers.
+        input_size: int
+            Dimensionality of input samples.
+        dropout_rate: float
+            Dropout rate for linear layers.
+        class_weight: bool
+            Indicate whether loss should be adapted based on class weights. Default is True.
+        output_size: int
+            The output size.
+        lr: float
+            Learning rate. Default is 1e-3.
+        """
         super().__init__(
             hidden_sizes,
             input_size,
@@ -347,100 +525,36 @@ class BayesianMLP(MLP):
             mlp_module=BayesianMLPModule,
         )
 
-    def get_loss_fn(self, mean_y: torch.Tensor, train: bool = True) -> Callable:
-        # TODO: Doc
-        bce_loss = super().get_loss_fn(mean_y)
-
-        # Return only BCE loss for validation
-        if not train:
-            return bce_loss
-
-        loss_fn = lambda inputs, labels: self.model.sample_elbo(
-            inputs=inputs, labels=labels, criterion=bce_loss, sample_nbr=2
-        )
-
-        return loss_fn
-
-    def train(
-        self,
-        X_train: np.ndarray,
-        y_train: np.ndarray,
-        X_val: np.ndarray,
-        y_val: np.ndarray,
-        batch_size: int = constants.DEFAULT_BATCH_SIZE,
-        n_epochs: int = constants.DEFAULT_N_EPOCHS,
-        early_stopping: bool = True,
-        early_stopping_patience: int = constants.DEFAULT_EARLY_STOPPING_PAT,
-    ):
-        """Train the MLP.
-
-        Parameters
-        ----------
-        X_train: np.ndarray
-            The training data.
-        y_train: np.ndarray
-            The labels corresponding to the training data.
-        X_val: np.ndarray
-            The validation data.
-        y_val: np.ndarray
-            The labels corresponding to the validation data.
-        batch_size: int
-            The batch size, default 256
-        n_epochs: int
-            The number of training epochs, default 30
-        early_stopping: bool
-            Whether to perform early stopping, default True
-        early_stopping_patience: int
-            The early stopping patience, default 2.
+    def get_loss(
+        self, X: torch.Tensor, y: torch.Tensor, train: bool = True
+    ) -> torch.Tensor:
         """
-
-        self._initialize_dataloader(X_train, y_train, batch_size)
-        prev_val_loss = float("inf")
-        n_no_improvement = 0
-        for epoch in range(n_epochs):
-
-            self.model.train()
-            for batch_X, batch_y in self.train_loader:
-                loss_fn = self.get_loss_fn(batch_y.float().mean())
-
-                loss = loss_fn(batch_X.float(), batch_y.float().view(-1, 1))
-                # print("BNN train", loss)
-                self.optimizer.zero_grad()
-                loss.backward()
-                self.optimizer.step()
-
-            if early_stopping:
-                val_loss = self.validate(X_val, y_val)
-                # print("BNN val", val_loss)
-                if val_loss >= prev_val_loss:
-                    n_no_improvement += 1
-                else:
-                    n_no_improvement = 0
-                    prev_val_loss = val_loss
-            if n_no_improvement >= early_stopping_patience:
-                print("Early stopping after", epoch, "epochs.")
-                break
-
-    def validate(self, X_val: np.ndarray, y_val: np.ndarray) -> torch.Tensor:
-        """Calculate the validation loss.
+        Obtain the loss for the current batch. In the case of a BNN, this return the binary cross entropy loss
+        including the Kullback-Leibler divergence if train=True and otherwise just the latter.
 
         Parameters
         ----------
-        X_val: np.ndarray
-            The validation data.
-        y_val: np.ndarray
-            The labels corresponding to the validation data.
+        X: torch.Tensor
+            Data sample for which the loss should be computed for.
+        y: torch.Tensor
+            Labels for the current batch.
+        train: bool
+            Specify whether the training or validation loss function is used (differs for BNNs).
 
         Returns
         -------
-        type: torch.Tensor
-            The validation loss.
+        loss: torch.FloatTensor
+            Loss for current batch.
         """
-        self.model.eval()
-        loss_fn = self.get_loss_fn(torch.tensor(y_val).float().mean(), train=False)
-        preds = self.model(torch.tensor(X_val).float())
-        val_loss = loss_fn(preds, torch.tensor(y_val).float().view(-1, 1))
-        return val_loss
+        # Return only BCE loss for validation
+        if not train:
+            return super().get_loss(X, y, train)
+
+        loss = self.model.sample_elbo(
+            inputs=X, labels=y, criterion=nn.loss.BCEWithLogitsLoss, sample_nbr=2
+        )
+
+        return loss
 
 
 class AnchoredMLP(MLP):
@@ -461,14 +575,31 @@ class AnchoredMLP(MLP):
         output_size: int = 1,
         lr: float = 1e-3,
     ):
+        """
+        Initialize a MLP that is part of an anchored ensemble.
+
+        Parameters
+        ----------
+        hidden_sizes: List[int]
+            List specifying the sizes of hidden layers.
+        input_size: int
+            Dimensionality of input samples.
+        dropout_rate: float
+            Dropout rate for linear layers.
+        class_weight: bool
+            Indicate whether loss should be adapted based on class weights. Default is True.
+        output_size: int
+            The output size.
+        lr: float
+            Learning rate. Default is 1e-3.
+        """
 
         super().__init__(
             hidden_sizes,
             input_size,
-            dropout_rate=0,
+            dropout_rate=dropout_rate,
             class_weight=class_weight,
             output_size=output_size,
-            batch_norm=False,
             lr=lr,
         )
 
@@ -499,8 +630,20 @@ class AnchoredMLP(MLP):
 
         return anchors
 
-    def anchor_loss(self, labels: torch.Tensor):
-        # TODO: Doc
+    def anchor_loss(self, labels: torch.Tensor) -> torch.Tensor:
+        """
+        Calculate the anchor regularization loss for the current model.
+
+        Parameters
+        ----------
+        labels: torch.Tensor
+            Batch labels.
+
+        Returns
+        -------
+        loss: torch.Tensor
+            Anchore loss as FloatTensor.
+        """
         loss = 0
         N = labels.shape[0]
 
@@ -518,10 +661,29 @@ class AnchoredMLP(MLP):
 
         return loss
 
-    def get_loss_fn(self, mean_y: torch.Tensor) -> Callable:
+    def get_loss(
+        self, X: torch.Tensor, y: torch.Tensor, train: bool = True
+    ) -> torch.Tensor:
         """
-        Return a modified loss function which includes the anchored ensembles loss.
-        """
-        bce_loss = super().get_loss_fn(mean_y)
+        Obtain the loss for the current batch. In the case of an anchored ensemble, this is a binary cross-entropy loss
+        and the additional anchor regularization loss.
 
-        return lambda pred, labels: bce_loss(pred, labels) + self.anchor_loss(labels)
+        Parameters
+        ----------
+        X: torch.Tensor
+            Data sample for which the loss should be computed for.
+        y: torch.Tensor
+            Labels for the current batch.
+        train: bool
+            Specify whether the training or validation loss function is used (differs for BNNs).
+
+        Returns
+        -------
+        loss: torch.FloatTensor
+            Loss for current batch.
+        """
+        bce_loss = super().get_loss(X, y, train=train)
+
+        loss = bce_loss + self.anchor_loss(y)
+
+        return loss
