@@ -48,7 +48,7 @@ if __name__ == "__main__":
         for i in range(N_SEEDS):
             ne.train(X_train, train_data[y_name].values, X_val, val_data[y_name].values)
             for kind in kinds:
-                uncertainties[kind] += [ne.get_novelty_score(X_test, kind=kind)]
+                uncertainties[kind] += [ne.get_novelty_score(X_test, scoring_func=kind)]
                 print(len(uncertainties[kind][0]))
             if method_name in [
                 "Single_NN",

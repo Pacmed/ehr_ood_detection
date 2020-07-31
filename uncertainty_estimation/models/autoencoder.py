@@ -1,10 +1,18 @@
+"""
+Module providing an implementation of an Auto-Encoder.
+"""
+
+# STD
+from typing import List
+
+# EXT
 import torch
 import torch.nn as nn
 import numpy as np
 import torch.utils.data
-import models.constants as constants
 
-from typing import List
+# PROJECT
+from uncertainty_estimation.models.info import DEFAULT_LEARNING_RATE, DEFAULT_BATCH_SIZE
 
 
 class Encoder(nn.Module):
@@ -22,15 +30,14 @@ class Encoder(nn.Module):
 
     def __init__(self, input_dim: int, hidden_dims: List[int], latent_dim: int):
         super().__init__()
-        architecture = [input_dim] + hidden_dims
+
         self.layers = []
-        if not hidden_dims:
-            self.layers = [nn.Linear(input_dim, latent_dim)]
-        else:
-            for i in range(len(architecture) - 1):
-                self.layers.append(nn.Linear(architecture[i], architecture[i + 1]))
-                self.layers.append(nn.Sigmoid())
-            self.layers.append(nn.Linear(architecture[-1], latent_dim))
+        architecture = [input_dim] + hidden_dims + [latent_dim]
+
+        for l, (in_dim, out_dim) in enumerate(zip(architecture[:-1], architecture[1:])):
+            self.layers.append(nn.Linear(in_dim, out_dim))
+            self.layers.append(nn.Sigmoid())
+
         self.encoder = nn.Sequential(*self.layers)
 
     def forward(self, input_tensor: torch.Tensor) -> torch.Tensor:
@@ -60,15 +67,13 @@ class Decoder(nn.Module):
 
     def __init__(self, input_dim: int, hidden_dims: List[int], latent_dim: int):
         super().__init__()
-        architecture = [latent_dim] + hidden_dims
+        architecture = [latent_dim] + hidden_dims + [input_dim]
         self.layers = []
-        if not hidden_dims:
-            self.layers = [nn.Linear(latent_dim, input_dim)]
-        else:
-            for i in range(len(architecture) - 1):
-                self.layers.append(nn.Linear(architecture[i], architecture[i + 1]))
-                self.layers.append(nn.Sigmoid())
-            self.layers.append(nn.Linear(architecture[-1], input_dim))
+
+        for l, (in_dim, out_dim) in enumerate(zip(architecture[:-1], architecture[1:])):
+            self.layers.append(nn.Linear(in_dim, out_dim))
+            self.layers.append(nn.Sigmoid())
+
         self.decoder = nn.Sequential(*self.layers)
 
     def forward(self, input_tensor: torch.Tensor) -> torch.Tensor:
@@ -172,8 +177,8 @@ class AE:
         latent_dim: int,
         train_data: np.ndarray,
         val_data: np.ndarray = None,
-        batch_size: int = constants.DEFAULT_BATCH_SIZE,
-        learning_rate=constants.DEFAULT_LEARNING_RATE,
+        batch_size: int = DEFAULT_BATCH_SIZE,
+        learning_rate: float = DEFAULT_LEARNING_RATE,
         verbose=False,
     ):
         self.model = AEModule(
@@ -209,7 +214,8 @@ class AE:
     def _initialize_dataloaders(
         self, train_data: np.ndarray, val_data: np.ndarray, batch_size: int
     ):
-        """Initialize the dataloaders from original numpy data.
+        """
+        Initialize the dataloaders from original numpy data.
 
         Parameters
         ----------

@@ -80,9 +80,9 @@ class NoveltyAnalyzer:
     def calculate_novelty(self, kind=None):
         if self.new_test:
             # check whether the novelty on the test set is already calculated
-            self.id_novelty = self.ne.get_novelty_score(self.X_test, kind=kind)
+            self.id_novelty = self.ne.get_novelty_score(self.X_test, scoring_func=kind)
         if self.ood:
-            self.ood_novelty = self.ne.get_novelty_score(self.X_ood, kind=kind)
+            self.ood_novelty = self.ne.get_novelty_score(self.X_ood, scoring_func=kind)
 
     def get_ood_detection_auc(self, balanced=False):
         """Calculate the OOD detection AUC based on the novelty scores on OOD and i.d. test data.
