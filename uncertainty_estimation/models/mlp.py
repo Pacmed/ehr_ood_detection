@@ -434,7 +434,7 @@ class MLP:
             if early_stopping:
                 val_loss = self.validate(X_val, y_val)
 
-                if val_loss > prev_val_loss:
+                if val_loss >= prev_val_loss:
                     n_no_improvement += 1
 
                 else:
@@ -445,9 +445,7 @@ class MLP:
                 print("Early stopping after", epoch, "epochs.")
                 break
 
-    def predict_proba(
-        self, X_test: np.array, n_samples: Optional[int] = None
-    ) -> np.array:
+    def predict_proba(self, X_test: np.array) -> np.array:
         """
         Predict the probabilities for a batch of samples.
 
@@ -455,8 +453,6 @@ class MLP:
         ----------
         X_test: np.array
             Batch of samples as numpy array.
-        n_samples: Optional[int]
-            Number of forward passes in the case of MC Dropout.
 
         Returns
         -------

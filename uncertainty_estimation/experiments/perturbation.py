@@ -28,7 +28,7 @@ RESULT_DIR = "../../data/results"
 
 
 def run_perturbation_experiment(
-    nov_an: NoveltyAnalyzer, X_test: np.ndarray, kind: str = None
+    nov_an: NoveltyAnalyzer, X_test: np.ndarray, scoring_func: str = None
 ) -> Tuple[Dict[str, List[float]], Dict[str, List[float]]]:
     """Runs the perturbation experiment for a single novelty estimator.
 
@@ -38,7 +38,7 @@ def run_perturbation_experiment(
         The novelty analyzer (handles scaling, imputation, evaluation)
     X_test: np.ndarray
         The test data to use
-    kind: str
+    scoring_func: str
         Which kind of novelty to evaluate (used for NN ensemble, where you can choose between
         'std' and 'entropy'
 
@@ -64,7 +64,7 @@ def run_perturbation_experiment(
             X_test_adjusted = deepcopy(nov_an.X_test)
             X_test_adjusted[:, r] = X_test_adjusted[:, r] * scale_adjustment
             nov_an.set_ood(X_test_adjusted, impute_and_scale=False)
-            nov_an.calculate_novelty(kind=kind)
+            nov_an.calculate_novelty(kind=scoring_func)
             aucs_dict[scale_adjustment] += [nov_an.get_ood_detection_auc()]
             recall_dict[scale_adjustment] += [nov_an.get_ood_recall()]
 
@@ -117,7 +117,7 @@ if __name__ == "__main__":
 
         for scoring_func in scoring_funcs:
             aucs_dict, recall_dict = run_perturbation_experiment(
-                nov_an, test_data[feature_names], kind=scoring_func
+                nov_an, test_data[feature_names], scoring_func=scoring_func
             )
             if len(scoring_funcs) > 1:
                 dir_name = os.path.join(

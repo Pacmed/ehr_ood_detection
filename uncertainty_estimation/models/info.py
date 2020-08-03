@@ -3,6 +3,9 @@ Module to be the single place to bundle all the information about models: Availa
 hyperparameters, etc.
 """
 
+import math
+import numpy as np
+
 # ### Models and novelty scoring functions ###
 
 BASELINES = {
@@ -81,13 +84,13 @@ MODEL_PARAMS = {
     "BNN": {
         "hidden_sizes": [50, 50],
         "dropout_rate": 0.0,
-        "lr": 0.005,
+        "lr": 1e-3,
         "class_weight": False,
-        "posterior_rho_init": -4.5,
-        "posterior_mu_init": 0,
-        "prior_pi": 0.8,
-        "prior_sigma_1": 0.7,
-        "prior_sigma_2": 0.4,
+        "posterior_rho_init": np.random.uniform(-5, -4),
+        "posterior_mu_init": np.random.uniform(-0.2, 0.2),
+        "prior_pi": 0.5,
+        "prior_sigma_1": math.exp(0),
+        "prior_sigma_2": math.exp(-6),
     },
     "NNEnsemble": {
         "n_models": 10,
@@ -137,7 +140,7 @@ TRAIN_PARAMS = {
         "early_stopping_patience": 3,
         "n_epochs": 100,
     },
-    "BNN": {"batch_size": 1024, "early_stopping": True, "early_stopping_patience": 5},
+    "BNN": {"batch_size": 128, "early_stopping": True, "early_stopping_patience": 3},
     "NNEnsemble": {
         "batch_size": 256,
         "early_stopping": True,
