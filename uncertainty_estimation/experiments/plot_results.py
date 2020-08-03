@@ -17,15 +17,18 @@ from uncertainty_estimation.models.info import NEURAL_PREDICTORS, AVAILABLE_MODE
 
 # CONST
 N_SEEDS = 5
+RESULT_DIR = "../../data/results"
+PLOT_DIR = "../../img/experiments"
 
 
-def plot_ood_from_pickle(data_origin, dummy_group_name=None):
-    ood_dir_name = os.path.join("pickled_results", data_origin, "OOD")
-    ood_plot_dir_name = os.path.join("plots", data_origin, "OOD")
+def plot_ood_from_pickle(data_origin, result_dir, plot_dir, dummy_group_name=None):
+    ood_dir_name = os.path.join(result_dir, data_origin, "OOD")
+    ood_plot_dir_name = f"{plot_dir}/{data_origin}/OOD"
     auc_dict, recall_dict = dict(), dict()
     metric_dict = defaultdict(dict)
+    available_results = set(os.listdir(f"{result_dir}/{data_origin}/OOD/"))
 
-    for method in AVAILABLE_MODELS:
+    for method in available_results:
         method_dir = os.path.join(ood_dir_name, method)
         detection_dir = os.path.join(method_dir, "detection")
         for kind in os.listdir(detection_dir):
@@ -40,6 +43,7 @@ def plot_ood_from_pickle(data_origin, dummy_group_name=None):
 
         if method in NEURAL_PREDICTORS:
             metrics_dir = os.path.join(method_dir, "metrics")
+
             for metric in os.listdir(metrics_dir):
                 name = method.replace("_", " ")
                 with open(os.path.join(metrics_dir, metric), "rb") as f:
@@ -103,13 +107,14 @@ def plot_ood_from_pickle(data_origin, dummy_group_name=None):
         )
 
 
-def plot_da_from_pickle():
-    ood_dir_name = os.path.join("pickled_results", "DA")
-    ood_plot_dir_name = os.path.join("plots", "DA")
+def plot_da_from_pickle(result_dir, plot_dir):
+    ood_dir_name = os.path.join(result_dir, "DA")
+    ood_plot_dir_name = f"{plot_dir}/DA"
     auc_dict, recall_dict = dict(), dict()
     metric_dict = defaultdict(dict)
+    available_results = set(os.listdir(f"{result_dir}/DA/"))
 
-    for method in AVAILABLE_MODELS:
+    for method in available_results:
         method_dir = os.path.join(ood_dir_name, method)
         detection_dir = os.path.join(method_dir, "detection")
         for kind in os.listdir(detection_dir):
@@ -230,12 +235,13 @@ def plot_da_from_pickle():
     )
 
 
-def plot_perturbation_from_pickle(data_origin):
-    perturb_dir_name = os.path.join("../../data/results", data_origin, "perturbation")
-    perturb_plot_dir_name = os.path.join("plots", data_origin, "perturbation")
+def plot_perturbation_from_pickle(data_origin, result_dir, plot_dir):
+    perturb_dir_name = os.path.join(result_dir, data_origin, "perturbation")
+    perturb_plot_dir_name = f"{plot_dir}/{data_origin}/perturbation"
     auc_dict, recall_dict = dict(), dict()
+    available_results = set(os.listdir(f"{result_dir}/{data_origin}/perturbation/"))
 
-    for method in AVAILABLE_MODELS:
+    for method in available_results:
         method_dir = os.path.join(perturb_dir_name, method)
         name = method.replace("_", " ")
         with open(os.path.join(method_dir, "perturb_detect_auc.pkl"), "rb") as f:
@@ -285,16 +291,18 @@ def plot_perturbation_from_pickle(data_origin):
     )
 
 
-def confidence_performance_from_pickle(data_origin):
-    id_dir_name = os.path.join("pickled_results", data_origin, "ID")
-    id_plot_dir_name = os.path.join("plots", data_origin, "ID")
+def confidence_performance_from_pickle(data_origin, result_dir, plot_dir):
+    id_dir_name = os.path.join(result_dir, data_origin, "ID")
+    id_plot_dir_name = f"{plot_dir}/{data_origin}/ID"
     predictions, uncertainties = defaultdict(list), defaultdict(list)
     predictions_for_novelty_estimate, novelties = defaultdict(list), defaultdict(list)
 
     with open(os.path.join(id_dir_name, "y_test.pkl"), "rb") as f:
         y_test = pickle.load(f)
 
-    for method in AVAILABLE_MODELS:
+    available_results = set(os.listdir(f"{result_dir}/{data_origin}/ID/"))
+
+    for method in available_results:
         print(method)
         if method != "y_test.pkl":
             method_dir = os.path.join(id_dir_name, method)
@@ -388,19 +396,43 @@ if __name__ == "__main__":
         type=str,
         nargs="+",
         default=["da", "ood", "perturb"],
-        choice=["da", "ood", "perturb", "confidence"],
+        choices=["da", "ood", "perturb", "confidence"],
         help="Specify the types of plots that should be created.",
+    )
+    parser.add_argument(
+        "--result_dir",
+        type=str,
+        default=RESULT_DIR,
+        help="Define the directory that results were saved to.",
+    )
+    parser.add_argument(
+        "--plot_dir",
+        type=str,
+        default=PLOT_DIR,
+        help="Define the directory that results were saved to.",
     )
     args = parser.parse_args()
 
     if "da" in args.plots:
-        plot_da_from_pickle()
+        plot_da_from_pickle(result_dir=args.result_dir, plot_dir=args.plot_dir)
 
     if "ood" in args.plots:
-        plot_ood_from_pickle(data_origin=args.data_origin)
+        plot_ood_from_pickle(
+            data_origin=args.data_origin,
+            result_dir=args.result_dir,
+            plot_dir=args.plot_dir,
+        )
 
     if "perturb" in args.plots:
-        plot_perturbation_from_pickle(data_origin=args.data_origin)
+        plot_perturbation_from_pickle(
+            data_origin=args.data_origin,
+            result_dir=args.result_dir,
+            plot_dir=args.plot_dir,
+        )
 
     if "confidence" in args.plots:
-        confidence_performance_from_pickle(data_origin=args.data_origin)
+        confidence_performance_from_pickle(
+            data_origin=args.data_origin,
+            result_dir=args.result_dir,
+            plot_dir=args.plot_dir,
+        )
