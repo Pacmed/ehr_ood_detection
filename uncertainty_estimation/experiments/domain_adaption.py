@@ -1,143 +1,182 @@
+"""
+Perform domain adaption experiment where models trained on eICU are test on MIMIC and vice versa.
+"""
+
+# STD
+import argparse
 import os
 import pickle
 from collections import defaultdict
 
-import experiments_utils.ood_experiments_utils as ood_utils
-from experiments_utils import get_models_to_use
-from experiments_utils.datahandler import DataHandler
+# EXT
+import numpy as np
 
-# TODO: Add main func
+# PROJECT
+import uncertainty_estimation.utils.ood as ood_utils
+from uncertainty_estimation.utils.model_init import init_models
+from uncertainty_estimation.utils.datahandler import DataHandler
+from uncertainty_estimation.models.info import AVAILABLE_MODELS
 
-dh_mimic = DataHandler("MIMIC_for_DA")
-feature_names_mimic = dh_mimic.load_feature_names()
-train_mimic, test_mimic, val_mimic = dh_mimic.load_data_splits()
-y_mimic = dh_mimic.load_target_name()
+# CONST
+N_SEEDS = 5
 
-dh_eicu = DataHandler("eICU_for_DA")
-feature_names_eicu = dh_eicu.load_feature_names()
-train_eicu, test_eicu, val_eicu = dh_eicu.load_data_splits()
-y_eicu = dh_eicu.load_target_name()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--models",
+        type=str,
+        nargs="+",
+        default=AVAILABLE_MODELS,
+        choices=AVAILABLE_MODELS,
+        help="Determine the models which are being used for this experiment.",
+    )
+    args = parser.parse_args()
 
+    dh_mimic = DataHandler("MIMIC_for_DA")
+    feature_names_mimic = dh_mimic.load_feature_names()
+    train_mimic, test_mimic, val_mimic = dh_mimic.load_data_splits()
+    y_mimic = dh_mimic.load_target_name()
 
-for model_info in get_models_to_use(len(feature_names_eicu)):
-    print(model_info[2])
-    ood_detect_aucs, ood_recall = defaultdict(dict), defaultdict(dict)
-    metrics = defaultdict(dict)
-    ood_detect_aucs, ood_recall, metrics = ood_utils.run_ood_experiment_on_group(
-        train_non_ood=train_mimic,
-        test_non_ood=test_mimic,
-        val_non_ood=val_mimic,
-        train_ood=train_eicu,
-        test_ood=test_eicu,
-        val_ood=val_eicu,
-        non_ood_feature_names=feature_names_mimic,
-        ood_feature_names=feature_names_eicu,
-        non_ood_y_name=y_mimic,
-        ood_y_name=y_eicu,
-        ood_name="Train on MIMIC, evaluate on eICU",
-        model_info=model_info,
-        ood_detect_aucs=ood_detect_aucs,
-        ood_recall=ood_recall,
-        ood_metrics=metrics,
-        impute_and_scale=True,
+    mimic_data = ood_utils.DomainData(
+        train_mimic, test_mimic, val_mimic, feature_names_mimic, y_mimic, "MIMIC"
     )
 
-    ood_detect_aucs, ood_recall, metrics = ood_utils.run_ood_experiment_on_group(
-        train_non_ood=train_eicu,
-        test_non_ood=test_eicu,
-        val_non_ood=val_eicu,
-        train_ood=train_mimic,
-        test_ood=test_mimic,
-        val_ood=val_mimic,
-        non_ood_feature_names=feature_names_eicu,
-        ood_feature_names=feature_names_mimic,
-        non_ood_y_name=y_eicu,
-        ood_y_name=y_mimic,
-        ood_name="Train on eICU, evaluate on MIMIC",
-        model_info=model_info,
-        ood_detect_aucs=ood_detect_aucs,
-        ood_recall=ood_recall,
-        ood_metrics=metrics,
-        impute_and_scale=True,
+    dh_eicu = DataHandler("eICU_for_DA")
+    feature_names_eicu = dh_eicu.load_feature_names()
+    train_eicu, test_eicu, val_eicu = dh_eicu.load_data_splits()
+    y_eicu = dh_eicu.load_target_name()
+
+    eicu_data = ood_utils.DomainData(
+        train_eicu, test_mimic, val_mimic, feature_names_eicu, y_eicu, "eICU"
     )
 
-    # Doing tests on identically distributed data (mostly a check)
-    ood_detect_aucs_id, ood_recall_id = defaultdict(dict), defaultdict(dict)
-    metrics_id = defaultdict(dict)
-
-    (
-        ood_detect_aucs_id,
-        ood_recall_id,
-        metrics_id,
-    ) = ood_utils.run_ood_experiment_on_group(
-        train_non_ood=train_mimic,
-        test_non_ood=test_mimic,
-        val_non_ood=val_mimic,
-        train_ood=train_mimic,
-        test_ood=test_mimic,
-        val_ood=val_mimic,
-        non_ood_feature_names=feature_names_mimic,
-        ood_feature_names=feature_names_mimic,
-        non_ood_y_name=y_mimic,
-        ood_y_name=y_mimic,
-        ood_name="Train and evaluate on MIMIC",
-        model_info=model_info,
-        ood_detect_aucs=ood_detect_aucs_id,
-        ood_recall=ood_recall_id,
-        ood_metrics=metrics_id,
-        impute_and_scale=True,
+    # Validate OOD-ness of the data sets compared to each other
+    all_mimic = np.concatenate(
+        [
+            train_mimic[feature_names_mimic],
+            test_mimic[feature_names_mimic],
+            val_mimic[feature_names_mimic],
+        ]
+    )
+    all_eicu = np.concatenate(
+        [
+            train_eicu[feature_names_eicu],
+            test_eicu[feature_names_eicu],
+            val_eicu[feature_names_eicu],
+        ]
     )
 
-    (
-        ood_detect_aucs_id,
-        ood_recall_id,
-        metrics_id,
-    ) = ood_utils.run_ood_experiment_on_group(
-        train_non_ood=train_eicu,
-        test_non_ood=test_eicu,
-        val_non_ood=val_eicu,
-        train_ood=train_eicu,
-        test_ood=test_eicu,
-        val_ood=val_eicu,
-        non_ood_feature_names=feature_names_eicu,
-        ood_feature_names=feature_names_eicu,
-        non_ood_y_name=y_eicu,
-        ood_y_name=y_eicu,
-        ood_name="Train and evaluate on eICU",
-        model_info=model_info,
-        ood_detect_aucs=ood_detect_aucs_id,
-        ood_recall=ood_recall_id,
-        ood_metrics=metrics_id,
-        impute_and_scale=True,
+    ood_utils.validate_ood_data(
+        X_train=train_mimic[feature_names_mimic],
+        X_ood=all_eicu,
+        feature_names=feature_names_mimic,
+    )
+    ood_utils.validate_ood_data(
+        X_train=train_eicu[feature_names_eicu],
+        X_ood=all_mimic,
+        feature_names=feature_names_eicu,
     )
 
-    ne, kinds, method_name = model_info
-    # Save everything for this model
-    dir_name = os.path.join("pickled_results", "DA", method_name)
-    if not os.path.exists(dir_name):
-        os.mkdir(dir_name)
-    metric_dir_name = os.path.join(dir_name, "metrics")
-    if not os.path.exists(metric_dir_name):
-        os.mkdir(metric_dir_name)
-    for metric in metrics.keys():
-        with open(os.path.join(metric_dir_name, metric + ".pkl"), "wb") as f:
-            pickle.dump(metrics[metric], f)
+    for model_info in init_models(
+        input_dim=len(feature_names_eicu), selection=args.models
+    ):
+        print(model_info[2])
+        ood_detect_aucs, ood_recall = defaultdict(dict), defaultdict(dict)
+        metrics = defaultdict(dict)
+        ood_detect_aucs, ood_recall, metrics = ood_utils.run_ood_experiment_on_group(
+            id_data=mimic_data,
+            ood_data=eicu_data,
+            model_info=model_info,
+            ood_detect_aucs=ood_detect_aucs,
+            ood_recall=ood_recall,
+            ood_metrics=metrics,
+            n_seeds=N_SEEDS,
+            impute_and_scale=True,
+        )
 
-    for kind in kinds:
-        detection_dir_name = os.path.join(dir_name, "detection")
-        if not os.path.exists(detection_dir_name):
-            os.mkdir(detection_dir_name)
-        method_dir_name = os.path.join(detection_dir_name, str(kind))
-        if not os.path.exists(method_dir_name):
-            os.mkdir(method_dir_name)
-        with open(os.path.join(method_dir_name, "detect_auc.pkl"), "wb") as f:
-            pickle.dump(ood_detect_aucs[kind], f)
-        with open(os.path.join(method_dir_name, "recall.pkl"), "wb") as f:
-            pickle.dump(ood_recall[kind], f)
+        ood_detect_aucs, ood_recall, metrics = ood_utils.run_ood_experiment_on_group(
+            id_data=mimic_data,
+            ood_data=eicu_data,
+            model_info=model_info,
+            ood_detect_aucs=ood_detect_aucs,
+            ood_recall=ood_recall,
+            ood_metrics=metrics,
+            n_seeds=N_SEEDS,
+            impute_and_scale=True,
+        )
 
-    metric_dir_name_id = os.path.join(dir_name, "metrics_id")
-    if not os.path.exists(metric_dir_name_id):
-        os.mkdir(metric_dir_name_id)
-    for metric in metrics_id.keys():
-        with open(os.path.join(metric_dir_name_id, metric + ".pkl"), "wb") as f:
-            pickle.dump(metrics_id[metric], f)
+        # Doing tests on identically distributed data (mostly a check)
+        ood_detect_aucs_id, ood_recall_id = defaultdict(dict), defaultdict(dict)
+        metrics_id = defaultdict(dict)
+
+        (
+            ood_detect_aucs_id,
+            ood_recall_id,
+            metrics_id,
+        ) = ood_utils.run_ood_experiment_on_group(
+            id_data=mimic_data,
+            ood_data=mimic_data,
+            model_info=model_info,
+            ood_detect_aucs=ood_detect_aucs_id,
+            ood_recall=ood_recall_id,
+            ood_metrics=metrics_id,
+            n_seeds=N_SEEDS,
+            impute_and_scale=True,
+        )
+
+        (
+            ood_detect_aucs_id,
+            ood_recall_id,
+            metrics_id,
+        ) = ood_utils.run_ood_experiment_on_group(
+            id_data=eicu_data,
+            ood_data=eicu_data,
+            model_info=model_info,
+            ood_detect_aucs=ood_detect_aucs_id,
+            ood_recall=ood_recall_id,
+            ood_metrics=metrics_id,
+            n_seeds=N_SEEDS,
+            impute_and_scale=True,
+        )
+
+        ne, scoring_funcs, method_name = model_info
+        # Save everything for this model
+        dir_name = os.path.join("pickled_results", "DA", method_name)
+
+        if not os.path.exists(dir_name):
+            os.mkdir(dir_name)
+
+        metric_dir_name = os.path.join(dir_name, "metrics")
+
+        if not os.path.exists(metric_dir_name):
+            os.mkdir(metric_dir_name)
+
+        for metric in metrics.keys():
+            with open(os.path.join(metric_dir_name, metric + ".pkl"), "wb") as f:
+                pickle.dump(metrics[metric], f)
+
+        for scoring_func in scoring_funcs:
+            detection_dir_name = os.path.join(dir_name, "detection")
+
+            if not os.path.exists(detection_dir_name):
+                os.mkdir(detection_dir_name)
+
+            method_dir_name = os.path.join(detection_dir_name, str(scoring_func))
+
+            if not os.path.exists(method_dir_name):
+                os.mkdir(method_dir_name)
+
+            with open(os.path.join(method_dir_name, "detect_auc.pkl"), "wb") as f:
+                pickle.dump(ood_detect_aucs[scoring_func], f)
+
+            with open(os.path.join(method_dir_name, "recall.pkl"), "wb") as f:
+                pickle.dump(ood_recall[scoring_func], f)
+
+        metric_dir_name_id = os.path.join(dir_name, "metrics_id")
+
+        if not os.path.exists(metric_dir_name_id):
+            os.mkdir(metric_dir_name_id)
+
+        for metric in metrics_id.keys():
+            with open(os.path.join(metric_dir_name_id, metric + ".pkl"), "wb") as f:
+                pickle.dump(metrics_id[metric], f)
