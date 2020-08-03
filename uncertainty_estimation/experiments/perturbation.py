@@ -24,6 +24,7 @@ from uncertainty_estimation.utils.novelty_analyzer import NoveltyAnalyzer
 # CONST
 SCALES = [10, 100, 1000, 10000]
 N_FEATURES = 100
+RESULT_DIR = "../../data/results"
 
 
 def run_perturbation_experiment(
@@ -85,6 +86,12 @@ if __name__ == "__main__":
         choices=AVAILABLE_MODELS,
         help="Determine the models which are being used for this experiment.",
     )
+    parser.add_argument(
+        "--result_dir",
+        type=str,
+        default=RESULT_DIR,
+        help="Define the directory that results should be saved to.",
+    )
     args = parser.parse_args()
 
     # Loading the data
@@ -114,7 +121,7 @@ if __name__ == "__main__":
             )
             if len(scoring_funcs) > 1:
                 dir_name = os.path.join(
-                    "../../data/results",
+                    args.result_dir,
                     args.data_origin,
                     "perturbation",
                     name + " (" + scoring_func + ")",

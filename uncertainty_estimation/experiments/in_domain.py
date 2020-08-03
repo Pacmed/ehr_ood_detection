@@ -23,6 +23,7 @@ from uncertainty_estimation.utils.datahandler import DataHandler
 # CONST
 N_SEEDS = 5
 SEED = 123
+RESULT_DIR = "../../data/results"
 
 if __name__ == "__main__":
     np.random.seed(SEED)
@@ -38,6 +39,12 @@ if __name__ == "__main__":
         default=AVAILABLE_MODELS,
         choices=AVAILABLE_MODELS,
         help="Determine the models which are being used for this experiment.",
+    )
+    parser.add_argument(
+        "--result_dir",
+        type=str,
+        default=RESULT_DIR,
+        help="Define the directory that results should be saved to.",
     )
     args = parser.parse_args()
 
@@ -77,9 +84,7 @@ if __name__ == "__main__":
             if method_name in NEURAL_PREDICTORS:
                 predictions += [ne.model.predict_proba(X_test)[:, 1]]
 
-        dir_name = os.path.join(
-            "../../data/results", args.data_origin, "ID", method_name
-        )
+        dir_name = os.path.join(args.result_dir, args.data_origin, "ID", method_name)
 
         if not os.path.exists(dir_name):
             os.mkdir(dir_name)
