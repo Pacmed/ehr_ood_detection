@@ -1,13 +1,21 @@
-import os
-import visualizing.ood_plots as ood_plots
-import visualizing.confidence_performance_plots as cp
-import experiments_utils.metrics as metrics
-from experiments_utils import get_models_to_use
-import pickle
-from collections import defaultdict
-import matplotlib.pyplot as plt
-import argparse
+"""
+Plot experimental results.
+"""
 
+# STD
+import argparse
+from collections import defaultdict
+import os
+import pickle
+import matplotlib.pyplot as plt
+
+# PROJECT
+import uncertainty_estimation.visualizing.ood_plots as ood_plots
+import uncertainty_estimation.visualizing.confidence_performance_plots as cp
+import uncertainty_estimation.utils.metrics as metrics
+from uncertainty_estimation.models.info import NEURAL_PREDICTORS, AVAILABLE_MODELS
+
+# CONST
 N_SEEDS = 5
 
 
@@ -16,7 +24,8 @@ def plot_ood_from_pickle(data_origin, dummy_group_name=None):
     ood_plot_dir_name = os.path.join("plots", data_origin, "OOD")
     auc_dict, recall_dict = dict(), dict()
     metric_dict = defaultdict(dict)
-    for method in [m[2] for m in get_models_to_use(None)]:
+
+    for method in AVAILABLE_MODELS:
         method_dir = os.path.join(ood_dir_name, method)
         detection_dir = os.path.join(method_dir, "detection")
         for kind in os.listdir(detection_dir):
@@ -29,15 +38,7 @@ def plot_ood_from_pickle(data_origin, dummy_group_name=None):
             with open(os.path.join(detection_dir, kind, "recall.pkl"), "rb") as f:
                 recall_dict[name] = pickle.load(f)
 
-        # TODO: Avoid this
-        if method in [
-            "Single_NN",
-            "BNN",
-            "MC_Dropout",
-            "NN_Ensemble",
-            "Bootstrapped_NN_Ensemble",
-            "NN_Ensemble_anchored",
-        ]:
+        if method in NEURAL_PREDICTORS:
             metrics_dir = os.path.join(method_dir, "metrics")
             for metric in os.listdir(metrics_dir):
                 name = method.replace("_", " ")
@@ -107,7 +108,8 @@ def plot_da_from_pickle():
     ood_plot_dir_name = os.path.join("plots", "DA")
     auc_dict, recall_dict = dict(), dict()
     metric_dict = defaultdict(dict)
-    for method in [m[2] for m in get_models_to_use(None)]:
+
+    for method in AVAILABLE_MODELS:
         method_dir = os.path.join(ood_dir_name, method)
         detection_dir = os.path.join(method_dir, "detection")
         for kind in os.listdir(detection_dir):
@@ -122,13 +124,7 @@ def plot_da_from_pickle():
             with open(os.path.join(detection_dir, kind, "recall.pkl"), "rb") as f:
                 recall_dict[name] = pickle.load(f)
 
-        # TODO: Avoid this
-        if method in [
-            "Single_NN",
-            "MC_Dropout",
-            "NN_Ensemble",
-            "NN_Ensemble_bootstrapped",
-        ]:
+        if method in NEURAL_PREDICTORS:
             metrics_dir = os.path.join(method_dir, "metrics")
             for metric in os.listdir(metrics_dir):
                 name = method.replace("_", " ")
@@ -238,20 +234,8 @@ def plot_perturbation_from_pickle(data_origin):
     perturb_dir_name = os.path.join("pickled_results", data_origin, "perturbation")
     perturb_plot_dir_name = os.path.join("plots", data_origin, "perturbation")
     auc_dict, recall_dict = dict(), dict()
-    # TODO: Avoid this
-    models = [
-        "Single_NN",
-        "MC_Dropout (std)",
-        "MC_Dropout (entropy)",
-        "NN_Ensemble (std)",
-        "NN_Ensemble (entropy)",
-        "NN_Ensemble_bootstrapped (std)",
-        "NN_Ensemble_bootstrapped (entropy)",
-        "PPCA",
-        "AE",
-    ]
 
-    for method in models:
+    for method in AVAILABLE_MODELS:
         method_dir = os.path.join(perturb_dir_name, method)
         name = method.replace("_", " ")
         with open(os.path.join(method_dir, "perturb_detect_auc.pkl"), "rb") as f:
@@ -309,7 +293,8 @@ def confidence_performance_from_pickle(data_origin):
 
     with open(os.path.join(id_dir_name, "y_test.pkl"), "rb") as f:
         y_test = pickle.load(f)
-    for method in [m[2] for m in get_models_to_use(None)]:
+
+    for method in AVAILABLE_MODELS:
         print(method)
         if method != "y_test.pkl":
             method_dir = os.path.join(id_dir_name, method)
@@ -337,6 +322,7 @@ def confidence_performance_from_pickle(data_origin):
                         novelties[name] = pickle.load(f)
                         uncertainties[name] = novelties[name]
                     pass
+
     for name in novelties.keys():
         predictions_for_novelty_estimate[name] = predictions["Single NN (entropy)"]
         predictions[name] = predictions["Single NN (entropy)"]
@@ -389,7 +375,6 @@ def confidence_performance_from_pickle(data_origin):
 
 
 if __name__ == "__main__":
-    # TODO: Add more args instead having to comment out
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--data_origin",
@@ -397,8 +382,25 @@ if __name__ == "__main__":
         default="MIMIC_with_indicators",
         help="Which data to use",
     )
+    parser.add_argument(
+        "--plots",
+        "-p",
+        type=str,
+        nargs="+",
+        default=["da", "ood", "perturb"],
+        choice=["da", "ood", "perturb", "confidence"],
+        help="Specify the types of plots that should be created.",
+    )
     args = parser.parse_args()
-    # plot_da_from_pickle()
-    plot_ood_from_pickle(data_origin=args.data_origin)
-    plot_perturbation_from_pickle(data_origin=args.data_origin)
-    # confidence_performance_from_pickle(data_origin=args.data_origin)
+
+    if "da" in args.plots:
+        plot_da_from_pickle()
+
+    if "ood" in args.plots:
+        plot_ood_from_pickle(data_origin=args.data_origin)
+
+    if "perturb" in args.plots:
+        plot_perturbation_from_pickle(data_origin=args.data_origin)
+
+    if "confidence" in args.plots:
+        confidence_performance_from_pickle(data_origin=args.data_origin)
