@@ -1,30 +1,38 @@
+"""
+Test the OOD-detection capabilities of models by scaling a random feature for all sample in the data set.
+"""
+
+# STD
 import os
 import pickle
+from copy import deepcopy
+from collections import defaultdict
+import argparse
+from typing import Tuple, Dict, List
+
+# EXT
 import numpy as np
 from tqdm import tqdm
-from copy import deepcopy
-import argparse
 import torch
 
-import experiments_utils.ood_experiments_utils as ood_utils
-from experiments_utils import get_models_to_use
-from experiments_utils.datahandler import DataHandler
+# PROJECT
+from uncertainty_estimation.utils.model_init import init_models
+from uncertainty_estimation.utils.datahandler import DataHandler
+from uncertainty_estimation.utils.novelty_analyzer import NoveltyAnalyzer
 
-# TODO: Don't sample features with replacement
-import utils.novelty_analyzer
-
+# CONST
 SCALES = [10, 100, 1000, 10000]
 N_FEATURES = 100
 
 
 def run_perturbation_experiment(
-    nov_an: utils.novelty_analyzer.NoveltyAnalyzer, X_test: np.ndarray, kind: str = None
-):
+    nov_an: NoveltyAnalyzer, X_test: np.ndarray, kind: str = None
+) -> Tuple[Dict[str, List[float]], Dict[str, List[float]]]:
     """Runs the perturbation experiment for a single novelty estimator.
 
     Parameters
     ----------
-    nov_an: ood_utils.NoveltyAnalyzer
+    nov_an: NoveltyAnalyzer
         The novelty analyzer (handles scaling, imputation, evaluation)
     X_test: np.ndarray
         The test data to use
@@ -42,20 +50,22 @@ def run_perturbation_experiment(
         list contains the recalls for the same scale but different features.
 
     """
-    aucs_dict = dict()
-    recall_dict = dict()
+    aucs_dict = defaultdict(list)
+    recall_dict = defaultdict(list)
+
     for scale_adjustment in tqdm(SCALES):
-        random_sample = np.random.randint(0, X_test.shape[1], N_FEATURES)
-        scale_aucs, scale_recalls = [], []
+        random_sample = np.random.choice(
+            np.arange(0, X_test.shape[1]), N_FEATURES, replace=False
+        )
+
         for r in random_sample:
             X_test_adjusted = deepcopy(nov_an.X_test)
             X_test_adjusted[:, r] = X_test_adjusted[:, r] * scale_adjustment
             nov_an.set_ood(X_test_adjusted, impute_and_scale=False)
             nov_an.calculate_novelty(kind=kind)
-            scale_aucs += [nov_an.get_ood_detection_auc()]
-            scale_recalls += [nov_an.get_ood_recall()]
-        aucs_dict[scale_adjustment] = scale_aucs
-        recall_dict[scale_adjustment] = scale_recalls
+            aucs_dict[scale_adjustment] += [nov_an.get_ood_detection_auc()]
+            recall_dict[scale_adjustment] += [nov_an.get_ood_recall()]
+
     return aucs_dict, recall_dict
 
 
@@ -74,9 +84,9 @@ if __name__ == "__main__":
     train_data, test_data, val_data = dh.load_data_splits()
     y_name = dh.load_target_name()
 
-    for ne, kinds, name in get_models_to_use(len(feature_names)):
+    for ne, kinds, name in init_models(input_dim=len(feature_names)):
         print(name)
-        nov_an = utils.novelty_analyzer.NoveltyAnalyzer(
+        nov_an = NoveltyAnalyzer(
             ne,
             train_data[feature_names].values,
             test_data[feature_names].values,
