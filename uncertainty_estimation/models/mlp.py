@@ -98,12 +98,12 @@ class BayesianMLPModule(MLPModule):
         hidden_sizes: list,
         input_size: int,
         dropout_rate: float,
+        output_size: int,
         posterior_rho_init: float,
         posterior_mu_init: float,
         prior_pi: float,
         prior_sigma_1: float,
         prior_sigma_2: float,
-        output_size: int = 1,
     ):
         """
         Initialize a BNN.
@@ -356,7 +356,7 @@ class MLP:
             pos_weight = torch.tensor(1.0)
 
         loss_fn = torch.nn.BCEWithLogitsLoss(pos_weight=pos_weight)
-        loss = loss_fn(y_pred, y.view(-1, 1))
+        loss = loss_fn(y_pred, y)
 
         return loss
 
@@ -378,7 +378,7 @@ class MLP:
         """
         self.model.eval()
         X = torch.tensor(X_val).float()
-        y = torch.tensor(y_val).float()
+        y = torch.tensor(y_val).float().view(-1, 1)
 
         val_loss = self.get_loss(X, y, train=False)
 
@@ -423,20 +423,24 @@ class MLP:
         for epoch in range(n_epochs):
 
             self.model.train()
+
             for batch_X, batch_y in self.train_loader:
 
-                loss = self.get_loss(batch_X.float(), batch_y.float())
+                loss = self.get_loss(batch_X.float(), batch_y.float().view(-1, 1))
                 self.optimizer.zero_grad()
                 loss.backward()
                 self.optimizer.step()
 
             if early_stopping:
                 val_loss = self.validate(X_val, y_val)
+
                 if val_loss > prev_val_loss:
                     n_no_improvement += 1
+
                 else:
                     n_no_improvement = 0
                     prev_val_loss = val_loss
+
             if n_no_improvement >= early_stopping_patience:
                 print("Early stopping after", epoch, "epochs.")
                 break
@@ -496,6 +500,7 @@ class BayesianMLP(MLP, MultiplePredictionsMixin):
         class_weight: bool = True,
         output_size: int = 1,
         lr: float = 1e-3,
+        **bayesian_mlp_kwargs
     ):
         """
         Initialize a Bayesian MLP.
@@ -523,6 +528,7 @@ class BayesianMLP(MLP, MultiplePredictionsMixin):
             output_size,
             lr,
             mlp_module=BayesianMLPModule,
+            **bayesian_mlp_kwargs,
         )
 
     def get_loss(
@@ -550,8 +556,9 @@ class BayesianMLP(MLP, MultiplePredictionsMixin):
         if not train:
             return super().get_loss(X, y, train)
 
+        loss_fn = nn.BCEWithLogitsLoss()
         loss = self.model.sample_elbo(
-            inputs=X, labels=y, criterion=nn.loss.BCEWithLogitsLoss, sample_nbr=2
+            inputs=X, labels=y, criterion=loss_fn, sample_nbr=3
         )
 
         return loss

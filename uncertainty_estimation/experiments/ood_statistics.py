@@ -51,4 +51,4 @@ if __name__ == "__main__":
         df_with_info = pd.concat(
             {k: pd.DataFrame.from_dict(v, "columns") for k, v in df.items()}, axis=0
         ).T
-        df_with_info.to_csv("csvs/ood_statistics.csv")
+        df_with_info.to_csv("../../data/ood_stats/ood_statistics.csv")

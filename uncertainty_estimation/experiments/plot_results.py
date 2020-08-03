@@ -231,7 +231,7 @@ def plot_da_from_pickle():
 
 
 def plot_perturbation_from_pickle(data_origin):
-    perturb_dir_name = os.path.join("pickled_results", data_origin, "perturbation")
+    perturb_dir_name = os.path.join("../../data/results", data_origin, "perturbation")
     perturb_plot_dir_name = os.path.join("plots", data_origin, "perturbation")
     auc_dict, recall_dict = dict(), dict()
 

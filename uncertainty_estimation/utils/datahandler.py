@@ -59,15 +59,15 @@ MIMIC_ORIGINS = {"MIMIC", "MIMIC_for_DA"}
 EICU_ORIGINS = {"eICU", "eICU_for_DA"}
 BASE_ORIGINS = {"MIMIC", "eICU"}
 ALL_ORIGINS = MIMIC_ORIGINS | EICU_ORIGINS
-MIMIC_TARGET = "hospitaldischargestatus"
-EICU_TARGET = "y"
+EICU_TARGET = "hospitaldischargestatus"
+MIMIC_TARGET = "y"
 MIMIC_SPLIT_CSVS = [
     "train_data_processed_w_static.csv",
     "test_data_processed_w_static.csv",
     "val_data_processed_w_static.csv",
 ]
 MIMIC_NEWBORN_CSV = "other_data_processed_w_static.csv"
-FEATURE_NAME_PATH = "../../data/feature_names/"
+FEATURE_NAME_PATH = "../../data/feature_names"
 MIMIC_FOLDER = "/data/processed/benchmark/inhospitalmortality/not_scaled"
 EICU_CSV = "/data/processed/eicu_processed/data/adult_data_with_indicators.csv"
 SEED = 42

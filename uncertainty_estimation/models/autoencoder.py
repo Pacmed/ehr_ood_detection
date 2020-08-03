@@ -93,7 +93,7 @@ class AEModule(nn.Module):
 
     Parameters
     ----------
-    input_dim: int
+    input_size: int
         The dimensionality of the input, assumed to be a 1-d vector.
     hidden_dims: List[int]
         A list of integers, representing the hidden dimensions of the encoder and decoder. These
@@ -102,12 +102,12 @@ class AEModule(nn.Module):
         The dimensionality of the latent space.
     """
 
-    def __init__(self, input_dim: int, hidden_dims: List[int], latent_dim: int):
+    def __init__(self, input_size: int, hidden_dims: List[int], latent_dim: int):
         super().__init__()
 
         self.z_dim = latent_dim
-        self.encoder = Encoder(input_dim, hidden_dims, latent_dim)
-        self.decoder = Decoder(input_dim, hidden_dims, latent_dim)
+        self.encoder = Encoder(input_size, hidden_dims, latent_dim)
+        self.decoder = Decoder(input_size, hidden_dims, latent_dim)
 
     def forward(self, input_tensor: torch.Tensor) -> torch.Tensor:
         """Perform an encoding and decoding step and return the
@@ -154,7 +154,7 @@ class AE:
 
     Parameters
     ----------
-    input_dim: int
+    input_size: int
         The dimensionality of the input
     hidden_dims: List[int]
         A list with the sizes of the hidden layers.
@@ -172,7 +172,7 @@ class AE:
 
     def __init__(
         self,
-        input_dim: int,
+        input_size: int,
         hidden_dims: List[int],
         latent_dim: int,
         train_data: np.ndarray,
@@ -182,7 +182,7 @@ class AE:
         verbose=False,
     ):
         self.model = AEModule(
-            input_dim=input_dim, hidden_dims=hidden_dims, latent_dim=latent_dim
+            input_size=input_size, hidden_dims=hidden_dims, latent_dim=latent_dim
         )
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
         self.verbose = verbose

@@ -19,10 +19,16 @@ ENSEMBLE_MODELS = {
     "AnchoredNNEnsemble",  # Bayesian ensemble of neural discriminators with special regularization
 }
 
-MULTIPLE_PRED_NN_MODELS = {
+SINGLE_INST_MULTIPLE_PRED_NN_MODELS = {
     "MCDropout",  # Single neural discriminator using MC Dropout for uncertainty estimation
     "BNN",  # Bayesian Neural Network
-} | ENSEMBLE_MODELS
+}
+
+NO_ENSEMBLE_NN_MODELS = (
+    SINGLE_PRED_NN_MODELS | {"AE"} | SINGLE_INST_MULTIPLE_PRED_NN_MODELS
+)
+
+MULTIPLE_PRED_NN_MODELS = SINGLE_INST_MULTIPLE_PRED_NN_MODELS | ENSEMBLE_MODELS
 
 SINGLE_PRED_MODELS = (
     BASELINES | SINGLE_PRED_NN_MODELS
@@ -75,7 +81,6 @@ MODEL_PARAMS = {
     "BNN": {
         "hidden_sizes": [50, 50],
         "dropout_rate": 0.0,
-        "early_stopping_patience": 5,
         "lr": 0.005,
         "class_weight": False,
         "posterior_rho_init": -4.5,
@@ -85,22 +90,34 @@ MODEL_PARAMS = {
         "prior_sigma_2": 0.4,
     },
     "NNEnsemble": {
-        "hidden_sizes": [50, 50],
-        "dropout_rate": 0.0,
-        "lr": 1e-3,
-        "class_weight": False,
+        "n_models": 10,
+        "bootstrap": False,
+        "model_params": {
+            "hidden_sizes": [50, 50],
+            "dropout_rate": 0.0,
+            "lr": 1e-3,
+            "class_weight": False,
+        },
     },
     "BootstrappedNNEnsemble": {
-        "hidden_sizes": [50, 50],
-        "dropout_rate": 0.0,
-        "lr": 1e-3,
-        "class_weight": False,
+        "n_models": 10,
+        "bootstrap": True,
+        "bootstrap_fraction": 0.8,
+        "model_params": {
+            "hidden_sizes": [50, 50],
+            "dropout_rate": 0.0,
+            "lr": 1e-3,
+            "class_weight": False,
+        },
     },
     "AnchoredNNEnsemble": {
-        "hidden_sizes": [50, 50],
-        "dropout_rate": 0.0,
-        "lr": 1e-3,
-        "class_weight": False,
+        "n_models": 10,
+        "model_params": {
+            "hidden_sizes": [50, 50],
+            "dropout_rate": 0.0,
+            "lr": 1e-3,
+            "class_weight": False,
+        },
     },
 }
 
