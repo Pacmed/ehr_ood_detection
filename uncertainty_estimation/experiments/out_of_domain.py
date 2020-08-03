@@ -23,6 +23,7 @@ from uncertainty_estimation.models.info import AVAILABLE_MODELS
 
 # CONST
 N_SEEDS = 5
+RESULT_DIR = "../../data/results"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -36,6 +37,12 @@ if __name__ == "__main__":
         default=AVAILABLE_MODELS,
         choices=AVAILABLE_MODELS,
         help="Determine the models which are being used for this experiment.",
+    )
+    parser.add_argument(
+        "--result_dir",
+        type=str,
+        default=RESULT_DIR,
+        help="Define the directory that results should be saved to.",
     )
     args = parser.parse_args()
 
@@ -116,9 +123,7 @@ if __name__ == "__main__":
 
         ne, kinds, method_name = model_info
         # Save everything for this model
-        dir_name = os.path.join(
-            "../../data/results", args.data_origin, "OOD", method_name
-        )
+        dir_name = os.path.join(args.result_dir, args.data_origin, "OOD", method_name)
 
         if not os.path.exists(dir_name):
             os.mkdir(dir_name)
