@@ -1,20 +1,23 @@
 """
-Validate that the data distribution of OOD groups is sufficiently different by performing a Kolmogorov-Smirnoff test.
+Validate that the data distribution of OOD groups is sufficiently different by performing a significance test.
 """
 
+# STD
+import argparse
 from typing import List, Dict
 
+# EXT
 from tqdm import tqdm
-import argparse
 import pandas as pd
 import numpy as np
-
+from sklearn import pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer
-from sklearn import pipeline
 
-import experiments_utils.ood_experiments_utils as ood_utils
-from experiments_utils.datahandler import DataHandler
+# PROJECT
+from uncertainty_estimation.utils.datahandler import MIMIC_ORIGINS
+import uncertainty_estimation.utils.ood as ood_utils
+from uncertainty_estimation.utils.datahandler import DataHandler
 
 
 def validate_ood_group(
@@ -24,6 +27,31 @@ def validate_ood_group(
     test: str = "welch",
     p_thresh: float = 0.05,
 ) -> Dict[str, float]:
+    """
+    Perform an experiment on an in-domain and out-of-domain group to see whether the latter constitutes a form of
+    covariate shift. This is done by checking whether p(x) = q(x) using a significance test. It is also tested whether
+    the results change after / imputing and scaling by checking how many more features become significant afterwards
+    ('#feat_ood') and a sanity check how many features of the imputed in-domain data are significantly different after
+    the imputing process compared to its raw form ('#feats same').
+
+    Parameters
+    ----------
+    id_data: np.array
+        In-domain data.
+    ood_data: np.array
+        Out-of-domain data.
+    feature_names: List[str]
+        The names of the features as a list.
+    test: str
+        Name of the significance test that should be used. Either 'welch' or 'kolmogorov-smirnov'.
+    p_thresh: float
+        p-value treshold. Default is 0.05.
+
+    Returns
+    -------
+    results: pd.DataFrame
+        Return the result of the test
+    """
 
     pipe = pipeline.Pipeline(
         [("scaler", StandardScaler()), ("imputer", SimpleImputer())]
@@ -105,7 +133,7 @@ if __name__ == "__main__":
     train_data, test_data, val_data = dh.load_data_splits()
     y_name = dh.load_target_name()
 
-    if args.data_origin in ["MIMIC", "MIMIC_with_indicators"]:
+    if args.data_origin in MIMIC_ORIGINS:
         train_newborns, test_newborns, val_newborns = dh.load_newborns()
         all_newborns = pd.concat([train_newborns, val_newborns, test_newborns])
 
@@ -125,7 +153,7 @@ if __name__ == "__main__":
         return results
 
     # Experiments on Newborns, only on MIMIC for now
-    if args.data_origin in ["MIMIC", "MIMIC_with_indicators"]:
+    if args.data_origin in MIMIC_ORIGINS:
         print("### Newborns ####")
         validation_results = _add_group_results(
             "Newborns",
