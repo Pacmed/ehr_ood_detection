@@ -57,7 +57,7 @@ if __name__ == "__main__":
     X_test = pipe.transform(test_data[feature_names])
     X_val = pipe.transform(val_data[feature_names])
 
-    uncertainties = defaultdict(lambda: defaultdict(list))
+    uncertainties = defaultdict(list)
 
     for ne, scoring_funcs, method_name in init_models(
         input_dim=len(feature_names), selection=AVAILABLE_MODELS
@@ -77,7 +77,9 @@ if __name__ == "__main__":
             if method_name in NEURAL_PREDICTORS:
                 predictions += [ne.model.predict_proba(X_test)[:, 1]]
 
-        dir_name = os.path.join("pickled_results", args.data_origin, "ID", method_name)
+        dir_name = os.path.join(
+            "../../data/results", args.data_origin, "ID", method_name
+        )
 
         if not os.path.exists(dir_name):
             os.mkdir(dir_name)

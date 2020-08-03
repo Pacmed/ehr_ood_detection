@@ -16,6 +16,7 @@ from tqdm import tqdm
 import torch
 
 # PROJECT
+from uncertainty_estimation.utils.model_init import AVAILABLE_MODELS
 from uncertainty_estimation.utils.model_init import init_models
 from uncertainty_estimation.utils.datahandler import DataHandler
 from uncertainty_estimation.utils.novelty_analyzer import NoveltyAnalyzer
@@ -76,6 +77,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--data_origin", type=str, default="MIMIC", help="Which data to use"
     )
+    parser.add_argument(
+        "--models",
+        type=str,
+        nargs="+",
+        default=AVAILABLE_MODELS,
+        choices=AVAILABLE_MODELS,
+        help="Determine the models which are being used for this experiment.",
+    )
     args = parser.parse_args()
 
     # Loading the data
@@ -84,7 +93,9 @@ if __name__ == "__main__":
     train_data, test_data, val_data = dh.load_data_splits()
     y_name = dh.load_target_name()
 
-    for ne, kinds, name in init_models(input_dim=len(feature_names)):
+    for ne, scoring_funcs, name in init_models(
+        input_dim=len(feature_names), selection=args.models
+    ):
         print(name)
         nov_an = NoveltyAnalyzer(
             ne,
@@ -96,16 +107,17 @@ if __name__ == "__main__":
             val_data[y_name].values,
         )
         nov_an.train()
-        for kind in kinds:
+
+        for scoring_func in scoring_funcs:
             aucs_dict, recall_dict = run_perturbation_experiment(
-                nov_an, test_data[feature_names], kind=kind
+                nov_an, test_data[feature_names], kind=scoring_func
             )
-            if len(kinds) > 1:
+            if len(scoring_funcs) > 1:
                 dir_name = os.path.join(
-                    "pickled_results",
+                    "../../data/results",
                     args.data_origin,
                     "perturbation",
-                    name + " (" + kind + ")",
+                    name + " (" + scoring_func + ")",
                 )
             else:
                 dir_name = os.path.join(

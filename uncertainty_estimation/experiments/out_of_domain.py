@@ -116,7 +116,9 @@ if __name__ == "__main__":
 
         ne, kinds, method_name = model_info
         # Save everything for this model
-        dir_name = os.path.join("pickled_results", args.data_origin, "OOD", method_name)
+        dir_name = os.path.join(
+            "../../data/results", args.data_origin, "OOD", method_name
+        )
 
         if not os.path.exists(dir_name):
             os.mkdir(dir_name)

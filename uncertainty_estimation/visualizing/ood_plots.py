@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-# TODO: Is this still up to date?
 def barplot_from_nested_dict(
     nested_dict,
     metric_name="OOD detection AUC",

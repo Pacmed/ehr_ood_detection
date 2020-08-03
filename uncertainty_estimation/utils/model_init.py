@@ -17,16 +17,17 @@ from uncertainty_estimation.models.mlp import MLP, BayesianMLP, MCDropoutMLP
 from uncertainty_estimation.models.info import (
     AVAILABLE_MODELS,
     AVAILABLE_SCORING_FUNCS,
-    NEURAL_MODELS,
     TRAIN_PARAMS,
     MODEL_PARAMS,
+    NO_ENSEMBLE_NN_MODELS,
+    ENSEMBLE_MODELS,
 )
 from uncertainty_estimation.utils.types import ModelInfo
 
 
 def init_models(
     input_dim: int,
-    selection: Iterable[str] = AVAILABLE_MODELS,
+    selection: Iterable[str] = AVAILABLE_MODELS - {"BootstrappedNNEnsemble"},
     scoring_funcs: Dict[str, Tuple[Optional[str], ...]] = AVAILABLE_SCORING_FUNCS,
 ) -> List[ModelInfo]:
     """
@@ -65,14 +66,21 @@ def init_models(
         "AnchoredNNEnsemble": AnchoredNNEnsemble,
     }
 
+    def _add_input_dim(model_params, model_name):
+        """ Add input_size parameter to the model parameter dict if necessary. """
+        if model_name in NO_ENSEMBLE_NN_MODELS:
+            return {"input_size": input_dim, **MODEL_PARAMS[model_name]}
+
+        if model_name in ENSEMBLE_MODELS:
+            model_params["model_params"]["input_size"] = input_dim
+
+        return model_params
+
     return [
         (
             NoveltyEstimator(
                 model_classes[model_name],
-                MODEL_PARAMS[model_name]
-                # Add input_dim for neural network-based models
-                if model_name not in NEURAL_MODELS
-                else {"input_dim": input_dim, **MODEL_PARAMS[model_name]},
+                _add_input_dim(MODEL_PARAMS[model_name], model_name),
                 TRAIN_PARAMS[model_name],
                 model_name,
             ),

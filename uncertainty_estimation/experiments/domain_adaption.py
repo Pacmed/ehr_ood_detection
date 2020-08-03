@@ -47,35 +47,40 @@ if __name__ == "__main__":
     y_eicu = dh_eicu.load_target_name()
 
     eicu_data = ood_utils.DomainData(
-        train_eicu, test_mimic, val_mimic, feature_names_eicu, y_eicu, "eICU"
+        train_eicu, test_eicu, val_eicu, feature_names_eicu, y_eicu, "eICU"
     )
 
     # Validate OOD-ness of the data sets compared to each other
     all_mimic = np.concatenate(
         [
-            train_mimic[feature_names_mimic],
-            test_mimic[feature_names_mimic],
-            val_mimic[feature_names_mimic],
+            train_mimic[feature_names_mimic].values,
+            test_mimic[feature_names_mimic].values,
+            val_mimic[feature_names_mimic].values,
         ]
     )
     all_eicu = np.concatenate(
         [
-            train_eicu[feature_names_eicu],
-            test_eicu[feature_names_eicu],
-            val_eicu[feature_names_eicu],
+            train_eicu[feature_names_eicu].values,
+            test_eicu[feature_names_eicu].values,
+            val_eicu[feature_names_eicu].values,
         ]
     )
 
+    print("### ID: MIIMIC | OOD: eICU ###")
     ood_utils.validate_ood_data(
-        X_train=train_mimic[feature_names_mimic],
+        X_train=train_mimic[feature_names_mimic].values,
         X_ood=all_eicu,
         feature_names=feature_names_mimic,
     )
+
+    print("\n### ID: eICU | OOD: MIMIC ###")
     ood_utils.validate_ood_data(
-        X_train=train_eicu[feature_names_eicu],
+        X_train=train_eicu[feature_names_eicu].values,
         X_ood=all_mimic,
         feature_names=feature_names_eicu,
     )
+
+    del all_eicu, all_mimic
 
     for model_info in init_models(
         input_dim=len(feature_names_eicu), selection=args.models
@@ -95,8 +100,8 @@ if __name__ == "__main__":
         )
 
         ood_detect_aucs, ood_recall, metrics = ood_utils.run_ood_experiment_on_group(
-            id_data=mimic_data,
-            ood_data=eicu_data,
+            id_data=eicu_data,
+            ood_data=mimic_data,
             model_info=model_info,
             ood_detect_aucs=ood_detect_aucs,
             ood_recall=ood_recall,
