@@ -105,7 +105,7 @@ def run_ood_experiment_on_group(
         for scoring_func in scoring_funcs:
             nov_an.calculate_novelty(scoring_func=scoring_func)
             ood_detect_aucs[scoring_func][ood_data.name] += [
-                nov_an.get_ood_detection_auc(balanced=False)
+                nov_an.get_ood_detection_auc()
             ]
             ood_recall[scoring_func][ood_data.name] += [nov_an.get_ood_recall()]
 
