@@ -51,11 +51,11 @@ AVAILABLE_SCORING_FUNCS = {
     "AE": (None,),  # Default: Reconstruction error
     "SVM": (None,),  # Default: Distance to decision boundary
     "NN": (None,),  # Default: log-prob
-    "MCDropout": ("entropy", "std"),
-    "BNN": ("entropy", "std"),
-    "NNEnsemble": ("entropy", "std"),
-    "BootstrappedNNEnsemble": ("entropy", "std"),
-    "AnchoredNNEnsemble": ("entropy", "std"),
+    "MCDropout": ("entropy", "std", "mutual_information"),
+    "BNN": ("entropy", "std", "mutual_information"),
+    "NNEnsemble": ("entropy", "std", "mutual_information"),
+    "BootstrappedNNEnsemble": ("entropy", "std", "mutual_information"),
+    "AnchoredNNEnsemble": ("entropy", "std", "mutual_information"),
 }
 
 # ### Hyperparameters ###

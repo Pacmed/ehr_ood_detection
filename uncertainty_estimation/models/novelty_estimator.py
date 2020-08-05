@@ -95,8 +95,13 @@ class NoveltyEstimator:
         elif self.name in MULTIPLE_PRED_NN_MODELS:
             if scoring_func == "std":
                 return self.model.get_std(data)
+
             elif scoring_func == "entropy":
                 return entropy(self.model.predict_proba(data), axis=1)
+
+            elif scoring_func == "mutual_information":
+                return self.model.get_mutual_information(data)
+
             else:
                 raise ValueError(f"Unknown type of scoring function: {scoring_func}")
 

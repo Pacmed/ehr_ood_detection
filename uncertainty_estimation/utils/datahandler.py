@@ -69,7 +69,7 @@ MIMIC_SPLIT_CSVS = [
 MIMIC_NEWBORN_CSV = "other_data_processed_w_static.csv"
 FEATURE_NAME_PATH = "../../data/feature_names"
 MIMIC_FOLDER = "/data/processed/benchmark/inhospitalmortality/not_scaled"
-EICU_CSV = "/data/processed/eicu_processed/data/adult_data_with_indicators.csv"
+EICU_CSV = "/data/processed/eicu_processed/data/adult_data_nan.csv"
 SEED = 42
 
 

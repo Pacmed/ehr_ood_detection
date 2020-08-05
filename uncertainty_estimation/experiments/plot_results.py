@@ -10,10 +10,10 @@ import pickle
 import matplotlib.pyplot as plt
 
 # PROJECT
-import uncertainty_estimation.visualizing.ood_plots as ood_plots
+from uncertainty_estimation.visualizing.ood_plots import boxplot_from_nested_listdict
 import uncertainty_estimation.visualizing.confidence_performance_plots as cp
 import uncertainty_estimation.utils.metrics as metrics
-from uncertainty_estimation.models.info import NEURAL_PREDICTORS, AVAILABLE_MODELS
+from uncertainty_estimation.models.info import NEURAL_PREDICTORS
 
 # CONST
 N_SEEDS = 5
@@ -49,14 +49,15 @@ def plot_ood_from_pickle(data_origin, result_dir, plot_dir, dummy_group_name=Non
                 with open(os.path.join(metrics_dir, metric), "rb") as f:
                     metric_dict[metric][name] = pickle.load(f)
 
-    ood_plots.boxplot_from_nested_listdict(
+    boxplot_from_nested_listdict(
         auc_dict,
         name="OOD detection AUC",
         kind="bar",
         x_name=" ",
         horizontal=True,
         ylim=None,
-        legend=False,
+        legend=True,
+        legend_out=True,
         dummy_group_name=dummy_group_name,
         save_dir=os.path.join(ood_plot_dir_name, "ood_detection_auc.png"),
         height=8,
@@ -64,7 +65,7 @@ def plot_ood_from_pickle(data_origin, result_dir, plot_dir, dummy_group_name=Non
         vline=0.5,
     )
 
-    ood_plots.boxplot_from_nested_listdict(
+    boxplot_from_nested_listdict(
         recall_dict,
         name="95% OOD recall",
         kind="bar",
@@ -73,7 +74,8 @@ def plot_ood_from_pickle(data_origin, result_dir, plot_dir, dummy_group_name=Non
         dummy_group_name=dummy_group_name,
         horizontal=True,
         ylim=None,
-        legend=False,
+        legend=True,
+        legend_out=True,
         xlim=(0, 1.0),
         height=8,
         aspect=1,
@@ -90,7 +92,7 @@ def plot_ood_from_pickle(data_origin, result_dir, plot_dir, dummy_group_name=Non
     }
 
     for m in metric_dict.keys():
-        ood_plots.boxplot_from_nested_listdict(
+        boxplot_from_nested_listdict(
             metric_dict[m],
             name=name_dict[m.split(".")[0]],
             kind="bar",
@@ -98,7 +100,7 @@ def plot_ood_from_pickle(data_origin, result_dir, plot_dir, dummy_group_name=Non
             save_dir=os.path.join(ood_plot_dir_name, m.split(".")[0] + ".png"),
             dummy_group_name=dummy_group_name,
             horizontal=True,
-            legend=False,
+            legend=True,
             ylim=None,
             xlim=(0, 1.0),
             legend_out=True,
@@ -150,7 +152,7 @@ def plot_da_from_pickle(result_dir, plot_dir):
                 pass
 
     # TODO: Loop this
-    ood_plots.boxplot_from_nested_listdict(
+    boxplot_from_nested_listdict(
         auc_dict,
         name="OOD detection AUC",
         kind="bar",
@@ -159,13 +161,13 @@ def plot_da_from_pickle(result_dir, plot_dir):
         ylim=None,
         legend_out=True,
         save_dir=os.path.join(ood_plot_dir_name, "ood_detection_auc.png"),
-        legend=False,
+        legend=True,
         height=3,
         aspect=3,
         vline=0.5,
     )
 
-    ood_plots.boxplot_from_nested_listdict(
+    boxplot_from_nested_listdict(
         recall_dict,
         name="95% OOD recall",
         kind="bar",
@@ -174,14 +176,14 @@ def plot_da_from_pickle(result_dir, plot_dir):
         horizontal=True,
         ylim=None,
         legend_out=True,
-        legend=False,
+        legend=True,
         xlim=None,
         height=3,
         aspect=3,
         vline=0.05,
     )
     # just for legend
-    ood_plots.boxplot_from_nested_listdict(
+    boxplot_from_nested_listdict(
         recall_dict,
         name="Legend",
         kind="bar",
@@ -190,6 +192,7 @@ def plot_da_from_pickle(result_dir, plot_dir):
         horizontal=True,
         ylim=None,
         legend_out=True,
+        legend=True,
         xlim=None,
         height=3,
         aspect=3,
@@ -205,7 +208,7 @@ def plot_da_from_pickle(result_dir, plot_dir):
     }
 
     for m in metric_dict.keys():
-        ood_plots.boxplot_from_nested_listdict(
+        boxplot_from_nested_listdict(
             metric_dict[m],
             name=name_dict[m.split(".")[0]],
             kind="bar",
@@ -219,7 +222,7 @@ def plot_da_from_pickle(result_dir, plot_dir):
             xlim=None,
         )
     # just for legend
-    ood_plots.boxplot_from_nested_listdict(
+    boxplot_from_nested_listdict(
         metric_dict[m],
         name=name_dict[m.split(".")[0]],
         kind="bar",
@@ -250,40 +253,40 @@ def plot_perturbation_from_pickle(data_origin, result_dir, plot_dir):
             recall_dict[name] = pickle.load(f)
 
     # TODO: Loop this
-    ood_plots.boxplot_from_nested_listdict(
+    boxplot_from_nested_listdict(
         recall_dict,
         "perturbation 95% recall",
-        legend_args={"loc": "center left", "bbox_to_anchor": (1, 0.5)},
+        # legend_args={"loc": "center left", "bbox_to_anchor": (1, 0.5)},
         hline=0.05,
         xlim=None,
         ylim=None,
         figsize=(6, 6),
         save_dir=os.path.join(perturb_plot_dir_name, "recall.png"),
         showfliers=False,
-        legend=False,
+        legend=True,
     )
-    ood_plots.boxplot_from_nested_listdict(
+    boxplot_from_nested_listdict(
         auc_dict,
         "perturbation detection AUC",
         hline=0.5,
         ylim=None,
         figsize=(4, 4),
         save_dir=os.path.join(perturb_plot_dir_name, "detect_AUC.png"),
-        legend_args={"loc": "center left", "bbox_to_anchor": (1, 0.5)},
+        # legend_args={"loc": "center left", "bbox_to_anchor": (1, 0.5)},
         xlim=None,
         showfliers=False,
         legend_out=True,
-        legend=False,
+        legend=True,
     )
 
-    ood_plots.boxplot_from_nested_listdict(
+    boxplot_from_nested_listdict(
         auc_dict,
         "perturbation detection AUC",
         hline=0.5,
         ylim=None,
         figsize=(10, 10),
         save_dir=os.path.join(perturb_plot_dir_name, "legend.png"),
-        legend_args={"loc": "center left", "bbox_to_anchor": (1, 0.5)},
+        # legend_args={"loc": "center left", "bbox_to_anchor": (1, 0.5)},
         xlim=None,
         showfliers=False,
         legend_out=True,
