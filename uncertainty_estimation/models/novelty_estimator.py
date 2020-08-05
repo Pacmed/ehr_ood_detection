@@ -13,6 +13,7 @@ from uncertainty_estimation.models.info import (
     BASELINES,
     NEURAL_PREDICTORS,
     MULTIPLE_PRED_NN_MODELS,
+    SINGLE_PRED_NN_MODELS,
 )
 
 
@@ -105,7 +106,7 @@ class NoveltyEstimator:
             else:
                 raise ValueError(f"Unknown type of scoring function: {scoring_func}")
 
-        elif self.name == "NN":
+        elif self.name in SINGLE_PRED_NN_MODELS:
 
             if scoring_func == "entropy":
                 return entropy(self.model.predict_proba(data), axis=1)
@@ -115,3 +116,7 @@ class NoveltyEstimator:
 
             else:
                 raise ValueError(f"Unknown type of scoring function: {scoring_func}")
+
+        else:
+
+            raise ValueError(f"Unknown model type: {self.name}")

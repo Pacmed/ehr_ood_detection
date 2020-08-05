@@ -31,6 +31,7 @@ def plot_ood_from_pickle(data_origin, result_dir, plot_dir, dummy_group_name=Non
     for method in available_results:
         method_dir = os.path.join(ood_dir_name, method)
         detection_dir = os.path.join(method_dir, "detection")
+
         for kind in os.listdir(detection_dir):
             if kind == "None":
                 name = method.replace("_", " ")
