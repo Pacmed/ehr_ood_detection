@@ -573,17 +573,15 @@ class PlattScalingMLP(MLP):
         prev_val_loss = float("inf")
         n_no_improvement = 0
 
-        def _logit(predictions: torch.Tensor) -> torch.Tensor:
-            return torch.log(predictions / (1 + 1e-8 - predictions) + 1e-8)
-
         for epoch in range(n_epochs):
 
             for batch_X, batch_y in val_loader:
                 batch_X, batch_y = batch_X.float(), batch_y.float().view(-1, 1)
                 optimizer.zero_grad()
 
-                logits = _logit(self.model(batch_X))
-                loss = loss_fn(scaling_layer(logits), batch_y)
+                model_out = self.model(batch_X)
+                out = scaling_layer(model_out)
+                loss = loss_fn(out, batch_y)
                 loss.backward()
                 optimizer.step()
 
@@ -607,6 +605,10 @@ class MCDropoutMLP(MLP, MultiplePredictionsMixin):
     """
     Class for a MLP using MC Dropout.
     """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        MultiplePredictionsMixin.__init__(self)
 
     def eval(self):
         """
@@ -660,6 +662,8 @@ class BayesianMLP(MLP, MultiplePredictionsMixin):
             mlp_module=BayesianMLPModule,
             **bayesian_mlp_kwargs,
         )
+
+        MultiplePredictionsMixin.__init__(self)
 
     def get_loss(
         self, X: torch.Tensor, y: torch.Tensor, train: bool = True
