@@ -64,7 +64,7 @@ def run_perturbation_experiment(
             X_test_adjusted = deepcopy(nov_an.X_test)
             X_test_adjusted[:, r] = X_test_adjusted[:, r] * scale_adjustment
             nov_an.set_ood(X_test_adjusted, impute_and_scale=False)
-            nov_an.calculate_novelty(kind=scoring_func)
+            nov_an.calculate_novelty(scoring_func=scoring_func)
             aucs_dict[scale_adjustment] += [nov_an.get_ood_detection_auc()]
             recall_dict[scale_adjustment] += [nov_an.get_ood_recall()]
 

@@ -33,6 +33,27 @@ def nll(y: np.array, y_pred: np.array) -> float:
     return log_loss(y, y_pred, eps=1e-5)
 
 
+def max_prob(probabilities: np.array, axis: int) -> Union[float, np.array]:
+    """
+    Implement the baseline from [1], which just uses the maximum (softmax) probability as a OOD detection score.
+
+    [1] https://arxiv.org/abs/1610.02136
+
+    Parameters
+    ----------
+    probabilities: np.array
+        Probabilities per class.
+    axis: int
+        Axis over which the max should be taken.
+
+    Returns
+    -------
+    float
+        Max class probability per sample.
+    """
+    return np.max(probabilities, axis)
+
+
 def entropy(probabilities: np.array, axis: int) -> Union[float, np.array]:
     """
     Entropy of a probability distribution.
