@@ -4,7 +4,7 @@ Module containing implementations of (different variations of) multi-layer perce
 
 # STD
 from math import sqrt
-from typing import Tuple, Dict, Any, Optional, List, Type
+from typing import Tuple, Dict, Any, List, Type, Callable, Optional
 
 # EXT
 from blitz.modules import BayesianLinear
@@ -20,6 +20,7 @@ from uncertainty_estimation.models.info import (
     DEFAULT_EARLY_STOPPING_PAT,
     DEFAULT_N_EPOCHS,
 )
+from uncertainty_estimation.utils.metrics import entropy
 
 
 class MLPModule(nn.Module):
@@ -193,9 +194,24 @@ class MultiplePredictionsMixin:
     (but which are not ensembles).
     """
 
-    def predict_proba(
-        self, X_test: np.array, n_samples: Optional[int] = None
-    ) -> np.array:
+    def __init__(self, pred_sources_func: Optional[Callable] = None):
+        """
+        Initialize a multi-class prediction model.
+
+        Parameters
+        ----------
+        pred_sources_func: Optional[Callable]
+            Function that return the models that are going to produce n different predictions. In the case of a BNN or
+            MCDropout model, this just return the model instance n times. In the case of an ensemble, this returns
+            all the models of the ensemble.
+        """
+        self.pred_sources_func = (
+            (lambda n_samples: [self.model] * n_samples)
+            if pred_sources_func is None
+            else pred_sources_func
+        )
+
+    def predict_proba(self, X_test: np.array, n_samples: int = 50) -> np.array:
         """
         Predict the probabilities for a batch of samples.
 
@@ -219,7 +235,6 @@ class MultiplePredictionsMixin:
             predictions = np.mean(np.array(predictions), axis=0)
 
         else:
-            self.model.eval()
             predictions = (
                 torch.sigmoid(self.model(X_test_tensor)).detach().squeeze().numpy()
             )
@@ -248,6 +263,34 @@ class MultiplePredictionsMixin:
 
         return np.std(np.array(predictions), axis=0)
 
+    def get_mutual_information(self, X_test: np.ndarray, n_samples: int = 50) -> float:
+        """
+        Compute the mutual information for over multiple predictions based on the approximation of [1] (eq. 7 / 8).
+
+        [1] https://arxiv.org/pdf/1803.08533.pdf
+
+        Parameters
+        ----------
+        X_test: np.array
+            Batch of samples as numpy array.
+        n_samples: int
+            Number of forward passes.
+
+        Returns
+        -------
+        float
+            Approximate mutual information.
+        """
+        X_test_tensor = torch.tensor(X_test).float()
+
+        predictions = self._predict_n_times(X_test_tensor, n_samples)
+        predictions = np.array(predictions).T
+        predictions = np.stack([1 - predictions, predictions], axis=2)
+
+        return entropy(predictions.mean(axis=1), axis=1) - entropy(
+            predictions, axis=2
+        ).mean(axis=1)
+
     def _predict_n_times(self, X: torch.Tensor, n: int) -> List[float]:
         """
         Make predictions based on n forward passes.
@@ -261,8 +304,8 @@ class MultiplePredictionsMixin:
         """
         predictions = []
 
-        for _ in range(n):
-            predictions.append(torch.sigmoid(self.model(X)).detach().squeeze().numpy())
+        for model in self.pred_sources_func(n):
+            predictions.append(torch.sigmoid(model(X)).detach().squeeze().numpy())
 
         return predictions
 

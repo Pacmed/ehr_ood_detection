@@ -2,6 +2,9 @@
 Define evaluation metrics.
 """
 
+# STD
+from typing import Union
+
 # EXT
 import pandas as pd
 import numpy as np
@@ -30,7 +33,7 @@ def nll(y: np.array, y_pred: np.array) -> float:
     return log_loss(y, y_pred, eps=1e-5)
 
 
-def entropy(probabilities: np.array, axis: int) -> float:
+def entropy(probabilities: np.array, axis: int) -> Union[float, np.array]:
     """
     Entropy of a probability distribution.
 

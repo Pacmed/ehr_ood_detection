@@ -83,11 +83,12 @@ def run_ood_experiment_on_group(
     nov_an = NoveltyAnalyzer(
         ne,
         *map(
-            lambda spl: spl[id_data.feature_names],
+            lambda spl: spl[id_data.feature_names].values,
             [id_data.train, id_data.test, id_data.val],
         ),
         *map(
-            lambda spl: spl[id_data.target], [id_data.train, id_data.test, id_data.val]
+            lambda spl: spl[id_data.target].values,
+            [id_data.train, id_data.test, id_data.val],
         ),
         impute_and_scale=impute_and_scale,
     )
@@ -114,7 +115,7 @@ def run_ood_experiment_on_group(
             for metric in metrics:
                 try:
                     ood_metrics[metric.__name__][ood_data.name] += [
-                        metric(all_ood[ood_data.name].values, y_pred)
+                        metric(all_ood[ood_data.target].values, y_pred)
                     ]
                 except ValueError:
                     print("Fraction of positives:", all_ood[ood_data.name].mean())
