@@ -25,7 +25,7 @@ from uncertainty_estimation.utils.metrics import entropy
 
 class MLPModule(nn.Module):
     """
-    Abstract class for a multilayer perceptron.
+    Base class for a multilayer perceptron.
     """
 
     def __init__(
@@ -324,8 +324,6 @@ class MLP:
         The dropout rate applied after each layer (except the output layer)
     output_size: int
         The output size.
-    batch_norm: bool
-        Whether to apply batch normalization after each layer.
     """
 
     def __init__(
@@ -344,6 +342,7 @@ class MLP:
         )
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
         self.class_weight = class_weight
+        self.lr = lr
 
     def _initialize_dataloader(
         self, X_train: np.ndarray, y_train: np.ndarray, batch_size: int
@@ -510,6 +509,98 @@ class MLP:
         )
 
         return np.stack([1 - predictions, predictions], axis=1)
+
+
+class PlattScalingMLP(MLP):
+    """
+    Handles the training of a MLP module with Platt scaling.
+    """
+
+    def train(
+        self,
+        X_train: np.ndarray,
+        y_train: np.ndarray,
+        X_val: np.ndarray,
+        y_val: np.ndarray,
+        batch_size: int = DEFAULT_BATCH_SIZE,
+        n_epochs: int = DEFAULT_N_EPOCHS,
+        early_stopping: bool = True,
+        early_stopping_patience: int = DEFAULT_EARLY_STOPPING_PAT,
+    ):
+        """
+        Train the MLP.
+
+        Parameters
+        ----------
+        X_train: np.ndarray
+            The training data.
+        y_train: np.ndarray
+            The labels corresponding to the training data.
+        X_val: np.ndarray
+            The validation data.
+        y_val: np.ndarray
+            The labels corresponding to the validation data.
+        batch_size: int
+            The batch size, default 256
+        n_epochs: int
+            The number of training epochs, default 30
+        early_stopping: bool
+            Whether to perform early stopping, default True
+        early_stopping_patience: int
+            The early stopping patience, default 2.
+        """
+        # Do the regular training first
+        super().train(
+            X_train,
+            y_train,
+            X_val,
+            y_val,
+            batch_size,
+            n_epochs,
+            early_stopping,
+            early_stopping_patience,
+        )
+
+        # Now learn the platt scaling on the validation set
+        self.model.eval()
+        scaling_layer = nn.Linear(1, 1).train()
+
+        val_set = SimpleDataset(torch.from_numpy(X_train), torch.from_numpy(y_train))
+        val_loader = DataLoader(val_set, batch_size, shuffle=True)
+        loss_fn = torch.nn.BCEWithLogitsLoss()
+        optimizer = torch.optim.Adam(scaling_layer.parameters(), lr=self.lr)
+
+        prev_val_loss = float("inf")
+        n_no_improvement = 0
+
+        def _logit(predictions: torch.Tensor) -> torch.Tensor:
+            return torch.log(predictions / (1 + 1e-8 - predictions) + 1e-8)
+
+        for epoch in range(n_epochs):
+
+            for batch_X, batch_y in val_loader:
+                batch_X, batch_y = batch_X.float(), batch_y.float().view(-1, 1)
+                optimizer.zero_grad()
+
+                logits = _logit(self.model(batch_X))
+                loss = loss_fn(scaling_layer(logits), batch_y)
+                loss.backward()
+                optimizer.step()
+
+                if loss >= prev_val_loss:
+                    n_no_improvement += 1
+
+                else:
+                    n_no_improvement = 0
+                    prev_val_loss = loss
+
+            if n_no_improvement >= early_stopping_patience:
+                print("Early stopping platt scale training after", epoch, "epochs.")
+                break
+
+        # Add scaling layer to model
+        self.model.mlp.add_module("platt_scaling", scaling_layer)
+        self.model.train()
 
 
 class MCDropoutMLP(MLP, MultiplePredictionsMixin):

@@ -14,7 +14,10 @@ BASELINES = {
     "SVM",  # One-class SVM for outlier detection
 }
 
-SINGLE_PRED_NN_MODELS = {"NN"}  # Single neural discriminator
+SINGLE_PRED_NN_MODELS = {
+    "NN",  # Single neural discriminator
+    "PlattScalingNN",  # Single neural discriminator with platt scaling
+}
 
 ENSEMBLE_MODELS = {
     "NNEnsemble",  # Ensemble of neural discriminators
@@ -51,6 +54,7 @@ AVAILABLE_SCORING_FUNCS = {
     "AE": (None,),  # Default: Reconstruction error
     "SVM": (None,),  # Default: Distance to decision boundary
     "NN": ("entropy", "max_prob"),  # Default: entropy
+    "PlattScalingNN": ("entropy", "max_prob"),
     "MCDropout": ("entropy", "std", "mutual_information"),
     "BNN": ("entropy", "std", "mutual_information"),
     "NNEnsemble": ("entropy", "std", "mutual_information"),
@@ -70,6 +74,12 @@ MODEL_PARAMS = {
     },
     "SVM": {},
     "NN": {
+        "hidden_sizes": [50, 50],
+        "dropout_rate": 0.0,
+        "lr": 1e-3,
+        "class_weight": False,
+    },
+    "PlattScalingNN": {
         "hidden_sizes": [50, 50],
         "dropout_rate": 0.0,
         "lr": 1e-3,
@@ -129,6 +139,12 @@ TRAIN_PARAMS = {
     "AE": {"n_epochs": 50},
     "SVM": {},
     "NN": {
+        "batch_size": 256,
+        "early_stopping": True,
+        "early_stopping_patience": 3,
+        "n_epochs": 100,
+    },
+    "PlattScalingNN": {
         "batch_size": 256,
         "early_stopping": True,
         "early_stopping_patience": 3,

@@ -13,7 +13,12 @@ from sklearn.svm import OneClassSVM
 from uncertainty_estimation.models.novelty_estimator import NoveltyEstimator
 from uncertainty_estimation.models.nn_ensemble import NNEnsemble, AnchoredNNEnsemble
 from uncertainty_estimation.models.autoencoder import AE
-from uncertainty_estimation.models.mlp import MLP, BayesianMLP, MCDropoutMLP
+from uncertainty_estimation.models.mlp import (
+    MLP,
+    BayesianMLP,
+    MCDropoutMLP,
+    PlattScalingMLP,
+)
 from uncertainty_estimation.models.info import (
     AVAILABLE_MODELS,
     AVAILABLE_SCORING_FUNCS,
@@ -59,6 +64,7 @@ def init_models(
         "SVM": OneClassSVM,
         "AE": AE,
         "NN": MLP,
+        "PlattScalingNN": PlattScalingMLP,
         "BNN": BayesianMLP,
         "MCDropout": MCDropoutMLP,
         "NNEnsemble": NNEnsemble,
