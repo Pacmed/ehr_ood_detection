@@ -7,7 +7,7 @@ sample. The way that novelty is scored depends on the model type and scoring fun
 from typing import Callable
 
 # PROJECT
-from uncertainty_estimation.utils.metrics import entropy
+from uncertainty_estimation.utils.metrics import entropy, max_prob
 from uncertainty_estimation.models.info import (
     ENSEMBLE_MODELS,
     BASELINES,
@@ -106,4 +106,12 @@ class NoveltyEstimator:
                 raise ValueError(f"Unknown type of scoring function: {scoring_func}")
 
         elif self.name == "NN":
-            return entropy(self.model.predict_proba(data), axis=1)
+
+            if scoring_func == "entropy":
+                return entropy(self.model.predict_proba(data), axis=1)
+
+            elif scoring_func == "max_prob":
+                return max_prob(self.model.predict_proba(data), axis=1)
+
+            else:
+                raise ValueError(f"Unknown type of scoring function: {scoring_func}")

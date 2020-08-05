@@ -50,7 +50,7 @@ AVAILABLE_SCORING_FUNCS = {
     "PPCA": (None,),  # Default: log-prob
     "AE": (None,),  # Default: Reconstruction error
     "SVM": (None,),  # Default: Distance to decision boundary
-    "NN": (None,),  # Default: log-prob
+    "NN": ("entropy", "max_prob"),  # Default: entropy
     "MCDropout": ("entropy", "std", "mutual_information"),
     "BNN": ("entropy", "std", "mutual_information"),
     "NNEnsemble": ("entropy", "std", "mutual_information"),
