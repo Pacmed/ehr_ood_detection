@@ -7,13 +7,23 @@ import argparse
 from collections import defaultdict
 import os
 import pickle
+from typing import List, Optional
+
+# EXT
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
 # PROJECT
 from uncertainty_estimation.visualizing.ood_plots import boxplot_from_nested_listdict
 import uncertainty_estimation.visualizing.confidence_performance_plots as cp
 import uncertainty_estimation.utils.metrics as metrics
-from uncertainty_estimation.models.info import NEURAL_PREDICTORS
+from uncertainty_estimation.models.info import (
+    NEURAL_PREDICTORS,
+    AVAILABLE_MODELS,
+    AVAILABLE_SCORING_FUNCS,
+)
+from uncertainty_estimation.experiments.perturbation import SCALES
 
 # CONST
 N_SEEDS = 5
@@ -21,25 +31,53 @@ RESULT_DIR = "../../data/results"
 PLOT_DIR = "../../img/experiments"
 
 
-def plot_ood_from_pickle(data_origin, result_dir, plot_dir, dummy_group_name=None):
+def plot_ood(
+    data_origin: str,
+    result_dir: str,
+    plot_dir: str,
+    models: List[str],
+    suffix: str,
+    dummy_group_name: Optional[str] = None,
+) -> None:
+    """
+    Plot the results of the out-of-domain group experiments.
+
+    Parameters
+    ----------
+    data_origin: str
+        Data set that was being used, e.g. eICU or MIMIC.
+    result_dir: str
+        Directory containing the results.
+    plot_dir: str
+        Directory plots should be saved to.
+    models: List[str]
+        List of model names for which the results should be plotted.
+    suffix: str
+        Add a suffix to the resulting files in order to distinguish them.
+    dummy_group_name: Optional[str]
+        Name of dummy group to "pad" plot and align eICU and MIMIC results.
+    """
     ood_dir_name = os.path.join(result_dir, data_origin, "OOD")
     ood_plot_dir_name = f"{plot_dir}/{data_origin}/OOD"
     auc_dict, recall_dict = dict(), dict()
     metric_dict = defaultdict(dict)
     available_results = set(os.listdir(f"{result_dir}/{data_origin}/OOD/"))
 
-    for method in available_results:
+    for method in available_results & set(models):
         method_dir = os.path.join(ood_dir_name, method)
         detection_dir = os.path.join(method_dir, "detection")
 
-        for kind in os.listdir(detection_dir):
-            if kind == "None":
-                name = method.replace("_", " ")
-            else:
-                name = method.replace("_", " ") + " (" + kind + ")"
-            with open(os.path.join(detection_dir, kind, "detect_auc.pkl"), "rb") as f:
+        for scoring_func in os.listdir(detection_dir):
+            name = f"{method.replace('_', ' ')} ({scoring_func.replace('_', ' ')})"
+
+            with open(
+                os.path.join(detection_dir, scoring_func, "detect_auc.pkl"), "rb"
+            ) as f:
                 auc_dict[name] = pickle.load(f)
-            with open(os.path.join(detection_dir, kind, "recall.pkl"), "rb") as f:
+
+            with open(
+                os.path.join(detection_dir, scoring_func, "recall.pkl"), "rb"
+            ) as f:
                 recall_dict[name] = pickle.load(f)
 
         if method in NEURAL_PREDICTORS:
@@ -47,6 +85,7 @@ def plot_ood_from_pickle(data_origin, result_dir, plot_dir, dummy_group_name=Non
 
             for metric in os.listdir(metrics_dir):
                 name = method.replace("_", " ")
+
                 with open(os.path.join(metrics_dir, metric), "rb") as f:
                     metric_dict[metric][name] = pickle.load(f)
 
@@ -60,7 +99,7 @@ def plot_ood_from_pickle(data_origin, result_dir, plot_dir, dummy_group_name=Non
         legend=True,
         legend_out=True,
         dummy_group_name=dummy_group_name,
-        save_dir=os.path.join(ood_plot_dir_name, "ood_detection_auc.png"),
+        save_dir=os.path.join(ood_plot_dir_name, f"ood_detection_auc{suffix}.png"),
         height=8,
         aspect=1,
         vline=0.5,
@@ -71,7 +110,7 @@ def plot_ood_from_pickle(data_origin, result_dir, plot_dir, dummy_group_name=Non
         name="95% OOD recall",
         kind="bar",
         x_name=" ",
-        save_dir=os.path.join(ood_plot_dir_name, "ood_recall.png"),
+        save_dir=os.path.join(ood_plot_dir_name, f"ood_recall{suffix}.png"),
         dummy_group_name=dummy_group_name,
         horizontal=True,
         ylim=None,
@@ -98,7 +137,7 @@ def plot_ood_from_pickle(data_origin, result_dir, plot_dir, dummy_group_name=Non
             name=name_dict[m.split(".")[0]],
             kind="bar",
             x_name=" ",
-            save_dir=os.path.join(ood_plot_dir_name, m.split(".")[0] + ".png"),
+            save_dir=os.path.join(ood_plot_dir_name, m.split(".")[0] + f"{suffix}.png"),
             dummy_group_name=dummy_group_name,
             horizontal=True,
             legend=True,
@@ -109,37 +148,89 @@ def plot_ood_from_pickle(data_origin, result_dir, plot_dir, dummy_group_name=Non
             aspect=1.333,
         )
 
+    # Add to DataFrame and export to Latex
+    ood_groups = list(
+        list(list(metric_dict.values())[0].values())[0].keys()
+    )  # Get OOD groups with this ugly expression
 
-def plot_da_from_pickle(result_dir, plot_dir):
+    # Update dicts for easier looping
+    name_dict = {"OOD ROC-AUC": "OOD ROC-AUC", "OOD Recall": "OOD Recall", **name_dict}
+    metric_dict = {"OOD ROC-AUC": auc_dict, "OOD Recall": recall_dict, **metric_dict}
+
+    result_tables = {
+        metric: pd.DataFrame(columns=ood_groups)
+        for metric in ["OOD ROC-AUC", "OOD Recall"] + list(name_dict.values())
+    }
+
+    for metric, metric_results in metric_dict.items():
+        metric_name = name_dict[metric.split(".")[0]]
+        result_table = result_tables[metric_name]
+
+        for method_name, ood_dict in metric_results.items():
+            for ood_name, ood_results in ood_dict.items():
+                ood_results = np.array(ood_results)
+                result_table.at[
+                    method_name, ood_name
+                ] = f"${ood_results.mean():.2f} \pm {ood_results.std():.2f}$"
+
+    for metric_name, table in result_tables.items():
+        print("\\begin{figure}[h]\n\\centering")
+        print(table.to_latex(escape=False))
+        print("\\caption{" + data_origin + ", " + metric_name + "}")
+        print("\\end{figure}")
+
+
+def plot_domain_adaption(
+    result_dir: str, plot_dir: str, models: List[str], suffix: str
+) -> None:
+    """
+    Plot the results of the domain adaption experiments.
+
+    Parameters
+    ----------
+    result_dir: str
+        Directory containing the results.
+    plot_dir: str
+        Directory plots should be saved to.
+    models: List[str]
+        List of model names for which the results should be plotted.
+    suffix: str
+        Add a suffix to the resulting files in order to distinguish them.
+    """
     ood_dir_name = os.path.join(result_dir, "DA")
     ood_plot_dir_name = f"{plot_dir}/DA"
     auc_dict, recall_dict = dict(), dict()
     metric_dict = defaultdict(dict)
     available_results = set(os.listdir(f"{result_dir}/DA/"))
 
-    for method in available_results:
+    for method in available_results & set(models):
         method_dir = os.path.join(ood_dir_name, method)
         detection_dir = os.path.join(method_dir, "detection")
-        for kind in os.listdir(detection_dir):
-            if kind == "None":
-                name = method.replace("_", " ")
-            else:
-                name = method.replace("_", " ") + " (" + kind + ")"
-            if method == "Single_NN":
-                name = "Single NN (entropy)"
-            with open(os.path.join(detection_dir, kind, "detect_auc.pkl"), "rb") as f:
+
+        for scoring_func in os.listdir(detection_dir):
+            name = f"{method.replace('_', ' ')} ({scoring_func.replace('_', ' ')})"
+
+            with open(
+                os.path.join(detection_dir, scoring_func, "detect_auc.pkl"), "rb"
+            ) as f:
                 auc_dict[name] = pickle.load(f)
-            with open(os.path.join(detection_dir, kind, "recall.pkl"), "rb") as f:
+
+            with open(
+                os.path.join(detection_dir, scoring_func, "recall.pkl"), "rb"
+            ) as f:
                 recall_dict[name] = pickle.load(f)
 
         if method in NEURAL_PREDICTORS:
             metrics_dir = os.path.join(method_dir, "metrics")
+
             for metric in os.listdir(metrics_dir):
                 name = method.replace("_", " ")
+
                 with open(os.path.join(metrics_dir, metric), "rb") as f:
                     metric_dict[metric][name] = pickle.load(f)
 
             metrics_id_dir = os.path.join(method_dir, "metrics_id")
+
             try:
                 for metric in os.listdir(metrics_id_dir):
                     name = method.replace("_", " ")
@@ -161,7 +252,7 @@ def plot_da_from_pickle(result_dir, plot_dir):
         horizontal=True,
         ylim=None,
         legend_out=True,
-        save_dir=os.path.join(ood_plot_dir_name, "ood_detection_auc.png"),
+        save_dir=os.path.join(ood_plot_dir_name, f"ood_detection_auc{suffix}.png"),
         legend=True,
         height=3,
         aspect=3,
@@ -173,23 +264,7 @@ def plot_da_from_pickle(result_dir, plot_dir):
         name="95% OOD recall",
         kind="bar",
         x_name=" ",
-        save_dir=os.path.join(ood_plot_dir_name, "ood_recall.png"),
-        horizontal=True,
-        ylim=None,
-        legend_out=True,
-        legend=True,
-        xlim=None,
-        height=3,
-        aspect=3,
-        vline=0.05,
-    )
-    # just for legend
-    boxplot_from_nested_listdict(
-        recall_dict,
-        name="Legend",
-        kind="bar",
-        x_name=" ",
-        save_dir=os.path.join(ood_plot_dir_name, "legend.png"),
+        save_dir=os.path.join(ood_plot_dir_name, f"ood_recall{suffix}.png"),
         horizontal=True,
         ylim=None,
         legend_out=True,
@@ -214,44 +289,62 @@ def plot_da_from_pickle(result_dir, plot_dir):
             name=name_dict[m.split(".")[0]],
             kind="bar",
             x_name=" ",
-            save_dir=os.path.join(ood_plot_dir_name, m.split(".")[0] + ".png"),
+            save_dir=os.path.join(ood_plot_dir_name, m.split(".")[0] + f"{suffix}.png"),
             horizontal=True,
             ylim=None,
-            legend=False,
+            legend=True,
+            legend_out=True,
             height=4,
             aspect=2,
             xlim=None,
         )
-    # just for legend
-    boxplot_from_nested_listdict(
-        metric_dict[m],
-        name=name_dict[m.split(".")[0]],
-        kind="bar",
-        x_name=" ",
-        save_dir=os.path.join(ood_plot_dir_name, "metric_legend.png"),
-        horizontal=True,
-        ylim=None,
-        legend=True,
-        legend_out=True,
-        height=4,
-        aspect=2,
-        xlim=None,
-    )
+
+    # Add to DataFrame and export to Latex
+    # TODO
 
 
-def plot_perturbation_from_pickle(data_origin, result_dir, plot_dir):
+def plot_perturbation(
+    data_origin: str,
+    result_dir: str,
+    plot_dir: str,
+    models: List[str],
+    suffix: str,
+    scales: List[int] = SCALES,
+) -> None:
+    """
+    Plot the results of the perturbation experiments.
+
+    Parameters
+    ----------
+    data_origin: str
+        Data set that was being used, e.g. eICU or MIMIC.
+    result_dir: str
+        Directory containing the results.
+    plot_dir: str
+        Directory plots should be saved to.
+    models: List[str]
+        List of model names for which the results should be plotted.
+    suffix: str
+        Add a suffix to the resulting files in order to distinguish them.
+    """
     perturb_dir_name = os.path.join(result_dir, data_origin, "perturbation")
     perturb_plot_dir_name = f"{plot_dir}/{data_origin}/perturbation"
     auc_dict, recall_dict = dict(), dict()
     available_results = set(os.listdir(f"{result_dir}/{data_origin}/perturbation/"))
 
-    for method in available_results:
-        method_dir = os.path.join(perturb_dir_name, method)
-        name = method.replace("_", " ")
-        with open(os.path.join(method_dir, "perturb_detect_auc.pkl"), "rb") as f:
-            auc_dict[name] = pickle.load(f)
-        with open(os.path.join(method_dir, "perturb_recall.pkl"), "rb") as f:
-            recall_dict[name] = pickle.load(f)
+    for method in available_results & set(models):
+        for scoring_func in AVAILABLE_SCORING_FUNCS[method]:
+
+            method_dir = os.path.join(
+                perturb_dir_name, method, "detection", scoring_func
+            )
+            name = f"{method.replace('_', ' ')} ({scoring_func.replace('_', ' ')})"
+
+            with open(os.path.join(method_dir, "detect_auc.pkl"), "rb") as f:
+                auc_dict[name] = pickle.load(f)
+
+            with open(os.path.join(method_dir, "recall.pkl"), "rb") as f:
+                recall_dict[name] = pickle.load(f)
 
     # TODO: Loop this
     boxplot_from_nested_listdict(
@@ -262,7 +355,7 @@ def plot_perturbation_from_pickle(data_origin, result_dir, plot_dir):
         xlim=None,
         ylim=None,
         figsize=(6, 6),
-        save_dir=os.path.join(perturb_plot_dir_name, "recall.png"),
+        save_dir=os.path.join(perturb_plot_dir_name, f"recall{suffix}.png"),
         showfliers=False,
         legend=True,
     )
@@ -272,7 +365,7 @@ def plot_perturbation_from_pickle(data_origin, result_dir, plot_dir):
         hline=0.5,
         ylim=None,
         figsize=(4, 4),
-        save_dir=os.path.join(perturb_plot_dir_name, "detect_AUC.png"),
+        save_dir=os.path.join(perturb_plot_dir_name, f"detect_AUC{suffix}.png"),
         # legend_args={"loc": "center left", "bbox_to_anchor": (1, 0.5)},
         xlim=None,
         showfliers=False,
@@ -280,22 +373,44 @@ def plot_perturbation_from_pickle(data_origin, result_dir, plot_dir):
         legend=True,
     )
 
-    boxplot_from_nested_listdict(
-        auc_dict,
-        "perturbation detection AUC",
-        hline=0.5,
-        ylim=None,
-        figsize=(10, 10),
-        save_dir=os.path.join(perturb_plot_dir_name, "legend.png"),
-        # legend_args={"loc": "center left", "bbox_to_anchor": (1, 0.5)},
-        xlim=None,
-        showfliers=False,
-        legend_out=True,
-        legend=True,
-    )
+    # Add to DataFrame and export to Latex
+    columns = ["OOD ROC-AUC", "OOD Recall"]
+    result_tables = {scale: pd.DataFrame(columns=columns) for scale in scales}
+
+    for column, result_dict in zip(columns, [auc_dict, recall_dict]):
+        for name, results in result_dict.items():
+            for scale in scales:
+                results_scale = np.array(results[scale])
+                result_tables[scale].at[
+                    name, column
+                ] = f"${results_scale.mean():.2f} \pm {results_scale.std():.2f}$"
+
+    for scale in scales:
+        print("\\begin{figure}[h]\n\\centering")
+        print(result_tables[scale].to_latex(escape=False))
+        print("\\caption{" + data_origin + ", scale = " + str(scale) + "}")
+        print("\\end{figure}")
 
 
-def confidence_performance_from_pickle(data_origin, result_dir, plot_dir):
+def plot_confidence_performance(
+    data_origin: str, result_dir: str, plot_dir: str, models: List[str], suffix: str
+) -> None:
+    """
+    Plot the confidence-performance plots based on the in-domain data experiments..
+
+    Parameters
+    ----------
+    data_origin: str
+        Data set that was being used, e.g. eICU or MIMIC.
+    result_dir: str
+        Directory containing the results.
+    plot_dir: str
+        Directory plots should be saved to.
+    models: List[str]
+        List of model names for which the results should be plotted.
+    suffix: str
+        Add a suffix to the resulting files in order to distinguish them.
+    """
     id_dir_name = os.path.join(result_dir, data_origin, "ID")
     id_plot_dir_name = f"{plot_dir}/{data_origin}/ID"
     predictions, uncertainties = defaultdict(list), defaultdict(list)
@@ -306,30 +421,29 @@ def confidence_performance_from_pickle(data_origin, result_dir, plot_dir):
 
     available_results = set(os.listdir(f"{result_dir}/{data_origin}/ID/"))
 
-    for method in available_results:
+    # TODO: Didn't test this, might be broken
+    for method in available_results & set(models):
         print(method)
+
         if method != "y_test.pkl":
             method_dir = os.path.join(id_dir_name, method)
             uncertainties_dir = os.path.join(method_dir, "uncertainties")
             predictions_dir = os.path.join(method_dir, "predictions")
-            if method == "Single_NN":
-                method = "Single NN (entropy)"
-            for kind in os.listdir(uncertainties_dir):
-                if kind == "None.pkl":
-                    name = method.replace("_", " ")
-                else:
-                    name = method.replace("_", " ") + " (" + kind.split(".")[0] + ")"
+
+            for scoring_func in os.listdir(uncertainties_dir):
+                name = method.replace("_", " ")
 
                 try:
                     with open(
                         os.path.join(predictions_dir, "predictions.pkl"), "rb"
                     ) as f:
                         predictions[name] = pickle.load(f)
-                    with open(os.path.join(uncertainties_dir, kind), "rb") as f:
+                    with open(os.path.join(uncertainties_dir, scoring_func), "rb") as f:
                         uncertainties[name] = pickle.load(f)
+
                 except FileNotFoundError:
                     # for novelty detection, there are no predictions
-                    with open(os.path.join(uncertainties_dir, kind), "rb") as f:
+                    with open(os.path.join(uncertainties_dir, scoring_func), "rb") as f:
                         name = "Single NN " + "(" + name + ")"
                         novelties[name] = pickle.load(f)
                         uncertainties[name] = novelties[name]
@@ -378,7 +492,9 @@ def confidence_performance_from_pickle(data_origin, result_dir, plot_dir):
         plt.ylabel(metric_pretty_name)
         plt.tight_layout()
         plt.savefig(
-            os.path.join(id_plot_dir_name, metric_pretty_name + "with_legend.png"),
+            os.path.join(
+                id_plot_dir_name, metric_pretty_name + f"with_legend{suffix}.png"
+            ),
             dpi=300,
             bbox_inches="tight",
             pad=0,
@@ -415,28 +531,52 @@ if __name__ == "__main__":
         default=PLOT_DIR,
         help="Define the directory that results were saved to.",
     )
+    parser.add_argument(
+        "--suffix",
+        type=str,
+        default="",
+        help="Add a suffix to plot file names to help to distinguish them.",
+    )
+    parser.add_argument(
+        "--models",
+        type=str,
+        default=AVAILABLE_MODELS,
+        nargs="+",
+        help="Distinguish the methods that should be included in the plot.",
+    )
     args = parser.parse_args()
 
     if "da" in args.plots:
-        plot_da_from_pickle(result_dir=args.result_dir, plot_dir=args.plot_dir)
+        plot_domain_adaption(
+            result_dir=args.result_dir,
+            plot_dir=args.plot_dir,
+            models=args.models,
+            suffix=args.suffix,
+        )
 
     if "ood" in args.plots:
-        plot_ood_from_pickle(
+        plot_ood(
             data_origin=args.data_origin,
             result_dir=args.result_dir,
             plot_dir=args.plot_dir,
+            models=args.models,
+            suffix=args.suffix,
         )
 
     if "perturb" in args.plots:
-        plot_perturbation_from_pickle(
+        plot_perturbation(
             data_origin=args.data_origin,
             result_dir=args.result_dir,
             plot_dir=args.plot_dir,
+            models=args.models,
+            suffix=args.suffix,
         )
 
     if "confidence" in args.plots:
-        confidence_performance_from_pickle(
+        plot_confidence_performance(
             data_origin=args.data_origin,
             result_dir=args.result_dir,
             plot_dir=args.plot_dir,
+            models=args.models,
+            suffix=args.suffix,
         )

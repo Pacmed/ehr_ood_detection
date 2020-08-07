@@ -121,35 +121,32 @@ if __name__ == "__main__":
                 impute_and_scale=True,
             )
 
-        ne, kinds, method_name = model_info
+        ne, scoring_funcs, method_name = model_info
         # Save everything for this model
         dir_name = os.path.join(args.result_dir, args.data_origin, "OOD", method_name)
-
-        if not os.path.exists(dir_name):
-            os.mkdir(dir_name)
 
         metric_dir_name = os.path.join(dir_name, "metrics")
 
         if not os.path.exists(metric_dir_name):
-            os.mkdir(metric_dir_name)
+            os.makedirs(metric_dir_name)
 
         for metric in metrics.keys():
-            with open(os.path.join(metric_dir_name, metric + ".pkl"), "wb") as f:
+            with open(os.path.join(metric_dir_name, f"{metric}.pkl"), "wb") as f:
                 pickle.dump(metrics[metric], f)
 
-        for kind in kinds:
+        for scoring_func in scoring_funcs:
             detection_dir_name = os.path.join(dir_name, "detection")
 
             if not os.path.exists(detection_dir_name):
                 os.mkdir(detection_dir_name)
 
-            method_dir_name = os.path.join(detection_dir_name, str(kind))
+            method_dir_name = os.path.join(detection_dir_name, str(scoring_func))
 
             if not os.path.exists(method_dir_name):
                 os.mkdir(method_dir_name)
 
             with open(os.path.join(method_dir_name, "detect_auc.pkl"), "wb") as f:
-                pickle.dump(ood_detect_aucs[kind], f)
+                pickle.dump(ood_detect_aucs[scoring_func], f)
 
             with open(os.path.join(method_dir_name, "recall.pkl"), "wb") as f:
-                pickle.dump(ood_recall[kind], f)
+                pickle.dump(ood_recall[scoring_func], f)

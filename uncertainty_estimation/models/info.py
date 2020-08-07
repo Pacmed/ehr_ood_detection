@@ -11,7 +11,7 @@ import numpy as np
 BASELINES = {
     "PPCA",  # Probabilistic PCA for density estimation
     "AE",  # Auto-Encoder for implicit density estimation
-    "SVM",  # One-class SVM for outlier detection
+    # "SVM",  # One-class SVM for outlier detection
 }
 
 SINGLE_PRED_NN_MODELS = {
@@ -50,11 +50,11 @@ AVAILABLE_MODELS = NEURAL_MODELS | BASELINES  # All available models in this pro
 # Available novelty scoring functions for models
 
 AVAILABLE_SCORING_FUNCS = {
-    "PPCA": (None,),  # Default: log-prob
-    "AE": (None,),  # Default: Reconstruction error
-    "SVM": (None,),  # Default: Distance to decision boundary
-    "NN": ("entropy", "max_prob"),  # Default: entropy
-    "PlattScalingNN": ("entropy", "max_prob"),
+    "PPCA": ("default",),  # Default: log-prob
+    "AE": ("default",),  # Default: Reconstruction error
+    "SVM": ("default",),  # Default: Distance to decision boundary
+    "NN": ("entropy", "max_prob", "max_abs_out"),  # Default: entropy
+    "PlattScalingNN": ("entropy", "max_prob", "max_abs_out"),
     "MCDropout": ("entropy", "std", "mutual_information"),
     "BNN": ("entropy", "std", "mutual_information"),
     "NNEnsemble": ("entropy", "std", "mutual_information"),
