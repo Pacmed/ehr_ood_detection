@@ -37,6 +37,7 @@ def plot_ood(
     plot_dir: str,
     models: List[str],
     suffix: str,
+    print_latex: bool,
     dummy_group_name: Optional[str] = None,
 ) -> None:
     """
@@ -54,6 +55,8 @@ def plot_ood(
         List of model names for which the results should be plotted.
     suffix: str
         Add a suffix to the resulting files in order to distinguish them.
+    print_latex: bool
+        Put the results into a DataFrame which is exported to latex and then printed to screen if True.
     dummy_group_name: Optional[str]
         Name of dummy group to "pad" plot and align eICU and MIMIC results.
     """
@@ -149,39 +152,48 @@ def plot_ood(
         )
 
     # Add to DataFrame and export to Latex
-    ood_groups = list(
-        list(list(metric_dict.values())[0].values())[0].keys()
-    )  # Get OOD groups with this ugly expression
+    if print_latex:
+        ood_groups = list(
+            list(list(metric_dict.values())[0].values())[0].keys()
+        )  # Get OOD groups with this ugly expression
 
-    # Update dicts for easier looping
-    name_dict = {"OOD ROC-AUC": "OOD ROC-AUC", "OOD Recall": "OOD Recall", **name_dict}
-    metric_dict = {"OOD ROC-AUC": auc_dict, "OOD Recall": recall_dict, **metric_dict}
+        # Update dicts for easier looping
+        name_dict = {
+            "OOD ROC-AUC": "OOD ROC-AUC",
+            "OOD Recall": "OOD Recall",
+            **name_dict,
+        }
+        metric_dict = {
+            "OOD ROC-AUC": auc_dict,
+            "OOD Recall": recall_dict,
+            **metric_dict,
+        }
 
-    result_tables = {
-        metric: pd.DataFrame(columns=ood_groups)
-        for metric in ["OOD ROC-AUC", "OOD Recall"] + list(name_dict.values())
-    }
+        result_tables = {
+            metric: pd.DataFrame(columns=ood_groups)
+            for metric in ["OOD ROC-AUC", "OOD Recall"] + list(name_dict.values())
+        }
 
-    for metric, metric_results in metric_dict.items():
-        metric_name = name_dict[metric.split(".")[0]]
-        result_table = result_tables[metric_name]
+        for metric, metric_results in metric_dict.items():
+            metric_name = name_dict[metric.split(".")[0]]
+            result_table = result_tables[metric_name]
 
-        for method_name, ood_dict in metric_results.items():
-            for ood_name, ood_results in ood_dict.items():
-                ood_results = np.array(ood_results)
-                result_table.at[
-                    method_name, ood_name
-                ] = f"${ood_results.mean():.2f} \pm {ood_results.std():.2f}$"
+            for method_name, ood_dict in metric_results.items():
+                for ood_name, ood_results in ood_dict.items():
+                    ood_results = np.array(ood_results)
+                    result_table.at[
+                        method_name, ood_name
+                    ] = f"${ood_results.mean():.2f} \pm {ood_results.std():.2f}$"
 
-    for metric_name, table in result_tables.items():
-        print("\\begin{figure}[h]\n\\centering")
-        print(table.to_latex(escape=False))
-        print("\\caption{" + data_origin + ", " + metric_name + "}")
-        print("\\end{figure}")
+        for metric_name, table in result_tables.items():
+            print("\\begin{figure}[h]\n\\centering")
+            print(table.to_latex(escape=False))
+            print("\\caption{" + data_origin + ", " + metric_name + "}")
+            print("\\end{figure}")
 
 
 def plot_domain_adaption(
-    result_dir: str, plot_dir: str, models: List[str], suffix: str
+    result_dir: str, plot_dir: str, models: List[str], suffix: str, print_latex: bool
 ) -> None:
     """
     Plot the results of the domain adaption experiments.
@@ -196,6 +208,8 @@ def plot_domain_adaption(
         List of model names for which the results should be plotted.
     suffix: str
         Add a suffix to the resulting files in order to distinguish them.
+    print_latex: bool
+        Put the results into a DataFrame which is exported to latex and then printed to screen if True.
     """
     ood_dir_name = os.path.join(result_dir, "DA")
     ood_plot_dir_name = f"{plot_dir}/DA"
@@ -243,7 +257,6 @@ def plot_domain_adaption(
             except FileNotFoundError:
                 pass
 
-    # TODO: Loop this
     boxplot_from_nested_listdict(
         auc_dict,
         name="OOD detection AUC",
@@ -300,7 +313,40 @@ def plot_domain_adaption(
         )
 
     # Add to DataFrame and export to Latex
-    # TODO
+    if print_latex:
+        # Update dicts for easier looping
+        name_dict = {
+            "OOD ROC-AUC": "OOD ROC-AUC",
+            "OOD Recall": "OOD Recall",
+            **name_dict,
+        }
+        metric_dict = {
+            "OOD ROC-AUC": auc_dict,
+            "OOD Recall": recall_dict,
+            **metric_dict,
+        }
+
+        result_tables = {
+            metric: pd.DataFrame(columns=["eICU", "MIMIC"])
+            for metric in ["OOD ROC-AUC", "OOD Recall"] + list(name_dict.values())
+        }
+
+        for metric, metric_results in metric_dict.items():
+            metric_name = name_dict[metric.split(".")[0]]
+            result_table = result_tables[metric_name]
+
+            for method_name, origin_dict in metric_results.items():
+                for origin_name, origin_results in origin_dict.items():
+                    origin_results = np.array(origin_results)
+                    result_table.at[
+                        method_name, origin_name
+                    ] = f"${origin_results.mean():.2f} \pm {origin_results.std():.2f}$"
+
+        for metric_name, table in result_tables.items():
+            print("\\begin{figure}[h]\n\\centering")
+            print(table.to_latex(escape=False))
+            print("\\caption{" + metric_name + "}")
+            print("\\end{figure}")
 
 
 def plot_perturbation(
@@ -309,6 +355,7 @@ def plot_perturbation(
     plot_dir: str,
     models: List[str],
     suffix: str,
+    print_latex: bool,
     scales: List[int] = SCALES,
 ) -> None:
     """
@@ -326,6 +373,10 @@ def plot_perturbation(
         List of model names for which the results should be plotted.
     suffix: str
         Add a suffix to the resulting files in order to distinguish them.
+    print_latex: bool
+        Put the results into a DataFrame which is exported to latex and then printed to screen if True.
+    scales: List[int]
+        Scales used for the experiment.
     """
     perturb_dir_name = os.path.join(result_dir, data_origin, "perturbation")
     perturb_plot_dir_name = f"{plot_dir}/{data_origin}/perturbation"
@@ -346,7 +397,6 @@ def plot_perturbation(
             with open(os.path.join(method_dir, "recall.pkl"), "rb") as f:
                 recall_dict[name] = pickle.load(f)
 
-    # TODO: Loop this
     boxplot_from_nested_listdict(
         recall_dict,
         "perturbation 95% recall",
@@ -374,26 +424,32 @@ def plot_perturbation(
     )
 
     # Add to DataFrame and export to Latex
-    columns = ["OOD ROC-AUC", "OOD Recall"]
-    result_tables = {scale: pd.DataFrame(columns=columns) for scale in scales}
+    if print_latex:
+        columns = ["OOD ROC-AUC", "OOD Recall"]
+        result_tables = {scale: pd.DataFrame(columns=columns) for scale in scales}
 
-    for column, result_dict in zip(columns, [auc_dict, recall_dict]):
-        for name, results in result_dict.items():
-            for scale in scales:
-                results_scale = np.array(results[scale])
-                result_tables[scale].at[
-                    name, column
-                ] = f"${results_scale.mean():.2f} \pm {results_scale.std():.2f}$"
+        for column, result_dict in zip(columns, [auc_dict, recall_dict]):
+            for name, results in result_dict.items():
+                for scale in scales:
+                    results_scale = np.array(results[scale])
+                    result_tables[scale].at[
+                        name, column
+                    ] = f"${results_scale.mean():.2f} \pm {results_scale.std():.2f}$"
 
-    for scale in scales:
-        print("\\begin{figure}[h]\n\\centering")
-        print(result_tables[scale].to_latex(escape=False))
-        print("\\caption{" + data_origin + ", scale = " + str(scale) + "}")
-        print("\\end{figure}")
+        for scale in scales:
+            print("\\begin{figure}[h]\n\\centering")
+            print(result_tables[scale].to_latex(escape=False))
+            print("\\caption{" + data_origin + ", scale = " + str(scale) + "}")
+            print("\\end{figure}")
 
 
 def plot_confidence_performance(
-    data_origin: str, result_dir: str, plot_dir: str, models: List[str], suffix: str
+    data_origin: str,
+    result_dir: str,
+    plot_dir: str,
+    models: List[str],
+    suffix: str,
+    print_latex: bool,
 ) -> None:
     """
     Plot the confidence-performance plots based on the in-domain data experiments..
@@ -410,6 +466,8 @@ def plot_confidence_performance(
         List of model names for which the results should be plotted.
     suffix: str
         Add a suffix to the resulting files in order to distinguish them.
+    print_latex: bool
+        Put the results into a DataFrame which is exported to latex and then printed to screen if True.
     """
     id_dir_name = os.path.join(result_dir, data_origin, "ID")
     id_plot_dir_name = f"{plot_dir}/{data_origin}/ID"
@@ -501,6 +559,8 @@ def plot_confidence_performance(
         )
         plt.close()
 
+    # TODO: Export to latex table
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -544,6 +604,12 @@ if __name__ == "__main__":
         nargs="+",
         help="Distinguish the methods that should be included in the plot.",
     )
+    parser.add_argument(
+        "--print-latex",
+        action="store_true",
+        default=False,
+        help="Print results as latex table if this flag is given.",
+    )
     args = parser.parse_args()
 
     if "da" in args.plots:
@@ -552,6 +618,7 @@ if __name__ == "__main__":
             plot_dir=args.plot_dir,
             models=args.models,
             suffix=args.suffix,
+            print_latex=args.print_latex,
         )
 
     if "ood" in args.plots:
@@ -561,6 +628,7 @@ if __name__ == "__main__":
             plot_dir=args.plot_dir,
             models=args.models,
             suffix=args.suffix,
+            print_latex=args.print_latex,
         )
 
     if "perturb" in args.plots:
@@ -570,6 +638,7 @@ if __name__ == "__main__":
             plot_dir=args.plot_dir,
             models=args.models,
             suffix=args.suffix,
+            print_latex=args.print_latex,
         )
 
     if "confidence" in args.plots:
@@ -579,4 +648,5 @@ if __name__ == "__main__":
             plot_dir=args.plot_dir,
             models=args.models,
             suffix=args.suffix,
+            print_latex=args.print_latex,
         )
