@@ -87,6 +87,8 @@ class NoveltyEstimator:
         np.ndarray
             The novelty estimates.
         """
+        self.model.eval()
+
         if self.name == "AE":
             return self.model.get_reconstr_error(data)
 

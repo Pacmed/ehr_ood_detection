@@ -63,7 +63,6 @@ def boxplot_from_nested_listdict(
     sns.set_style("whitegrid")
     df = pd.DataFrame.from_dict(nested_dict, orient="columns")
 
-    # del kwargs["legend_args"]  # TODO: Debug
     df = df.stack().reset_index()
     df.columns = [x_name, "", name]
     df = df.explode(name)

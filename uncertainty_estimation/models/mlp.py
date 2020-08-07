@@ -65,7 +65,7 @@ class MLPModule(nn.Module):
         for l, (in_dim, out_dim) in enumerate(zip(hidden_sizes[:-1], hidden_sizes[1:])):
             layers.append(layer_class(in_dim, out_dim, **layer_kwargs))
 
-            if l < len(hidden_sizes):
+            if l < len(hidden_sizes) - 2:
                 layers.append(nn.ReLU())
                 layers.append(nn.Dropout(dropout_rate))
 
@@ -85,7 +85,8 @@ class MLPModule(nn.Module):
         type: torch.Tensor
             The output of the model.
         """
-        return self.mlp(_input)
+        out = self.mlp(_input)
+        return out
 
 
 @variational_estimator
