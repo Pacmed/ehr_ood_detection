@@ -7,7 +7,8 @@ from typing import Optional, Iterable, Dict, Tuple, List
 
 # EXT
 from sklearn.decomposition import PCA
-from sklearn.svm import OneClassSVM
+
+# from sklearn.svm import OneClassSVM
 
 # PROJECT
 from uncertainty_estimation.models.novelty_estimator import NoveltyEstimator
@@ -61,7 +62,7 @@ def init_models(
 
     model_classes = {
         "PPCA": PCA,
-        "SVM": OneClassSVM,
+        # "SVM": OneClassSVM,
         "AE": AE,
         "NN": MLP,
         "PlattScalingNN": PlattScalingMLP,

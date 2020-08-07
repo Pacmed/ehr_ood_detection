@@ -335,7 +335,7 @@ class MLP:
         output_size: int = 1,
         lr: float = 1e-3,
         mlp_module: MLPModule = MLPModule,
-        **mlp_kwargs
+        **mlp_kwargs,
     ):
         self.model = mlp_module(
             hidden_sizes, input_size, dropout_rate, output_size, **mlp_kwargs
@@ -593,7 +593,7 @@ class PlattScalingMLP(MLP):
                     prev_val_loss = loss
 
             if n_no_improvement >= early_stopping_patience:
-                print("Early stopping platt scale training after", epoch, "epochs.")
+                print(f"Early stopping platt scale training after {epoch} epochs.")
                 break
 
         # Add scaling layer to model
@@ -632,7 +632,7 @@ class BayesianMLP(MLP, MultiplePredictionsMixin):
         class_weight: bool = True,
         output_size: int = 1,
         lr: float = 1e-3,
-        **bayesian_mlp_kwargs
+        **bayesian_mlp_kwargs,
     ):
         """
         Initialize a Bayesian MLP.

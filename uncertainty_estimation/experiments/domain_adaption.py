@@ -19,6 +19,7 @@ from uncertainty_estimation.models.info import AVAILABLE_MODELS
 
 # CONST
 N_SEEDS = 5
+RESULT_DIR = "../../data/results"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -29,6 +30,12 @@ if __name__ == "__main__":
         default=AVAILABLE_MODELS,
         choices=AVAILABLE_MODELS,
         help="Determine the models which are being used for this experiment.",
+    )
+    parser.add_argument(
+        "--result_dir",
+        type=str,
+        default=RESULT_DIR,
+        help="Define the directory that results should be saved to.",
     )
     args = parser.parse_args()
 
@@ -86,8 +93,12 @@ if __name__ == "__main__":
         input_dim=len(feature_names_eicu), selection=args.models
     ):
         print(model_info[2])
-        ood_detect_aucs, ood_recall = defaultdict(dict), defaultdict(dict)
-        metrics = defaultdict(dict)
+        ood_detect_aucs, ood_recall = (
+            defaultdict(lambda: defaultdict(list)),
+            defaultdict(lambda: defaultdict(list)),
+        )
+        metrics = defaultdict(lambda: defaultdict(list))
+
         ood_detect_aucs, ood_recall, metrics = ood_utils.run_ood_experiment_on_group(
             id_data=mimic_data,
             ood_data=eicu_data,
@@ -111,8 +122,11 @@ if __name__ == "__main__":
         )
 
         # Doing tests on identically distributed data (mostly a check)
-        ood_detect_aucs_id, ood_recall_id = defaultdict(dict), defaultdict(dict)
-        metrics_id = defaultdict(dict)
+        ood_detect_aucs_id, ood_recall_id = (
+            defaultdict(lambda: defaultdict(list)),
+            defaultdict(lambda: defaultdict(list)),
+        )
+        metrics_id = defaultdict(lambda: defaultdict(list))
 
         (
             ood_detect_aucs_id,
@@ -146,10 +160,10 @@ if __name__ == "__main__":
 
         ne, scoring_funcs, method_name = model_info
         # Save everything for this model
-        dir_name = os.path.join("pickled_results", "DA", method_name)
+        dir_name = os.path.join(args.result_dir, "DA", method_name)
 
         if not os.path.exists(dir_name):
-            os.mkdir(dir_name)
+            os.makedirs(dir_name)
 
         metric_dir_name = os.path.join(dir_name, "metrics")
 

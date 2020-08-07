@@ -119,26 +119,21 @@ if __name__ == "__main__":
             aucs_dict, recall_dict = run_perturbation_experiment(
                 nov_an, test_data[feature_names], scoring_func=scoring_func
             )
-            if len(scoring_funcs) > 1:
-                dir_name = os.path.join(
-                    args.result_dir,
-                    args.data_origin,
-                    "perturbation",
-                    name + " (" + scoring_func + ")",
-                )
-            else:
-                dir_name = os.path.join(
-                    "pickled_results", args.data_origin, "perturbation", name
-                )
+
+            dir_name = os.path.join(
+                args.result_dir,
+                args.data_origin,
+                "perturbation",
+                name,
+                "detection",
+                scoring_func,
+            )
 
             if not os.path.exists(dir_name):
-                os.mkdir(dir_name)
-            with open(os.path.join(dir_name, "model_info.pkl"), "wb") as f:
-                pickle.dump(
-                    {"train_params": ne.train_params, "model_params": ne.model_params},
-                    f,
-                )
-            with open(os.path.join(dir_name, "perturb_recall.pkl"), "wb") as f:
+                os.makedirs(dir_name)
+
+            with open(os.path.join(dir_name, "recall.pkl"), "wb") as f:
                 pickle.dump(recall_dict, f)
-            with open(os.path.join(dir_name, "perturb_detect_auc.pkl"), "wb") as f:
+
+            with open(os.path.join(dir_name, "detect_auc.pkl"), "wb") as f:
                 pickle.dump(aucs_dict, f)

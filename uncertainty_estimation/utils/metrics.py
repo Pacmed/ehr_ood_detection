@@ -54,6 +54,29 @@ def max_prob(probabilities: np.array, axis: int) -> Union[float, np.array]:
     return np.max(probabilities, axis)
 
 
+def max_abs_out(probabilities: np.array, axis: int) -> Union[float, np.array]:
+    """
+    Get the maximum absolute output value of the network as a novelty score.
+
+    Parameters
+    ----------
+    probabilities: np.array
+        Probabilities per class.
+    axis: int
+        Axis over which the max should be taken.
+
+    Returns
+    -------
+    float
+        Max class probability per sample.
+    """
+    inverse_sigmoid = lambda probs: np.log(
+        np.array(probs) / (1 + 1e-5 - np.array(probs)) + 1e-5
+    )
+
+    return np.max(np.abs(inverse_sigmoid(probabilities)), axis)
+
+
 def entropy(probabilities: np.array, axis: int) -> Union[float, np.array]:
     """
     Entropy of a probability distribution.
