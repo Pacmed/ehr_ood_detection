@@ -51,7 +51,7 @@ def max_prob(probabilities: np.array, axis: int) -> Union[float, np.array]:
     float
         Max class probability per sample.
     """
-    return np.max(probabilities, axis)
+    return 1 - np.max(probabilities, axis)
 
 
 def max_abs_out(probabilities: np.array, axis: int) -> Union[float, np.array]:
@@ -75,7 +75,7 @@ def max_abs_out(probabilities: np.array, axis: int) -> Union[float, np.array]:
     )
     max_abs_out_vals = np.max(np.abs(inverse_sigmoid(probabilities)), axis)
 
-    return max_abs_out_vals
+    return -max_abs_out_vals
 
 
 def entropy(probabilities: np.array, axis: int) -> Union[float, np.array]:
