@@ -511,6 +511,9 @@ class MLP:
 
         return np.stack([1 - predictions, predictions], axis=1)
 
+    def eval(self) -> None:
+        self.model.eval()
+
 
 class PlattScalingMLP(MLP):
     """
@@ -566,10 +569,10 @@ class PlattScalingMLP(MLP):
         self.model.eval()
         scaling_layer = nn.Linear(1, 1).train()
 
-        val_set = SimpleDataset(torch.from_numpy(X_train), torch.from_numpy(y_train))
+        val_set = SimpleDataset(torch.from_numpy(X_val), torch.from_numpy(y_val))
         val_loader = DataLoader(val_set, batch_size, shuffle=True)
         loss_fn = torch.nn.BCEWithLogitsLoss()
-        optimizer = torch.optim.Adam(scaling_layer.parameters(), lr=self.lr)
+        optimizer = torch.optim.SGD(scaling_layer.parameters(), lr=0.1)
 
         prev_val_loss = float("inf")
         n_no_improvement = 0
