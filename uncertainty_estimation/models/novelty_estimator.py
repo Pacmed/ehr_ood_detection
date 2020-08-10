@@ -87,7 +87,10 @@ class NoveltyEstimator:
         np.ndarray
             The novelty estimates.
         """
-        self.model.eval()
+        try:
+            self.model.eval()
+        except AttributeError:
+            pass
 
         if self.name == "AE":
             return self.model.get_reconstr_error(data)
