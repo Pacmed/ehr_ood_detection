@@ -186,6 +186,7 @@ def plot_ood(
                     ] = f"${ood_results.mean():.2f} \pm {ood_results.std():.2f}$"
 
         for metric_name, table in result_tables.items():
+            table.sort_index(inplace=True)
             print("\\begin{figure}[h]\n\\centering")
             print(table.to_latex(escape=False))
             print("\\caption{" + data_origin + ", " + metric_name + "}")
@@ -343,6 +344,7 @@ def plot_domain_adaption(
                     ] = f"${origin_results.mean():.2f} \pm {origin_results.std():.2f}$"
 
         for metric_name, table in result_tables.items():
+            table.sort_index(inplace=True)
             print("\\begin{figure}[h]\n\\centering")
             print(table.to_latex(escape=False))
             print("\\caption{" + metric_name + "}")
@@ -437,6 +439,7 @@ def plot_perturbation(
                     ] = f"${results_scale.mean():.2f} \pm {results_scale.std():.2f}$"
 
         for scale in scales:
+            result_tables[scale].sort_index(inplace=True)
             print("\\begin{figure}[h]\n\\centering")
             print(result_tables[scale].to_latex(escape=False))
             print("\\caption{" + data_origin + ", scale = " + str(scale) + "}")
