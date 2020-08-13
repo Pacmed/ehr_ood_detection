@@ -7,7 +7,7 @@ import argparse
 from collections import defaultdict
 import os
 import pickle
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 # EXT
 import matplotlib.pyplot as plt
@@ -16,8 +16,8 @@ import pandas as pd
 
 # PROJECT
 from uncertainty_estimation.visualizing.ood_plots import (
-    boxplot_from_nested_listdict,
-    heatmap_result_plot,
+    plot_results_as_boxplot,
+    plot_results_as_heatmap,
 )
 import uncertainty_estimation.visualizing.confidence_performance_plots as cp
 import uncertainty_estimation.utils.metrics as metrics
@@ -32,6 +32,7 @@ from uncertainty_estimation.experiments.perturbation import SCALES
 N_SEEDS = 5
 RESULT_DIR = "../../data/results"
 PLOT_DIR = "../../img/experiments"
+STATS_DIR = "../../data/stats"
 
 
 # TODO: There is a lot of shared code between the functions here, simplify
@@ -46,6 +47,8 @@ def plot_ood(
     print_latex: bool,
     plot_type: str,
     dummy_group_name: Optional[str] = None,
+    rel_sizes: Optional[Dict[str, float]] = None,
+    percentage_sigs: Optional[Dict[str, float]] = None,
 ) -> None:
     """
     Plot the results of the out-of-domain group experiments.
@@ -68,6 +71,11 @@ def plot_ood(
         Type of plot that should be created.
     dummy_group_name: Optional[str]
         Name of dummy group to "pad" plot and align eICU and MIMIC results.
+    rel_sizes: Optional[Dict[str, float]]
+        Dictionary containing the relative sizes of groups models were tested on.
+    percentage_sigs: Optional[Dict[str, float]]
+        Dictionary containing the percentage of statistically significant different features of tested group compared to
+        reference group.
     """
     # TODO: Support joint dataset plots
     # TODO: Add percentages of data set sizes
@@ -106,7 +114,7 @@ def plot_ood(
                     metric_dict[metric][name] = pickle.load(f)
 
     if plot_type == "boxplot":
-        boxplot_from_nested_listdict(
+        plot_results_as_boxplot(
             auc_dict,
             name=f"OOD detection AUC {data_origin}",
             kind="bar",
@@ -120,9 +128,11 @@ def plot_ood(
             height=8,
             aspect=1,
             vline=0.5,
+            rel_sizes=rel_sizes,
+            percentage_sigs=percentage_sigs,
         )
 
-        boxplot_from_nested_listdict(
+        plot_results_as_boxplot(
             recall_dict,
             name=f"95% OOD recall {data_origin}",
             kind="bar",
@@ -137,20 +147,26 @@ def plot_ood(
             height=8,
             aspect=1,
             vline=0.05,
+            rel_sizes=rel_sizes,
+            percentage_sigs=percentage_sigs,
         )
 
     else:  # plot_type is "heatmap"
-        heatmap_result_plot(
+        plot_results_as_heatmap(
             auc_dict,
             name=f"OOD detection AUC {data_origin}",
             save_dir=os.path.join(ood_plot_dir_name, f"ood_detection_auc{suffix}.png"),
             lower_cmap_limit=0.5,
+            rel_sizes=rel_sizes,
+            percentage_sigs=percentage_sigs,
         )
 
-        heatmap_result_plot(
+        plot_results_as_heatmap(
             recall_dict,
             name=f"95% OOD recall {data_origin}",
             save_dir=os.path.join(ood_plot_dir_name, f"ood_recall{suffix}.png"),
+            rel_sizes=rel_sizes,
+            percentage_sigs=percentage_sigs,
         )
 
     name_dict = {
@@ -164,7 +180,7 @@ def plot_ood(
 
     for m in metric_dict.keys():
         if plot_type == "boxplot":
-            boxplot_from_nested_listdict(
+            plot_results_as_boxplot(
                 metric_dict[m],
                 name=name_dict[m.split(".")[0]],
                 kind="bar",
@@ -180,16 +196,20 @@ def plot_ood(
                 legend_out=True,
                 height=6,
                 aspect=1.333,
+                rel_sizes=rel_sizes,
+                percentage_sigs=percentage_sigs,
             )
 
         else:  # plot_type is "heatmap"
-            heatmap_result_plot(
+            plot_results_as_heatmap(
                 auc_dict,
                 name=f"{name_dict[m.split('.')[0]]} ({data_origin})",
                 save_dir=os.path.join(
                     ood_plot_dir_name, m.split(".")[0] + f"{suffix}.png"
                 ),
                 lower_cmap_limit=0.5 if "roc_auc_score" in m else 0,
+                rel_sizes=rel_sizes,
+                percentage_sigs=percentage_sigs,
             )
 
     # Add to DataFrame and export to Latex
@@ -241,6 +261,7 @@ def plot_domain_adaption(
     suffix: str,
     print_latex: bool,
     plot_type: str,
+    percentage_sigs: Optional[Dict[str, float]] = None,
 ) -> None:
     """
     Plot the results of the domain adaption experiments.
@@ -259,6 +280,9 @@ def plot_domain_adaption(
         Put the results into a DataFrame which is exported to latex and then printed to screen if True.
     plot_type: str
         Type of plot that should be created.
+    percentage_sigs: Optional[Dict[str, float]]
+        Dictionary containing the percentage of statistically significant different features of tested group compared to
+        reference group.
     """
     # TODO: Support joint dataset plots
     # TODO: Add percentages of different features
@@ -310,7 +334,7 @@ def plot_domain_adaption(
                 pass
 
     if plot_type == "boxplot":
-        boxplot_from_nested_listdict(
+        plot_results_as_boxplot(
             auc_dict,
             name="OOD detection AUC",
             kind="bar",
@@ -323,9 +347,10 @@ def plot_domain_adaption(
             height=3,
             aspect=3,
             vline=0.5,
+            percentage_sigs=percentage_sigs,
         )
 
-        boxplot_from_nested_listdict(
+        plot_results_as_boxplot(
             recall_dict,
             name="95% OOD recall",
             kind="bar",
@@ -339,20 +364,23 @@ def plot_domain_adaption(
             height=3,
             aspect=3,
             vline=0.05,
+            percentage_sigs=percentage_sigs,
         )
 
     else:  # plot_type is "heatmap"
-        heatmap_result_plot(
+        plot_results_as_heatmap(
             auc_dict,
             name="OOD detection AUC",
             save_dir=os.path.join(ood_plot_dir_name, f"ood_detection_auc{suffix}.png"),
             lower_cmap_limit=0.5,
+            percentage_sigs=percentage_sigs,
         )
 
-        heatmap_result_plot(
+        plot_results_as_heatmap(
             recall_dict,
             name="95% OOD recall",
             save_dir=os.path.join(ood_plot_dir_name, f"ood_recall{suffix}.png"),
+            percentage_sigs=percentage_sigs,
         )
 
     name_dict = {
@@ -365,7 +393,7 @@ def plot_domain_adaption(
 
     for m in metric_dict.keys():
         if plot_type == "boxplot":
-            boxplot_from_nested_listdict(
+            plot_results_as_boxplot(
                 metric_dict[m],
                 name=name_dict[m.split(".")[0]],
                 kind="bar",
@@ -380,16 +408,18 @@ def plot_domain_adaption(
                 height=4,
                 aspect=2,
                 xlim=None,
+                percentage_sigs=percentage_sigs,
             )
 
         else:  # plot_type is "heatmap"
-            heatmap_result_plot(
+            plot_results_as_heatmap(
                 metric_dict[m],
                 name=f"{name_dict[m.split('.')[0]]}",
                 save_dir=os.path.join(
                     ood_plot_dir_name, m.split(".")[0] + f"{suffix}.png"
                 ),
                 lower_cmap_limit=0.5 if "roc_auc_score" in m else 0,
+                percentage_sigs=percentage_sigs,
             )
 
     # Add to DataFrame and export to Latex
@@ -485,7 +515,7 @@ def plot_perturbation(
                 recall_dict[name] = pickle.load(f)
 
     if plot_type == "boxplot":
-        boxplot_from_nested_listdict(
+        plot_results_as_boxplot(
             recall_dict,
             "perturbation 95% recall",
             hline=0.05,
@@ -496,7 +526,7 @@ def plot_perturbation(
             showfliers=False,
             legend=True,
         )
-        boxplot_from_nested_listdict(
+        plot_results_as_boxplot(
             auc_dict,
             "perturbation detection AUC",
             hline=0.5,
@@ -510,14 +540,14 @@ def plot_perturbation(
         )
 
     else:  # plot_type is "heatmap"
-        heatmap_result_plot(
+        plot_results_as_heatmap(
             auc_dict,
             name="perturbation detection AUC",
             save_dir=os.path.join(perturb_plot_dir_name, f"detect_AUC{suffix}.png"),
             lower_cmap_limit=0.5,
         )
 
-        heatmap_result_plot(
+        plot_results_as_heatmap(
             recall_dict,
             name="perturbation 95% recall",
             save_dir=os.path.join(perturb_plot_dir_name, f"recall{suffix}.png"),
@@ -670,10 +700,7 @@ def plot_confidence_performance(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--data_origin",
-        type=str,
-        default="MIMIC_with_indicators",
-        help="Which data to use",
+        "--data_origin", type=str, default="MIMIC", help="Which data to use",
     )
     parser.add_argument(
         "--plots",
@@ -722,9 +749,35 @@ if __name__ == "__main__":
         choices=["boxplot", "heatmap"],
         help="Type of plot that is used to present results.",
     )
+    parser.add_argument(
+        "--show-rel-sizes",
+        action="store_true",
+        default=False,
+        help="For the OOD experiments, add the relative size of the OOD group to the plot.",
+    )
+    parser.add_argument(
+        "--show-percentage-sig",
+        action="store_true",
+        default=False,
+        help="For the OOD / DA experiments, add the percentage of feature that are significantly different compared to "
+        "the reference group.",
+    )
+    parser.add_argument(
+        "--stats-dir",
+        type=str,
+        default=STATS_DIR,
+        help="Define the directory that results should be saved to.",
+    )
     args = parser.parse_args()
 
     if "da" in args.plots:
+        percentage_sigs = None
+        if args.show_percentage_sig:
+            with open(
+                f"{args.stats_dir}/DA/percentage_sigs.pkl", "rb"
+            ) as percentage_sig_pkl:
+                percentage_sigs = pickle.load(percentage_sig_pkl)
+
         plot_domain_adaption(
             result_dir=args.result_dir,
             plot_dir=args.plot_dir,
@@ -732,9 +785,24 @@ if __name__ == "__main__":
             suffix=args.suffix,
             print_latex=args.print_latex,
             plot_type=args.plot_type,
+            percentage_sigs=percentage_sigs,
         )
 
     if "ood" in args.plots:
+        rel_sizes = None
+        if args.show_rel_sizes:
+            with open(
+                f"{args.stats_dir}/{args.data_origin}/rel_sizes.pkl", "rb"
+            ) as rel_sizes_pkl:
+                rel_sizes = pickle.load(rel_sizes_pkl)
+
+        percentage_sigs = None
+        if args.show_percentage_sig:
+            with open(
+                f"{args.stats_dir}/{args.data_origin}/percentage_sigs.pkl", "rb"
+            ) as percentage_sig_pkl:
+                percentage_sigs = pickle.load(percentage_sig_pkl)
+
         plot_ood(
             data_origin=args.data_origin,
             result_dir=args.result_dir,
@@ -743,6 +811,8 @@ if __name__ == "__main__":
             suffix=args.suffix,
             print_latex=args.print_latex,
             plot_type=args.plot_type,
+            rel_sizes=rel_sizes,
+            percentage_sigs=percentage_sigs,
         )
 
     if "perturb" in args.plots:

@@ -20,6 +20,7 @@ from uncertainty_estimation.models.info import AVAILABLE_MODELS
 # CONST
 N_SEEDS = 5
 RESULT_DIR = "../../data/results"
+STATS_DIR = "../../data/stats"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -35,6 +36,12 @@ if __name__ == "__main__":
         "--result_dir",
         type=str,
         default=RESULT_DIR,
+        help="Define the directory that results should be saved to.",
+    )
+    parser.add_argument(
+        "--stats-dir",
+        type=str,
+        default=STATS_DIR,
         help="Define the directory that results should be saved to.",
     )
     args = parser.parse_args()
@@ -73,19 +80,27 @@ if __name__ == "__main__":
         ]
     )
 
-    print("### ID: MIIMIC | OOD: eICU ###")
-    ood_utils.validate_ood_data(
+    print("### ID: MIMIC | OOD: eICU ###")
+    _, percentage_sigs_mimic = ood_utils.validate_ood_data(
         X_train=train_mimic[feature_names_mimic].values,
         X_ood=all_eicu,
         feature_names=feature_names_mimic,
     )
 
     print("\n### ID: eICU | OOD: MIMIC ###")
-    ood_utils.validate_ood_data(
+    _, percentage_sigs_eicu = ood_utils.validate_ood_data(
         X_train=train_eicu[feature_names_eicu].values,
         X_ood=all_mimic,
         feature_names=feature_names_eicu,
     )
+
+    percentage_sigs = {"MIMIC": percentage_sigs_mimic, "eICU": percentage_sigs_eicu}
+
+    if not os.path.exists(f"{STATS_DIR}/DA/"):
+        os.makedirs(f"{STATS_DIR}/DA/")
+
+    with open(f"{STATS_DIR}/DA/percentage_sigs.pkl", "wb") as f:
+        pickle.dump(percentage_sigs, f)
 
     del all_eicu, all_mimic
 
