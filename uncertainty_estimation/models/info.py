@@ -3,8 +3,13 @@ Module to be the single place to bundle all the information about models: Availa
 hyperparameters, etc.
 """
 
+# STD
 import math
+
+# EXT
 import numpy as np
+from sklearn.utils.fixes import loguniform
+from scipy.stats import uniform
 
 # ### Models and novelty scoring functions ###
 
@@ -176,6 +181,26 @@ TRAIN_PARAMS = {
         "n_epochs": 100,
     },
 }
+
+# Hyperparameter ranges / distributions that should be considered during the random search
+PARAM_SEARCH = {
+    "n_components": range(2, 20),
+    "hidden_size": [
+        [hidden_size] * num_layers
+        for hidden_size in [25, 30, 50, 75, 100]
+        for num_layers in range(3)
+    ],
+    "latent_dim": [5, 10, 15, 20],
+    "batch_size": [64, 128, 256],
+    "learning_rate": loguniform(1e-4, 0.1),
+    "dropout_rate": uniform(0, 0.5),
+    "posterior_rho_init": uniform(-8, -2),
+    "posterior_mu_init": uniform(-0.6, 0.6),
+    "prior_pi": uniform(0.1, 0.9),
+    "prior_sigma_1": [np.exp(d) for d in np.arange(-0.8, 0, 0.1)],
+    "prior_sigma_2": [np.exp(d) for d in np.arange(-0.8, 0, 0.1)],
+}
+NUM_EVALS = {"AE": 20, "NN": 20, "MCDropout": 20, "BNN": 50}
 
 # Default training hyperparameters
 DEFAULT_LEARNING_RATE: float = 1e-2
