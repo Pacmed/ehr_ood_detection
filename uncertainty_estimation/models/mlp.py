@@ -511,6 +511,27 @@ class MLP:
 
         return np.stack([1 - predictions, predictions], axis=1)
 
+    def predict_raw(self, X_test: np.array) -> np.array:
+        """
+        Create the raw outputs for a batch of samples.
+
+        Parameters
+        ----------
+        X_test: np.array
+            Batch of samples as numpy array.
+
+        Returns
+        -------
+        np.array
+            Raw predictions for every sample.
+        """
+        X_test_tensor = torch.tensor(X_test).float()
+
+        self.model.eval()
+        predictions = self.model(X_test_tensor).detach().squeeze().numpy()
+
+        return predictions
+
     def eval(self) -> None:
         self.model.eval()
 

@@ -15,7 +15,10 @@ import numpy as np
 import pandas as pd
 
 # PROJECT
-from uncertainty_estimation.visualizing.ood_plots import boxplot_from_nested_listdict
+from uncertainty_estimation.visualizing.ood_plots import (
+    boxplot_from_nested_listdict,
+    heatmap_result_plot,
+)
 import uncertainty_estimation.visualizing.confidence_performance_plots as cp
 import uncertainty_estimation.utils.metrics as metrics
 from uncertainty_estimation.models.info import (
@@ -31,6 +34,9 @@ RESULT_DIR = "../../data/results"
 PLOT_DIR = "../../img/experiments"
 
 
+# TODO: There is a lot of shared code between the functions here, simplify
+
+
 def plot_ood(
     data_origin: str,
     result_dir: str,
@@ -38,6 +44,7 @@ def plot_ood(
     models: List[str],
     suffix: str,
     print_latex: bool,
+    plot_type: str,
     dummy_group_name: Optional[str] = None,
 ) -> None:
     """
@@ -57,9 +64,13 @@ def plot_ood(
         Add a suffix to the resulting files in order to distinguish them.
     print_latex: bool
         Put the results into a DataFrame which is exported to latex and then printed to screen if True.
+    plot_type: str
+        Type of plot that should be created.
     dummy_group_name: Optional[str]
         Name of dummy group to "pad" plot and align eICU and MIMIC results.
     """
+    # TODO: Support joint dataset plots
+
     ood_dir_name = os.path.join(result_dir, data_origin, "OOD")
     ood_plot_dir_name = f"{plot_dir}/{data_origin}/OOD"
     auc_dict, recall_dict = dict(), dict()
@@ -92,38 +103,53 @@ def plot_ood(
                 with open(os.path.join(metrics_dir, metric), "rb") as f:
                     metric_dict[metric][name] = pickle.load(f)
 
-    boxplot_from_nested_listdict(
-        auc_dict,
-        name="OOD detection AUC",
-        kind="bar",
-        x_name=" ",
-        horizontal=True,
-        ylim=None,
-        legend=True,
-        legend_out=True,
-        dummy_group_name=dummy_group_name,
-        save_dir=os.path.join(ood_plot_dir_name, f"ood_detection_auc{suffix}.png"),
-        height=8,
-        aspect=1,
-        vline=0.5,
-    )
+    if plot_type == "boxplot":
+        boxplot_from_nested_listdict(
+            auc_dict,
+            name=f"OOD detection AUC {data_origin}",
+            kind="bar",
+            x_name=" ",
+            horizontal=True,
+            ylim=None,
+            legend=True,
+            legend_out=True,
+            dummy_group_name=dummy_group_name,
+            save_dir=os.path.join(ood_plot_dir_name, f"ood_detection_auc{suffix}.png"),
+            height=8,
+            aspect=1,
+            vline=0.5,
+        )
 
-    boxplot_from_nested_listdict(
-        recall_dict,
-        name="95% OOD recall",
-        kind="bar",
-        x_name=" ",
-        save_dir=os.path.join(ood_plot_dir_name, f"ood_recall{suffix}.png"),
-        dummy_group_name=dummy_group_name,
-        horizontal=True,
-        ylim=None,
-        legend=True,
-        legend_out=True,
-        xlim=(0, 1.0),
-        height=8,
-        aspect=1,
-        vline=0.05,
-    )
+        boxplot_from_nested_listdict(
+            recall_dict,
+            name=f"95% OOD recall {data_origin}",
+            kind="bar",
+            x_name=" ",
+            save_dir=os.path.join(ood_plot_dir_name, f"ood_recall{suffix}.png"),
+            dummy_group_name=dummy_group_name,
+            horizontal=True,
+            ylim=None,
+            legend=True,
+            legend_out=True,
+            xlim=(0, 1.0),
+            height=8,
+            aspect=1,
+            vline=0.05,
+        )
+
+    else:  # plot_type is "heatmap"
+        heatmap_result_plot(
+            auc_dict,
+            name=f"OOD detection AUC {data_origin}",
+            save_dir=os.path.join(ood_plot_dir_name, f"ood_detection_auc{suffix}.png"),
+            lower_cmap_limit=0.5,
+        )
+
+        heatmap_result_plot(
+            recall_dict,
+            name=f"95% OOD recall {data_origin}",
+            save_dir=os.path.join(ood_plot_dir_name, f"ood_recall{suffix}.png"),
+        )
 
     name_dict = {
         "ece": "ECE",
@@ -135,21 +161,34 @@ def plot_ood(
     }
 
     for m in metric_dict.keys():
-        boxplot_from_nested_listdict(
-            metric_dict[m],
-            name=name_dict[m.split(".")[0]],
-            kind="bar",
-            x_name=" ",
-            save_dir=os.path.join(ood_plot_dir_name, m.split(".")[0] + f"{suffix}.png"),
-            dummy_group_name=dummy_group_name,
-            horizontal=True,
-            legend=True,
-            ylim=None,
-            xlim=(0, 1.0),
-            legend_out=True,
-            height=6,
-            aspect=1.333,
-        )
+        if plot_type == "boxplot":
+            boxplot_from_nested_listdict(
+                metric_dict[m],
+                name=name_dict[m.split(".")[0]],
+                kind="bar",
+                x_name=" ",
+                save_dir=os.path.join(
+                    ood_plot_dir_name, m.split(".")[0] + f"{suffix}.png"
+                ),
+                dummy_group_name=dummy_group_name,
+                horizontal=True,
+                legend=True,
+                ylim=None,
+                xlim=(0, 1.0),
+                legend_out=True,
+                height=6,
+                aspect=1.333,
+            )
+
+        else:  # plot_type is "heatmap"
+            heatmap_result_plot(
+                auc_dict,
+                name=f"{name_dict[m.split('.')[0]]} ({data_origin})",
+                save_dir=os.path.join(
+                    ood_plot_dir_name, m.split(".")[0] + f"{suffix}.png"
+                ),
+                lower_cmap_limit=0.5 if "roc_auc_score" in m else 0,
+            )
 
     # Add to DataFrame and export to Latex
     if print_latex:
@@ -194,7 +233,12 @@ def plot_ood(
 
 
 def plot_domain_adaption(
-    result_dir: str, plot_dir: str, models: List[str], suffix: str, print_latex: bool
+    result_dir: str,
+    plot_dir: str,
+    models: List[str],
+    suffix: str,
+    print_latex: bool,
+    plot_type: str,
 ) -> None:
     """
     Plot the results of the domain adaption experiments.
@@ -211,7 +255,11 @@ def plot_domain_adaption(
         Add a suffix to the resulting files in order to distinguish them.
     print_latex: bool
         Put the results into a DataFrame which is exported to latex and then printed to screen if True.
+    plot_type: str
+        Type of plot that should be created.
     """
+    # TODO: Support joint dataset plots
+
     ood_dir_name = os.path.join(result_dir, "DA")
     ood_plot_dir_name = f"{plot_dir}/DA"
     auc_dict, recall_dict = dict(), dict()
@@ -258,36 +306,51 @@ def plot_domain_adaption(
             except FileNotFoundError:
                 pass
 
-    boxplot_from_nested_listdict(
-        auc_dict,
-        name="OOD detection AUC",
-        kind="bar",
-        x_name=" ",
-        horizontal=True,
-        ylim=None,
-        legend_out=True,
-        save_dir=os.path.join(ood_plot_dir_name, f"ood_detection_auc{suffix}.png"),
-        legend=True,
-        height=3,
-        aspect=3,
-        vline=0.5,
-    )
+    if plot_type == "boxplot":
+        boxplot_from_nested_listdict(
+            auc_dict,
+            name="OOD detection AUC",
+            kind="bar",
+            x_name=" ",
+            horizontal=True,
+            ylim=None,
+            legend=True,
+            legend_out=True,
+            save_dir=os.path.join(ood_plot_dir_name, f"ood_detection_auc{suffix}.png"),
+            height=3,
+            aspect=3,
+            vline=0.5,
+        )
 
-    boxplot_from_nested_listdict(
-        recall_dict,
-        name="95% OOD recall",
-        kind="bar",
-        x_name=" ",
-        save_dir=os.path.join(ood_plot_dir_name, f"ood_recall{suffix}.png"),
-        horizontal=True,
-        ylim=None,
-        legend_out=True,
-        legend=True,
-        xlim=None,
-        height=3,
-        aspect=3,
-        vline=0.05,
-    )
+        boxplot_from_nested_listdict(
+            recall_dict,
+            name="95% OOD recall",
+            kind="bar",
+            x_name=" ",
+            save_dir=os.path.join(ood_plot_dir_name, f"ood_recall{suffix}.png"),
+            horizontal=True,
+            ylim=None,
+            legend=True,
+            legend_out=True,
+            xlim=None,
+            height=3,
+            aspect=3,
+            vline=0.05,
+        )
+
+    else:  # plot_type is "heatmap"
+        heatmap_result_plot(
+            auc_dict,
+            name="OOD detection AUC",
+            save_dir=os.path.join(ood_plot_dir_name, f"ood_detection_auc{suffix}.png"),
+            lower_cmap_limit=0.5,
+        )
+
+        heatmap_result_plot(
+            recall_dict,
+            name="95% OOD recall",
+            save_dir=os.path.join(ood_plot_dir_name, f"ood_recall{suffix}.png"),
+        )
 
     name_dict = {
         "ece": "ECE",
@@ -298,20 +361,33 @@ def plot_domain_adaption(
     }
 
     for m in metric_dict.keys():
-        boxplot_from_nested_listdict(
-            metric_dict[m],
-            name=name_dict[m.split(".")[0]],
-            kind="bar",
-            x_name=" ",
-            save_dir=os.path.join(ood_plot_dir_name, m.split(".")[0] + f"{suffix}.png"),
-            horizontal=True,
-            ylim=None,
-            legend=True,
-            legend_out=True,
-            height=4,
-            aspect=2,
-            xlim=None,
-        )
+        if plot_type == "boxplot":
+            boxplot_from_nested_listdict(
+                metric_dict[m],
+                name=name_dict[m.split(".")[0]],
+                kind="bar",
+                x_name=" ",
+                save_dir=os.path.join(
+                    ood_plot_dir_name, m.split(".")[0] + f"{suffix}.png"
+                ),
+                horizontal=True,
+                legend=True,
+                ylim=None,
+                legend_out=True,
+                height=4,
+                aspect=2,
+                xlim=None,
+            )
+
+        else:  # plot_type is "heatmap"
+            heatmap_result_plot(
+                auc_dict,
+                name=f"{name_dict[m.split('.')[0]]}",
+                save_dir=os.path.join(
+                    ood_plot_dir_name, m.split(".")[0] + f"{suffix}.png"
+                ),
+                lower_cmap_limit=0.5 if "roc_auc_score" in m else 0,
+            )
 
     # Add to DataFrame and export to Latex
     if print_latex:
@@ -358,6 +434,7 @@ def plot_perturbation(
     models: List[str],
     suffix: str,
     print_latex: bool,
+    plot_type: str,
     scales: List[int] = SCALES,
 ) -> None:
     """
@@ -377,9 +454,14 @@ def plot_perturbation(
         Add a suffix to the resulting files in order to distinguish them.
     print_latex: bool
         Put the results into a DataFrame which is exported to latex and then printed to screen if True.
+    plot_type: str
+        Type of plot that should be created.
     scales: List[int]
         Scales used for the experiment.
     """
+    # TODO: Support heatmap plots
+    # TODO: Support joint dataset plots
+
     perturb_dir_name = os.path.join(result_dir, data_origin, "perturbation")
     perturb_plot_dir_name = f"{plot_dir}/{data_origin}/perturbation"
     auc_dict, recall_dict = dict(), dict()
@@ -399,31 +481,44 @@ def plot_perturbation(
             with open(os.path.join(method_dir, "recall.pkl"), "rb") as f:
                 recall_dict[name] = pickle.load(f)
 
-    boxplot_from_nested_listdict(
-        recall_dict,
-        "perturbation 95% recall",
-        # legend_args={"loc": "center left", "bbox_to_anchor": (1, 0.5)},
-        hline=0.05,
-        xlim=None,
-        ylim=None,
-        figsize=(6, 6),
-        save_dir=os.path.join(perturb_plot_dir_name, f"recall{suffix}.png"),
-        showfliers=False,
-        legend=True,
-    )
-    boxplot_from_nested_listdict(
-        auc_dict,
-        "perturbation detection AUC",
-        hline=0.5,
-        ylim=None,
-        figsize=(4, 4),
-        save_dir=os.path.join(perturb_plot_dir_name, f"detect_AUC{suffix}.png"),
-        # legend_args={"loc": "center left", "bbox_to_anchor": (1, 0.5)},
-        xlim=None,
-        showfliers=False,
-        legend_out=True,
-        legend=True,
-    )
+    if plot_type == "boxplot":
+        boxplot_from_nested_listdict(
+            recall_dict,
+            "perturbation 95% recall",
+            hline=0.05,
+            xlim=None,
+            ylim=None,
+            figsize=(6, 6),
+            save_dir=os.path.join(perturb_plot_dir_name, f"recall{suffix}.png"),
+            showfliers=False,
+            legend=True,
+        )
+        boxplot_from_nested_listdict(
+            auc_dict,
+            "perturbation detection AUC",
+            hline=0.5,
+            ylim=None,
+            figsize=(4, 4),
+            save_dir=os.path.join(perturb_plot_dir_name, f"detect_AUC{suffix}.png"),
+            xlim=None,
+            showfliers=False,
+            legend_out=True,
+            legend=True,
+        )
+
+    else:  # plot_type is "heatmap"
+        heatmap_result_plot(
+            auc_dict,
+            name="perturbation detection AUC",
+            save_dir=os.path.join(perturb_plot_dir_name, f"detect_AUC{suffix}.png"),
+            lower_cmap_limit=0.5,
+        )
+
+        heatmap_result_plot(
+            recall_dict,
+            name="perturbation 95% recall",
+            save_dir=os.path.join(perturb_plot_dir_name, f"recall{suffix}.png"),
+        )
 
     # Add to DataFrame and export to Latex
     if print_latex:
@@ -453,6 +548,7 @@ def plot_confidence_performance(
     models: List[str],
     suffix: str,
     print_latex: bool,
+    plot_type: str,
 ) -> None:
     """
     Plot the confidence-performance plots based on the in-domain data experiments..
@@ -472,6 +568,9 @@ def plot_confidence_performance(
     print_latex: bool
         Put the results into a DataFrame which is exported to latex and then printed to screen if True.
     """
+    # TODO: Support heatmap plots
+    # TODO: Support joint dataset plots
+
     id_dir_name = os.path.join(result_dir, data_origin, "ID")
     id_plot_dir_name = f"{plot_dir}/{data_origin}/ID"
     predictions, uncertainties = defaultdict(list), defaultdict(list)
@@ -613,6 +712,13 @@ if __name__ == "__main__":
         default=False,
         help="Print results as latex table if this flag is given.",
     )
+    parser.add_argument(
+        "--plot-type",
+        type=str,
+        default="boxplot",
+        choices=["boxplot", "heatmap"],
+        help="Type of plot that is used to present results.",
+    )
     args = parser.parse_args()
 
     if "da" in args.plots:
@@ -622,6 +728,7 @@ if __name__ == "__main__":
             models=args.models,
             suffix=args.suffix,
             print_latex=args.print_latex,
+            plot_type=args.plot_type,
         )
 
     if "ood" in args.plots:
@@ -632,6 +739,7 @@ if __name__ == "__main__":
             models=args.models,
             suffix=args.suffix,
             print_latex=args.print_latex,
+            plot_type=args.plot_type,
         )
 
     if "perturb" in args.plots:
@@ -642,6 +750,7 @@ if __name__ == "__main__":
             models=args.models,
             suffix=args.suffix,
             print_latex=args.print_latex,
+            plot_type=args.plot_type,
         )
 
     if "confidence" in args.plots:
@@ -652,4 +761,5 @@ if __name__ == "__main__":
             models=args.models,
             suffix=args.suffix,
             print_latex=args.print_latex,
+            plot_type=args.plot_type,
         )
