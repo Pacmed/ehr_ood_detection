@@ -70,6 +70,8 @@ def plot_ood(
         Name of dummy group to "pad" plot and align eICU and MIMIC results.
     """
     # TODO: Support joint dataset plots
+    # TODO: Add percentages of data set sizes
+    # TODO: Add percentages of different features
 
     ood_dir_name = os.path.join(result_dir, data_origin, "OOD")
     ood_plot_dir_name = f"{plot_dir}/{data_origin}/OOD"
@@ -259,6 +261,7 @@ def plot_domain_adaption(
         Type of plot that should be created.
     """
     # TODO: Support joint dataset plots
+    # TODO: Add percentages of different features
 
     ood_dir_name = os.path.join(result_dir, "DA")
     ood_plot_dir_name = f"{plot_dir}/DA"
@@ -381,7 +384,7 @@ def plot_domain_adaption(
 
         else:  # plot_type is "heatmap"
             heatmap_result_plot(
-                auc_dict,
+                metric_dict[m],
                 name=f"{name_dict[m.split('.')[0]]}",
                 save_dir=os.path.join(
                     ood_plot_dir_name, m.split(".")[0] + f"{suffix}.png"
