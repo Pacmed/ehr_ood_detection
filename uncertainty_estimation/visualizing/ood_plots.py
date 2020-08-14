@@ -44,7 +44,6 @@ def plot_results_as_heatmap(
         reference group.
     """
     df = pd.DataFrame.from_dict(result_dict)
-    df = df.sort_index()
 
     if rel_sizes is not None or percentage_sigs is not None:
         new_indices = []
@@ -67,6 +66,7 @@ def plot_results_as_heatmap(
 
         df.index = new_indices
 
+    df = df.sort_index()
     df = df.applymap(lambda l: np.array(l).mean())
     annotations = df.applymap(lambda l: f"{np.array(l).mean():.2f}".lstrip("0"))
 
@@ -80,7 +80,7 @@ def plot_results_as_heatmap(
         vmin=lower_cmap_limit,
         square=True,
         ax=ax,
-        cmap="viridis",
+        cmap="OrRd",
         cbar=False,
     )
     plt.title(name)
