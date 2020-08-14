@@ -7,7 +7,8 @@ import argparse
 from collections import defaultdict
 import os
 import pickle
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Tuple
+from warnings import warn
 
 # EXT
 import matplotlib.pyplot as plt
@@ -27,6 +28,7 @@ from uncertainty_estimation.models.info import (
     AVAILABLE_SCORING_FUNCS,
 )
 from uncertainty_estimation.experiments.perturbation import SCALES
+from uncertainty_estimation.utils.types import ResultDict
 
 # CONST
 N_SEEDS = 5
@@ -46,9 +48,10 @@ def plot_ood(
     suffix: str,
     print_latex: bool,
     plot_type: str,
+    stats_dir: str,
     dummy_group_name: Optional[str] = None,
-    rel_sizes: Optional[Dict[str, float]] = None,
-    percentage_sigs: Optional[Dict[str, float]] = None,
+    show_rel_sizes: bool = False,
+    show_percentage_sigs: bool = False,
 ) -> None:
     """
     Plot the results of the out-of-domain group experiments.
@@ -69,49 +72,24 @@ def plot_ood(
         Put the results into a DataFrame which is exported to latex and then printed to screen if True.
     plot_type: str
         Type of plot that should be created.
+    stats_dir: str
+        Directory containing statistics.
     dummy_group_name: Optional[str]
         Name of dummy group to "pad" plot and align eICU and MIMIC results.
-    rel_sizes: Optional[Dict[str, float]]
-        Dictionary containing the relative sizes of groups models were tested on.
-    percentage_sigs: Optional[Dict[str, float]]
-        Dictionary containing the percentage of statistically significant different features of tested group compared to
-        reference group.
+    show_rel_sizes: bool
+        Add the relative size of the OOD group to the plot.
+    show_percentage_sigs: bool
+        Add the percentage of significantly different features to the plot.
     """
-    # TODO: Support joint dataset plots
-    # TODO: Add percentages of data set sizes
-    # TODO: Add percentages of different features
+    rel_sizes = load_rel_sizes(stats_dir, data_origin) if show_rel_sizes else None
+    percentage_sigs = (
+        load_percentage_sig(stats_dir, data_origin) if show_percentage_sigs else None
+    )
 
-    ood_dir_name = os.path.join(result_dir, data_origin, "OOD")
     ood_plot_dir_name = f"{plot_dir}/{data_origin}/OOD"
-    auc_dict, recall_dict = dict(), dict()
-    metric_dict = defaultdict(dict)
-    available_results = set(os.listdir(f"{result_dir}/{data_origin}/OOD/"))
-
-    for method in available_results & set(models):
-        method_dir = os.path.join(ood_dir_name, method)
-        detection_dir = os.path.join(method_dir, "detection")
-
-        for scoring_func in os.listdir(detection_dir):
-            name = f"{method.replace('_', ' ')} ({scoring_func.replace('_', ' ')})"
-
-            with open(
-                os.path.join(detection_dir, scoring_func, "detect_auc.pkl"), "rb"
-            ) as f:
-                auc_dict[name] = pickle.load(f)
-
-            with open(
-                os.path.join(detection_dir, scoring_func, "recall.pkl"), "rb"
-            ) as f:
-                recall_dict[name] = pickle.load(f)
-
-        if method in NEURAL_PREDICTORS:
-            metrics_dir = os.path.join(method_dir, "metrics")
-
-            for metric in os.listdir(metrics_dir):
-                name = method.replace("_", " ")
-
-                with open(os.path.join(metrics_dir, metric), "rb") as f:
-                    metric_dict[metric][name] = pickle.load(f)
+    auc_dict, recall_dict, metric_dict = load_ood_results_from_origin(
+        models, result_dir, data_origin
+    )
 
     if plot_type == "boxplot":
         plot_results_as_boxplot(
@@ -254,6 +232,148 @@ def plot_ood(
             print("\\end{figure}")
 
 
+def plot_ood_jointly(
+    data_origins: List[str],
+    result_dir: str,
+    plot_dir: str,
+    models: List[str],
+    suffix: str,
+    plot_type: str,
+    stats_dir: str,
+):
+    """
+    Plot the results for the OOD group experiments for two or more data sets jointly next to each other.
+
+    Parameters
+    ----------
+    data_origins: List[str]
+        List of data set names.
+    result_dir: str
+        Directory containing the results.
+    plot_dir: str
+        Directory plots should be saved to.
+    models: List[str]
+        List of model names for which the results should be plotted.
+    suffix: str
+        Add a suffix to the resulting files in order to distinguish them.
+    plot_type: str
+        Type of plot that should be created.
+    stats_dir: str
+        Directory containing statistics.
+    """
+    auc_dicts, recall_dicts, metric_dicts = {}, {}, {}
+    percentage_sigs, rel_sizes = {}, {}
+
+    for data_origin in data_origins:
+        (
+            auc_dicts[data_origin],
+            recall_dicts[data_origin],
+            metric_dicts[data_origin],
+        ) = load_ood_results_from_origin(models, result_dir, data_origin)
+        percentage_sigs[data_origin] = load_percentage_sig(stats_dir, data_origin)
+        rel_sizes[data_origin] = load_rel_sizes(stats_dir, data_origin)
+
+    # Retrieve OOD groups common across all data sets
+    ood_groups = None
+    for data_origin in data_origins:
+        for model in auc_dicts[data_origin].keys():
+            if ood_groups is None:
+                ood_groups = set(auc_dicts[data_origin][model])
+            else:
+                ood_groups |= set(auc_dicts[data_origin][model])
+
+    ood_plot_dir_name = f"{plot_dir}/{'_'.join(data_origins)}/OOD"
+
+    if not os.path.exists(ood_plot_dir_name):
+        os.makedirs(ood_plot_dir_name)
+
+    for ood_group in ood_groups:
+        ood_group_dir = os.path.join(ood_plot_dir_name, ood_group)
+
+        if not os.path.exists(ood_group_dir):
+            os.makedirs(ood_group_dir)
+
+        if plot_type == "boxplot":
+            plot_results_as_boxplot(
+                {
+                    data_origin: {
+                        model: auc_dicts[data_origin][model][ood_group]
+                        for model in auc_dicts[data_origin].keys()
+                    }
+                    for data_origin in data_origins
+                },
+                name=f"OOD detection AUC {', '.join(data_origins)}",
+                kind="bar",
+                x_name=" ",
+                horizontal=True,
+                ylim=None,
+                legend=True,
+                legend_out=True,
+                save_dir=os.path.join(
+                    ood_plot_dir_name, ood_group, f"ood_detection_auc{suffix}.png"
+                ),
+                height=8,
+                aspect=1,
+                vline=0.5,
+            )
+
+            plot_results_as_boxplot(
+                {
+                    data_origin: {
+                        model: recall_dicts[data_origin][model][ood_group]
+                        for model in recall_dicts[data_origin].keys()
+                    }
+                    for data_origin in data_origins
+                },
+                name=f"95% OOD recall {', '.join(data_origins)}",
+                kind="bar",
+                x_name=" ",
+                save_dir=os.path.join(
+                    ood_plot_dir_name, ood_group, f"ood_recall{suffix}.png"
+                ),
+                horizontal=True,
+                ylim=None,
+                legend=True,
+                legend_out=True,
+                xlim=(0, 1.0),
+                height=8,
+                aspect=1,
+                vline=0.05,
+            )
+
+        else:  # plot_type is "heatmap"
+            plot_results_as_heatmap(
+                {
+                    data_origin: {
+                        model: auc_dicts[data_origin][model][ood_group]
+                        for model in auc_dicts[data_origin].keys()
+                    }
+                    for data_origin in data_origins
+                },
+                name=f"OOD detection AUC {', '.join(data_origins)}",
+                save_dir=os.path.join(
+                    ood_plot_dir_name, ood_group, f"ood_detection_auc{suffix}.png"
+                ),
+                lower_cmap_limit=0.5,
+            )
+
+            plot_results_as_heatmap(
+                {
+                    data_origin: {
+                        model: recall_dicts[data_origin][model][ood_group]
+                        for model in recall_dicts[data_origin].keys()
+                    }
+                    for data_origin in data_origins
+                },
+                name=f"95% OOD recall {', '.join(data_origins)}",
+                save_dir=os.path.join(
+                    ood_plot_dir_name, ood_group, f"ood_recall{suffix}.png"
+                ),
+            )
+
+    # TODO: Create plots for metric dicts
+
+
 def plot_domain_adaption(
     result_dir: str,
     plot_dir: str,
@@ -261,7 +381,8 @@ def plot_domain_adaption(
     suffix: str,
     print_latex: bool,
     plot_type: str,
-    percentage_sigs: Optional[Dict[str, float]] = None,
+    stats_dir: str,
+    show_percentage_sigs: bool = False,
 ) -> None:
     """
     Plot the results of the domain adaption experiments.
@@ -280,12 +401,14 @@ def plot_domain_adaption(
         Put the results into a DataFrame which is exported to latex and then printed to screen if True.
     plot_type: str
         Type of plot that should be created.
-    percentage_sigs: Optional[Dict[str, float]]
-        Dictionary containing the percentage of statistically significant different features of tested group compared to
-        reference group.
+    stats_dir: str
+        Directory containing statistics.
+    show_percentage_sigs: bool
+        Add the percentage of significantly different features to the plot.
     """
-    # TODO: Support joint dataset plots
-    # TODO: Add percentages of different features
+    percentage_sigs = (
+        load_percentage_sig(stats_dir, "DA") if show_percentage_sigs else None
+    )
 
     ood_dir_name = os.path.join(result_dir, "DA")
     ood_plot_dir_name = f"{plot_dir}/DA"
@@ -492,8 +615,6 @@ def plot_perturbation(
     scales: List[int]
         Scales used for the experiment.
     """
-    # TODO: Support heatmap plots
-    # TODO: Support joint dataset plots
 
     perturb_dir_name = os.path.join(result_dir, data_origin, "perturbation")
     perturb_plot_dir_name = f"{plot_dir}/{data_origin}/perturbation"
@@ -697,10 +818,78 @@ def plot_confidence_performance(
     # TODO: Export to latex table
 
 
+def load_ood_results_from_origin(
+    models: List[str], result_dir: str, data_origin: str
+) -> Tuple[ResultDict, ResultDict, ResultDict]:
+    """
+    Load the OOD experiment results for a specific data sets and selection of models.
+
+    Parameters
+    ----------
+    models: List[str]
+        List of model names for which the results should be plotted.
+    result_dir: str
+        Directory containing the results.
+    data_origin: List[str]
+        Data set that was being used, e.g. eICU or MIMIC.
+
+    Returns
+    -------
+    auc_dict, recall_dict, metric_dict: Tuple[ResultDict, ResultDict, ResultDict]
+        Results of OOD experiments as dictionaries mapping from models to their scores.
+    """
+    ood_dir_name = os.path.join(result_dir, data_origin, "OOD")
+    auc_dict, recall_dict = dict(), dict()
+    metric_dict = defaultdict(dict)
+    available_results = set(os.listdir(f"{result_dir}/{data_origin}/OOD/"))
+
+    for method in available_results & set(models):
+        method_dir = os.path.join(ood_dir_name, method)
+        detection_dir = os.path.join(method_dir, "detection")
+
+        for scoring_func in os.listdir(detection_dir):
+            name = f"{method.replace('_', ' ')} ({scoring_func.replace('_', ' ')})"
+
+            with open(
+                os.path.join(detection_dir, scoring_func, "detect_auc.pkl"), "rb"
+            ) as f:
+                auc_dict[name] = pickle.load(f)
+
+            with open(
+                os.path.join(detection_dir, scoring_func, "recall.pkl"), "rb"
+            ) as f:
+                recall_dict[name] = pickle.load(f)
+
+        if method in NEURAL_PREDICTORS:
+            metrics_dir = os.path.join(method_dir, "metrics")
+
+            for metric in os.listdir(metrics_dir):
+                name = method.replace("_", " ")
+
+                with open(os.path.join(metrics_dir, metric), "rb") as f:
+                    metric_dict[metric][name] = pickle.load(f)
+
+    return auc_dict, recall_dict, metric_dict
+
+
+def load_rel_sizes(stats_dir: str, task: str) -> Dict[str, float]:
+    """ Load pickle containing the relative sizes of data set groups. """
+    with open(f"{stats_dir}/{task}/rel_sizes.pkl", "rb") as f:
+        return pickle.load(f)
+
+
+def load_percentage_sig(stats_dir: str, task: str) -> Dict[str, float]:
+    """
+    Load pickle containing information about what percentage of features is different comparic to the reference data.
+    """
+    with open(f"{stats_dir}/{task}/percentage_sigs.pkl", "rb") as f:
+        return pickle.load(f)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--data_origin", type=str, default="MIMIC", help="Which data to use",
+        "--data_origin", type=str, nargs="+", default="MIMIC", help="Which data to use",
     )
     parser.add_argument(
         "--plots",
@@ -771,13 +960,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if "da" in args.plots:
-        percentage_sigs = None
-        if args.show_percentage_sig:
-            with open(
-                f"{args.stats_dir}/DA/percentage_sigs.pkl", "rb"
-            ) as percentage_sig_pkl:
-                percentage_sigs = pickle.load(percentage_sig_pkl)
-
         plot_domain_adaption(
             result_dir=args.result_dir,
             plot_dir=args.plot_dir,
@@ -785,39 +967,45 @@ if __name__ == "__main__":
             suffix=args.suffix,
             print_latex=args.print_latex,
             plot_type=args.plot_type,
-            percentage_sigs=percentage_sigs,
+            stats_dir=args.stats_dir,
+            show_percentage_sigs=args.show_percentage_sigs,
         )
 
     if "ood" in args.plots:
-        rel_sizes = None
-        if args.show_rel_sizes:
-            with open(
-                f"{args.stats_dir}/{args.data_origin}/rel_sizes.pkl", "rb"
-            ) as rel_sizes_pkl:
-                rel_sizes = pickle.load(rel_sizes_pkl)
+        if len(args.data_origin) == 1:
+            plot_ood(
+                data_origin=args.data_origin[0],
+                result_dir=args.result_dir,
+                plot_dir=args.plot_dir,
+                models=args.models,
+                suffix=args.suffix,
+                print_latex=args.print_latex,
+                plot_type=args.plot_type,
+                stats_dir=args.stats_dir,
+                show_rel_sizes=args.show_rel_sizes,
+                show_percentage_sigs=args.show_percentage_sigs,
+            )
 
-        percentage_sigs = None
-        if args.show_percentage_sig:
-            with open(
-                f"{args.stats_dir}/{args.data_origin}/percentage_sigs.pkl", "rb"
-            ) as percentage_sig_pkl:
-                percentage_sigs = pickle.load(percentage_sig_pkl)
-
-        plot_ood(
-            data_origin=args.data_origin,
-            result_dir=args.result_dir,
-            plot_dir=args.plot_dir,
-            models=args.models,
-            suffix=args.suffix,
-            print_latex=args.print_latex,
-            plot_type=args.plot_type,
-            rel_sizes=rel_sizes,
-            percentage_sigs=percentage_sigs,
-        )
+        else:
+            plot_ood_jointly(
+                data_origins=args.data_origin,
+                result_dir=args.result_dir,
+                plot_dir=args.plot_dir,
+                models=args.models,
+                suffix=args.suffix,
+                plot_type=args.plot_type,
+                stats_dir=args.stats_dir,
+            )
 
     if "perturb" in args.plots:
+        if len(args.data_origin) > 1:
+            warn(
+                f"Perturbation experiment plots can only be created with one data set at a time, using "
+                f"{args.data_origin[0]}."
+            )
+
         plot_perturbation(
-            data_origin=args.data_origin,
+            data_origin=args.data_origin[0],
             result_dir=args.result_dir,
             plot_dir=args.plot_dir,
             models=args.models,
@@ -827,8 +1015,14 @@ if __name__ == "__main__":
         )
 
     if "confidence" in args.plots:
+        if len(args.data_origin) > 1:
+            warn(
+                f"Confidence-performance plots can only be created with one data set at a time, using "
+                f"{args.data_origin[0]}."
+            )
+
         plot_confidence_performance(
-            data_origin=args.data_origin,
+            data_origin=args.data_origin[0],
             result_dir=args.result_dir,
             plot_dir=args.plot_dir,
             models=args.models,
