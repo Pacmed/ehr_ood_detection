@@ -12,7 +12,9 @@ import numpy as np
 import torch.utils.data
 
 # PROJECT
-from uncertainty_estimation.models.info import DEFAULT_LEARNING_RATE, DEFAULT_BATCH_SIZE
+from uncertainty_estimation.models.info import DEFAULT_BATCH_SIZE, DEFAULT_LEARNING_RATE
+
+# TODO: Refactor to fit more the training style like the other models
 
 
 class Encoder(nn.Module):
@@ -186,10 +188,12 @@ class AE:
         )
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
         self.verbose = verbose
+        self.batch_size = batch_size
         self._initialize_dataloaders(train_data, val_data, batch_size)
 
     def train(self, n_epochs: int):
-        """Train a VAE for a number of epochs.
+        """
+        Train a VAE for a number of epochs.
 
         Parameters
         ----------
@@ -210,6 +214,25 @@ class AE:
                         f"validation reconstruction error: "
                         f"{val_reconstruction_error}"
                     )
+
+    def fit(self, X: np.array, y: np.array, n_epochs: int = 20):
+        """
+        Fit an auto-encoder to a dataset. Implemented for compatibility with scikit-learn.
+
+        Parameters
+        ----------
+        X: np.array
+            Training data.
+        y: np.array
+            Training labels.
+        n_epochs: int
+            Number of training epochs.
+        """
+        self.train_data = torch.utils.data.DataLoader(
+            torch.from_numpy(X).float(), batch_size=self.batch_size
+        )
+        self.verbose = False
+        self.train(n_epochs)
 
     def _initialize_dataloaders(
         self, train_data: np.ndarray, val_data: np.ndarray, batch_size: int
@@ -268,8 +291,20 @@ class AE:
         average_epoch_rec_error = average_reconstruction_error / (i + 1)
         return average_epoch_rec_error
 
+    def predict(self, X: np.array) -> np.array:
+        """
+        Calculate the (mean squared) reconstruction error for some data. Implemented for compatibility for scikit-learn.
+
+        Parameters
+        ----------
+        X: np.array
+            The data of which we want to know the reconstruction error.
+        """
+        return self.get_reconstr_error(X)
+
     def get_reconstr_error(self, data: np.ndarray) -> np.ndarray:
-        """Calculate the (mean squared) reconstruction error for some data.
+        """
+        Calculate the (mean squared) reconstruction error for some data.
 
         Parameters
         ----------
@@ -285,7 +320,8 @@ class AE:
         return self.model(torch.from_numpy(data)).detach().numpy()
 
     def get_latent_encoding(self, data: np.ndarray) -> np.ndarray:
-        """Encode the data to the latent space.
+        """
+        Encode the data to the latent space.
 
         Parameters
         ----------
