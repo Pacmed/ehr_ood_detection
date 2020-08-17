@@ -3,7 +3,7 @@ Define how models for experiments are initialized.
 """
 
 # STD
-from typing import Optional, Iterable, Dict, Tuple, List
+from typing import Optional, Iterable, Dict, Tuple, List, Type
 
 # EXT
 from sklearn.decomposition import PCA
@@ -11,7 +11,6 @@ from sklearn.decomposition import PCA
 # from sklearn.svm import OneClassSVM
 
 # PROJECT
-from uncertainty_estimation.models.novelty_estimator import NoveltyEstimator
 from uncertainty_estimation.models.nn_ensemble import NNEnsemble, AnchoredNNEnsemble
 from uncertainty_estimation.models.autoencoder import AE
 from uncertainty_estimation.models.mlp import (
@@ -20,6 +19,9 @@ from uncertainty_estimation.models.mlp import (
     MCDropoutMLP,
     PlattScalingMLP,
 )
+
+# PROJECT
+from uncertainty_estimation.models.novelty_estimator import NoveltyEstimator
 from uncertainty_estimation.models.info import (
     AVAILABLE_MODELS,
     AVAILABLE_SCORING_FUNCS,
@@ -30,10 +32,25 @@ from uncertainty_estimation.models.info import (
 )
 from uncertainty_estimation.utils.types import ModelInfo
 
+# Model classes
+MODEL_CLASSES = {
+    "PPCA": PCA,
+    # "SVM": OneClassSVM,
+    "AE": AE,
+    "NN": MLP,
+    "PlattScalingNN": PlattScalingMLP,
+    "BNN": BayesianMLP,
+    "MCDropout": MCDropoutMLP,
+    "NNEnsemble": NNEnsemble,
+    "BootstrappedNNEnsemble": NNEnsemble,
+    "AnchoredNNEnsemble": AnchoredNNEnsemble,
+}
+
 
 def init_models(
     input_dim: int,
     selection: Iterable[str] = AVAILABLE_MODELS - {"BootstrappedNNEnsemble"},
+    model_classes: Dict[str, Type] = MODEL_CLASSES,
     scoring_funcs: Dict[str, Tuple[Optional[str], ...]] = AVAILABLE_SCORING_FUNCS,
 ) -> List[ModelInfo]:
     """
@@ -46,6 +63,8 @@ def init_models(
     selection: Iterable[str]
         Iterable of strings defining the names of all the models that will be initialized. Default is the set
         AVAILABLE_MODELS defined in uncertainty_estimation.models.infos.
+    model_classes: Dict[str, Type]
+        Dictionary mapping from model class name to their Python types.
     scoring_funcs: Dict[str, Tuple[Optional[str], ...]]
         Specify the scoring functions by name by model which are being used to determine the novelty of a sample.
 
@@ -59,19 +78,6 @@ def init_models(
     assert len(AVAILABLE_MODELS.intersection(selection)) == len(
         selection
     ), f"Unknown models specified: {', '.join([name for name in selection if name not in AVAILABLE_MODELS])}"
-
-    model_classes = {
-        "PPCA": PCA,
-        # "SVM": OneClassSVM,
-        "AE": AE,
-        "NN": MLP,
-        "PlattScalingNN": PlattScalingMLP,
-        "BNN": BayesianMLP,
-        "MCDropout": MCDropoutMLP,
-        "NNEnsemble": NNEnsemble,
-        "BootstrappedNNEnsemble": NNEnsemble,
-        "AnchoredNNEnsemble": AnchoredNNEnsemble,
-    }
 
     def _add_input_dim(model_params, model_name):
         """ Add input_size parameter to the model parameter dict if necessary. """

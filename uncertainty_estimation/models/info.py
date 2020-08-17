@@ -185,22 +185,30 @@ TRAIN_PARAMS = {
 # Hyperparameter ranges / distributions that should be considered during the random search
 PARAM_SEARCH = {
     "n_components": range(2, 20),
-    "hidden_size": [
+    "hidden_sizes": [
         [hidden_size] * num_layers
         for hidden_size in [25, 30, 50, 75, 100]
-        for num_layers in range(3)
+        for num_layers in range(1, 4)
+    ],
+    "hidden_dims": [
+        [hidden_size] * num_layers
+        for hidden_size in [10, 25, 30, 50]
+        for num_layers in range(1, 3)
     ],
     "latent_dim": [5, 10, 15, 20],
     "batch_size": [64, 128, 256],
     "learning_rate": loguniform(1e-4, 0.1),
-    "dropout_rate": uniform(0, 0.5),
-    "posterior_rho_init": uniform(-8, -2),
-    "posterior_mu_init": uniform(-0.6, 0.6),
-    "prior_pi": uniform(0.1, 0.9),
+    "lr": loguniform(1e-4, 0.1),
+    # Invervals become [loc, loc + scale] for uniform
+    "dropout_rate": uniform(loc=0, scale=0.5),  # [0, 0.5]
+    "posterior_rho_init": uniform(loc=-8, scale=6),  # [-8, -2]
+    "posterior_mu_init": uniform(loc=-0.6, scale=1.2),  # [-0.6, 0.6]
+    "prior_pi": uniform(loc=0.1, scale=0.8),  # [0.1, 0.9]
     "prior_sigma_1": [np.exp(d) for d in np.arange(-0.8, 0, 0.1)],
     "prior_sigma_2": [np.exp(d) for d in np.arange(-0.8, 0, 0.1)],
 }
-NUM_EVALS = {"AE": 20, "NN": 20, "MCDropout": 20, "BNN": 50}
+NUM_EVALS = {"AE": 20, "NN": 20, "MCDropout": 20, "BNN": 50, "PPCA": 10}
+
 
 # Default training hyperparameters
 DEFAULT_LEARNING_RATE: float = 1e-2
