@@ -3,7 +3,7 @@ Module providing an implementation of an Auto-Encoder.
 """
 
 # STD
-from typing import List
+from typing import List, Optional
 
 # EXT
 import torch
@@ -12,7 +12,13 @@ import numpy as np
 import torch.utils.data
 
 # PROJECT
-from uncertainty_estimation.models.info import DEFAULT_LEARNING_RATE, DEFAULT_BATCH_SIZE
+from uncertainty_estimation.models.info import (
+    DEFAULT_BATCH_SIZE,
+    DEFAULT_LEARNING_RATE,
+    DEFAULT_N_EPOCHS,
+)
+
+# TODO: Refactor to fit more the training style like the other models
 
 
 class Encoder(nn.Module):
@@ -154,48 +160,60 @@ class AE:
 
     Parameters
     ----------
+    hidden_sizes: List[int]
+        A list with the sizes of the hidden layers.
     input_size: int
         The dimensionality of the input
-    hidden_dims: List[int]
-        A list with the sizes of the hidden layers.
     latent_dim: int
         The size of the latent space.
-    train_data: np.ndarray
-        The data to train on (note: no labels)
-    val_data: np.ndarray (optional)
-        The data to validate on during training.
-    batch_size: int, default 64
-        The batch size used for training.
     verbose: bool, default False
         Whether to print the loss during training.
     """
 
     def __init__(
         self,
+        hidden_sizes: List[int],
         input_size: int,
-        hidden_dims: List[int],
         latent_dim: int,
-        train_data: np.ndarray,
-        val_data: np.ndarray = None,
-        batch_size: int = DEFAULT_BATCH_SIZE,
-        learning_rate: float = DEFAULT_LEARNING_RATE,
+        lr: float = DEFAULT_LEARNING_RATE,
         verbose=False,
     ):
         self.model = AEModule(
-            input_size=input_size, hidden_dims=hidden_dims, latent_dim=latent_dim
+            input_size=input_size, hidden_dims=hidden_sizes, latent_dim=latent_dim
         )
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
         self.verbose = verbose
-        self._initialize_dataloaders(train_data, val_data, batch_size)
 
-    def train(self, n_epochs: int):
-        """Train a VAE for a number of epochs.
+    def train(
+        self,
+        X_train: np.ndarray,
+        y_train: np.ndarray,
+        X_val: Optional[np.ndarray] = None,
+        y_val: Optional[np.ndarray] = None,
+        batch_size: int = DEFAULT_BATCH_SIZE,
+        n_epochs: int = DEFAULT_N_EPOCHS,
+    ):
+        """
+        Train a VAE for a number of epochs.
 
         Parameters
         ----------
+        X_train: np.ndarray
+            The training data.
+        y_train: np.ndarray
+            The labels corresponding to the training data. Not used for this class.
+        X_val: Optional[np.ndarray]
+            The validation data.
+        y_val: Optional[np.ndarray]
+            The labels corresponding to the validation data. Not used for this class.
+        batch_size: int
+            The batch size, default 256
         n_epochs: int
             The number of epochs to train.
         """
+        self.batch_size = batch_size
+        self._initialize_dataloaders(X_train, X_val, batch_size)
+
         for epoch in range(n_epochs):
             self.model.train()
             train_reconstruction_error = self._epoch_iter(self.train_data)
@@ -210,6 +228,23 @@ class AE:
                         f"validation reconstruction error: "
                         f"{val_reconstruction_error}"
                     )
+
+    def fit(self, X: np.array, y: np.array, **train_kwargs):
+        """
+        Fit an auto-encoder to a dataset. Implemented for compatibility with scikit-learn.
+
+        Parameters
+        ----------
+        X: np.array
+            Training data.
+        y: np.array
+            Training labels.
+        n_epochs: int
+            Number of training epochs.
+        """
+        self.train_data = torch.utils.data.DataLoader(torch.from_numpy(X).float())
+        self.verbose = False
+        self.train(X, y, **train_kwargs)
 
     def _initialize_dataloaders(
         self, train_data: np.ndarray, val_data: np.ndarray, batch_size: int
@@ -268,8 +303,20 @@ class AE:
         average_epoch_rec_error = average_reconstruction_error / (i + 1)
         return average_epoch_rec_error
 
+    def predict(self, X: np.array) -> np.array:
+        """
+        Calculate the (mean squared) reconstruction error for some data. Implemented for compatibility for scikit-learn.
+
+        Parameters
+        ----------
+        X: np.array
+            The data of which we want to know the reconstruction error.
+        """
+        return self.get_reconstr_error(X)
+
     def get_reconstr_error(self, data: np.ndarray) -> np.ndarray:
-        """Calculate the (mean squared) reconstruction error for some data.
+        """
+        Calculate the (mean squared) reconstruction error for some data.
 
         Parameters
         ----------
@@ -285,7 +332,8 @@ class AE:
         return self.model(torch.from_numpy(data)).detach().numpy()
 
     def get_latent_encoding(self, data: np.ndarray) -> np.ndarray:
-        """Encode the data to the latent space.
+        """
+        Encode the data to the latent space.
 
         Parameters
         ----------

@@ -242,6 +242,22 @@ class MultiplePredictionsMixin:
 
         return np.stack([1 - predictions, predictions], axis=1)
 
+    def predict(self, X_test: np.array) -> np.array:
+        """
+        Same as predict_proba(). Implement for compatability with scikit learn.
+
+        Parameters
+        ----------
+        X_test: np.array
+            Batch of samples as numpy array.
+
+        Returns
+        -------
+        np.array
+            Predictions for every sample.
+        """
+        return self.predict_proba(X_test)
+
     def get_std(self, X_test: np.ndarray, n_samples: int = 50) -> np.array:
         """
         Predict standard deviation between predictions.
@@ -431,8 +447,8 @@ class MLP:
         self,
         X_train: np.ndarray,
         y_train: np.ndarray,
-        X_val: np.ndarray,
-        y_val: np.ndarray,
+        X_val: Optional[np.ndarray] = None,
+        y_val: Optional[np.ndarray] = None,
         batch_size: int = DEFAULT_BATCH_SIZE,
         n_epochs: int = DEFAULT_N_EPOCHS,
         early_stopping: bool = True,
@@ -447,9 +463,9 @@ class MLP:
             The training data.
         y_train: np.ndarray
             The labels corresponding to the training data.
-        X_val: np.ndarray
+        X_val: Optional[np.ndarray]
             The validation data.
-        y_val: np.ndarray
+        y_val: Optional[np.ndarray]
             The labels corresponding to the validation data.
         batch_size: int
             The batch size, default 256
@@ -474,7 +490,7 @@ class MLP:
                 loss.backward()
                 self.optimizer.step()
 
-            if early_stopping:
+            if early_stopping and None not in (X_val, y_val):
                 val_loss = self.validate(X_val, y_val)
 
                 if val_loss >= prev_val_loss:
@@ -487,6 +503,19 @@ class MLP:
             if n_no_improvement >= early_stopping_patience:
                 print("Early stopping after", epoch, "epochs.")
                 break
+
+    def fit(self, X_train: np.ndarray, y_train: np.ndarray, **train_kwargs):
+        """
+        Fit an MLP to a dataset. Implemented to ensure compatibility to scikit-learn.
+
+        Parameters
+        ----------
+        X_train: np.ndarray
+            The training data.
+        y_train: np.ndarray
+            The labels corresponding to the training data.
+        """
+        self.train(X_train, y_train, **train_kwargs)
 
     def predict_proba(self, X_test: np.array) -> np.array:
         """
@@ -511,18 +540,9 @@ class MLP:
 
         return np.stack([1 - predictions, predictions], axis=1)
 
-    def predict_raw(self, X_test: np.array) -> np.array:
+    def predict(self, X_test: np.array) -> np.array:
         """
-        Create the raw outputs for a batch of samples.
-
-        Parameters
-        ----------
-        X_test: np.array
-            Batch of samples as numpy array.
-
-        Returns
-        -------
-        np.array
+        Same as predict_proba(). Implement for compatability with scikit learn.
             Raw predictions for every sample.
         """
         X_test_tensor = torch.tensor(X_test).float()
@@ -545,8 +565,8 @@ class PlattScalingMLP(MLP):
         self,
         X_train: np.ndarray,
         y_train: np.ndarray,
-        X_val: np.ndarray,
-        y_val: np.ndarray,
+        X_val: Optional[np.ndarray] = None,
+        y_val: Optional[np.ndarray] = None,
         batch_size: int = DEFAULT_BATCH_SIZE,
         n_epochs: int = DEFAULT_N_EPOCHS,
         early_stopping: bool = True,
