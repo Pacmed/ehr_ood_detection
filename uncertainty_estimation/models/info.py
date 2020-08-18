@@ -71,12 +71,7 @@ AVAILABLE_SCORING_FUNCS = {
 
 MODEL_PARAMS = {
     "PPCA": {"n_components": 2},
-    "AE": {
-        "hidden_dims": [30],
-        "latent_dim": 20,
-        "batch_size": 256,
-        "learning_rate": 0.0001,
-    },
+    "AE": {"hidden_sizes": [30], "latent_dim": 20, "lr": 0.0001},
     "SVM": {},
     "NN": {
         "hidden_sizes": [50, 50],
@@ -141,44 +136,44 @@ MODEL_PARAMS = {
 
 TRAIN_PARAMS = {
     "PPCA": {},
-    "AE": {"n_epochs": 50},
+    "AE": {"n_epochs": 10, "batch_size": 64},
     "SVM": {},
     "NN": {
         "batch_size": 256,
         "early_stopping": True,
         "early_stopping_patience": 3,
-        "n_epochs": 100,
+        "n_epochs": 10,
     },
     "PlattScalingNN": {
         "batch_size": 256,
         "early_stopping": True,
         "early_stopping_patience": 3,
-        "n_epochs": 100,
+        "n_epochs": 10,
     },
     "MCDropout": {
         "batch_size": 256,
         "early_stopping": True,
         "early_stopping_patience": 3,
-        "n_epochs": 100,
+        "n_epochs": 10,
     },
     "BNN": {"batch_size": 128, "early_stopping": True, "early_stopping_patience": 3},
     "NNEnsemble": {
         "batch_size": 256,
         "early_stopping": True,
         "early_stopping_patience": 3,
-        "n_epochs": 100,
+        "n_epochs": 8,
     },
     "BootstrappedNNEnsemble": {
         "batch_size": 256,
         "early_stopping": True,
         "early_stopping_patience": 3,
-        "n_epochs": 100,
+        "n_epochs": 10,
     },
     "AnchoredNNEnsemble": {
         "batch_size": 256,
         "early_stopping": True,
         "early_stopping_patience": 3,
-        "n_epochs": 100,
+        "n_epochs": 10,
     },
 }
 
@@ -190,14 +185,8 @@ PARAM_SEARCH = {
         for hidden_size in [25, 30, 50, 75, 100]
         for num_layers in range(1, 4)
     ],
-    "hidden_dims": [
-        [hidden_size] * num_layers
-        for hidden_size in [10, 25, 30, 50]
-        for num_layers in range(1, 3)
-    ],
     "latent_dim": [5, 10, 15, 20],
     "batch_size": [64, 128, 256],
-    "learning_rate": loguniform(1e-4, 0.1),
     "lr": loguniform(1e-4, 0.1),
     # Invervals become [loc, loc + scale] for uniform
     "dropout_rate": uniform(loc=0, scale=0.5),  # [0, 0.5]

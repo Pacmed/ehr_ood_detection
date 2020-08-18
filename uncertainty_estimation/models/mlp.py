@@ -504,7 +504,7 @@ class MLP:
                 print("Early stopping after", epoch, "epochs.")
                 break
 
-    def fit(self, X_train: np.ndarray, y_train: np.ndarray):
+    def fit(self, X_train: np.ndarray, y_train: np.ndarray, **train_kwargs):
         """
         Fit an MLP to a dataset. Implemented to ensure compatibility to scikit-learn.
 
@@ -515,7 +515,7 @@ class MLP:
         y_train: np.ndarray
             The labels corresponding to the training data.
         """
-        self.train(X_train, y_train)
+        self.train(X_train, y_train, **train_kwargs)
 
     def predict_proba(self, X_test: np.array) -> np.array:
         """
