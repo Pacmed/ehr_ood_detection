@@ -3,8 +3,13 @@ Module to be the single place to bundle all the information about models: Availa
 hyperparameters, etc.
 """
 
+# STD
 import math
+
+# EXT
 import numpy as np
+from sklearn.utils.fixes import loguniform
+from scipy.stats import uniform
 
 # ### Models and novelty scoring functions ###
 
@@ -53,8 +58,8 @@ AVAILABLE_SCORING_FUNCS = {
     "PPCA": ("default",),  # Default: log-prob
     "AE": ("default",),  # Default: Reconstruction error
     "SVM": ("default",),  # Default: Distance to decision boundary
-    "NN": ("entropy", "max_prob", "max_abs_out"),  # Default: entropy
-    "PlattScalingNN": ("entropy", "max_prob", "max_abs_out"),
+    "NN": ("entropy", "max_prob"),  # Default: entropy
+    "PlattScalingNN": ("entropy", "max_prob"),
     "MCDropout": ("entropy", "std", "mutual_information"),
     "BNN": ("entropy", "std", "mutual_information"),
     "NNEnsemble": ("entropy", "std", "mutual_information"),
@@ -66,12 +71,7 @@ AVAILABLE_SCORING_FUNCS = {
 
 MODEL_PARAMS = {
     "PPCA": {"n_components": 2},
-    "AE": {
-        "hidden_dims": [30],
-        "latent_dim": 20,
-        "batch_size": 256,
-        "learning_rate": 0.0001,
-    },
+    "AE": {"hidden_sizes": [30], "latent_dim": 20, "lr": 0.0001},
     "SVM": {},
     "NN": {
         "hidden_sizes": [50, 50],
@@ -136,51 +136,73 @@ MODEL_PARAMS = {
 
 TRAIN_PARAMS = {
     "PPCA": {},
-    "AE": {"n_epochs": 50},
+    "AE": {"n_epochs": 10, "batch_size": 64},
     "SVM": {},
     "NN": {
         "batch_size": 256,
         "early_stopping": True,
         "early_stopping_patience": 3,
-        "n_epochs": 100,
+        "n_epochs": 10,
     },
     "PlattScalingNN": {
         "batch_size": 256,
         "early_stopping": True,
         "early_stopping_patience": 3,
-        "n_epochs": 100,
+        "n_epochs": 10,
     },
     "MCDropout": {
         "batch_size": 256,
         "early_stopping": True,
         "early_stopping_patience": 3,
-        "n_epochs": 100,
+        "n_epochs": 10,
     },
     "BNN": {"batch_size": 128, "early_stopping": True, "early_stopping_patience": 3},
     "NNEnsemble": {
         "batch_size": 256,
         "early_stopping": True,
         "early_stopping_patience": 3,
-        "n_epochs": 100,
+        "n_epochs": 8,
     },
     "BootstrappedNNEnsemble": {
         "batch_size": 256,
         "early_stopping": True,
         "early_stopping_patience": 3,
-        "n_epochs": 100,
+        "n_epochs": 10,
     },
     "AnchoredNNEnsemble": {
         "batch_size": 256,
         "early_stopping": True,
         "early_stopping_patience": 3,
-        "n_epochs": 100,
+        "n_epochs": 10,
     },
 }
+
+# Hyperparameter ranges / distributions that should be considered during the random search
+PARAM_SEARCH = {
+    "n_components": range(2, 20),
+    "hidden_sizes": [
+        [hidden_size] * num_layers
+        for hidden_size in [25, 30, 50, 75, 100]
+        for num_layers in range(1, 4)
+    ],
+    "latent_dim": [5, 10, 15, 20],
+    "batch_size": [64, 128, 256],
+    "lr": loguniform(1e-4, 0.1),
+    # Invervals become [loc, loc + scale] for uniform
+    "dropout_rate": uniform(loc=0, scale=0.5),  # [0, 0.5]
+    "posterior_rho_init": uniform(loc=-8, scale=6),  # [-8, -2]
+    "posterior_mu_init": uniform(loc=-0.6, scale=1.2),  # [-0.6, 0.6]
+    "prior_pi": uniform(loc=0.1, scale=0.8),  # [0.1, 0.9]
+    "prior_sigma_1": [np.exp(d) for d in np.arange(-0.8, 0, 0.1)],
+    "prior_sigma_2": [np.exp(d) for d in np.arange(-0.8, 0, 0.1)],
+}
+NUM_EVALS = {"AE": 20, "NN": 20, "MCDropout": 20, "BNN": 50, "PPCA": 10}
+
 
 # Default training hyperparameters
 DEFAULT_LEARNING_RATE: float = 1e-2
 DEFAULT_BATCH_SIZE: int = 32
-DEFAULT_N_EPOCHS: int = 20
+DEFAULT_N_EPOCHS: int = 6
 DEFAULT_EARLY_STOPPING_PAT: int = 2
 
 DEFAULT_RECONSTR_ERROR_WEIGHT: float = 1e20

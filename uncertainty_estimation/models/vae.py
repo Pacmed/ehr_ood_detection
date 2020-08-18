@@ -229,6 +229,8 @@ class VAE:
         correct, but more stable)
     """
 
+    # TODO: Refactor this correspondingly to AE
+
     def __init__(
         self,
         input_dim: int,

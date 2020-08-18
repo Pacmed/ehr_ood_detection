@@ -122,9 +122,6 @@ class NoveltyEstimator:
             elif scoring_func == "max_prob":
                 return max_prob(self.model.predict_proba(data), axis=1)
 
-            elif scoring_func == "max_abs_out":
-                return -np.abs(self.model.predict_raw(data))
-
             else:
                 raise ValueError(f"Unknown type of scoring function: {scoring_func}")
 
