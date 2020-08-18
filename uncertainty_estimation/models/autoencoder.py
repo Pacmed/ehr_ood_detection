@@ -18,8 +18,6 @@ from uncertainty_estimation.models.info import (
     DEFAULT_N_EPOCHS,
 )
 
-# TODO: Refactor to fit more the training style like the other models
-
 
 class Encoder(nn.Module):
     """The encoder module, which encodes an input into the latent space.
