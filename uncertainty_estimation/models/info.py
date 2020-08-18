@@ -213,7 +213,7 @@ NUM_EVALS = {"AE": 20, "NN": 20, "MCDropout": 20, "BNN": 50, "PPCA": 10}
 # Default training hyperparameters
 DEFAULT_LEARNING_RATE: float = 1e-2
 DEFAULT_BATCH_SIZE: int = 32
-DEFAULT_N_EPOCHS: int = 10
+DEFAULT_N_EPOCHS: int = 6
 DEFAULT_EARLY_STOPPING_PAT: int = 2
 
 DEFAULT_RECONSTR_ERROR_WEIGHT: float = 1e20

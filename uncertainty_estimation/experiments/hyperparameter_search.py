@@ -25,6 +25,8 @@ from uncertainty_estimation.models.info import (
     PARAM_SEARCH,
     NUM_EVALS,
     MODEL_PARAMS,
+    NEURAL_PREDICTORS,
+    NEURAL_MODELS,
 )
 from uncertainty_estimation.utils.model_init import MODEL_CLASSES
 
@@ -76,24 +78,38 @@ def perform_hyperparameter_search(
             for run, param_set in enumerate(sampled_params):
 
                 # TODO: Debug
-                if run > 3:
+                if run > 1:
                     continue
 
-                param_set.update(input_size=len(feat_names))
+                if model_name in NEURAL_MODELS:
+                    param_set.update(input_size=len(feat_names))
 
                 model = model_type(**param_set)
                 model.fit(X_train, y_train)
 
                 # TODO: Account for different scoring funcs
-                preds = model.predict(X_val)[:, 1]
+                preds = model.predict(X_val)
 
-                if all(np.isnan(preds)):
-                    score = 0
+                # Neural predictors: Use the ROC-AUC score
+                if model_name in NEURAL_PREDICTORS:
+                    # When model training goes completely awry
+                    if np.isnan(preds).all():
+                        score = 0
 
+                    else:
+                        preds = preds[:, 1]
+                        score = roc_auc_score(
+                            y_true=y_val[~np.isnan(preds)],
+                            y_score=preds[~np.isnan(preds)],
+                        )
+
+                # Auto-encoders: Use mean negative reconstruction error (because score are sorted descendingly)
+                elif model_name == "AE":
+                    score = -float(preds.mean())
+
+                # PPCA: Just use the log-likelihood
                 else:
-                    score = roc_auc_score(
-                        y_true=y_val[~np.isnan(preds)], y_score=preds[~np.isnan(preds)],
-                    )
+                    score = -preds.mean()
 
                 scores[run] = {"score": score, "hyperparameters": param_set}
                 progress_bar.update(1)
