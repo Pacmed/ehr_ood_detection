@@ -23,3 +23,6 @@ class PPCA(PCA):
             Predictions for every sample.
         """
         return self.score_samples(X_test)
+
+    def fit(self, *args, **train_kwargs):
+        self.fit(*args)

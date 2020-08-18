@@ -27,6 +27,7 @@ from uncertainty_estimation.models.info import (
     MODEL_PARAMS,
     NEURAL_PREDICTORS,
     NEURAL_MODELS,
+    TRAIN_PARAMS,
 )
 from uncertainty_estimation.utils.model_init import MODEL_CLASSES
 
@@ -52,6 +53,7 @@ def perform_hyperparameter_search(
     save_top_n: int
         Save the top n parameter configuration. Default is 10.
     """
+
     dh = DataHandler(data_origin)
     train_data, _, val_data = dh.load_data_splits()
     feat_names = dh.load_feature_names()
@@ -77,17 +79,11 @@ def perform_hyperparameter_search(
 
             for run, param_set in enumerate(sampled_params):
 
-                # TODO: Debug
-                if run > 1:
-                    continue
-
                 if model_name in NEURAL_MODELS:
                     param_set.update(input_size=len(feat_names))
 
                 model = model_type(**param_set)
-                model.fit(X_train, y_train)
-
-                # TODO: Account for different scoring funcs
+                model.fit(X_train, y_train, **TRAIN_PARAMS[model_name])
                 preds = model.predict(X_val)
 
                 # Neural predictors: Use the ROC-AUC score
@@ -107,7 +103,7 @@ def perform_hyperparameter_search(
                 elif model_name == "AE":
                     score = -float(preds.mean())
 
-                # PPCA: Just use the log-likelihood
+                # PPCA: Just use the (mean) log-likelihood
                 else:
                     score = -preds.mean()
 
