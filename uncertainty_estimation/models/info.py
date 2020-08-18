@@ -196,7 +196,7 @@ PARAM_SEARCH = {
     "prior_sigma_1": [np.exp(d) for d in np.arange(-0.8, 0, 0.1)],
     "prior_sigma_2": [np.exp(d) for d in np.arange(-0.8, 0, 0.1)],
 }
-NUM_EVALS = {"AE": 20, "NN": 20, "MCDropout": 20, "BNN": 50, "PPCA": 10}
+NUM_EVALS = {"AE": 40, "NN": 40, "MCDropout": 40, "BNN": 60, "PPCA": 30}
 
 
 # Default training hyperparameters
