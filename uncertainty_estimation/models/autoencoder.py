@@ -177,7 +177,7 @@ class AE:
         input_size: int,
         hidden_dims: List[int],
         latent_dim: int,
-        train_data: np.ndarray,
+        train_data: np.ndarray = None,
         val_data: np.ndarray = None,
         batch_size: int = DEFAULT_BATCH_SIZE,
         learning_rate: float = DEFAULT_LEARNING_RATE,
@@ -189,7 +189,12 @@ class AE:
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate)
         self.verbose = verbose
         self.batch_size = batch_size
-        self._initialize_dataloaders(train_data, val_data, batch_size)
+
+        if None not in (train_data, val_data):
+            self._initialize_dataloaders(train_data, val_data, batch_size)
+        else:
+            self.train_data = None
+            self.val_data = None
 
     def train(self, n_epochs: int):
         """

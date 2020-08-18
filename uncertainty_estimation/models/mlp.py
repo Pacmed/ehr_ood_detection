@@ -242,6 +242,22 @@ class MultiplePredictionsMixin:
 
         return np.stack([1 - predictions, predictions], axis=1)
 
+    def predict(self, X_test: np.array) -> np.array:
+        """
+        Same as predict_proba(). Implement for compatability with scikit learn.
+
+        Parameters
+        ----------
+        X_test: np.array
+            Batch of samples as numpy array.
+
+        Returns
+        -------
+        np.array
+            Predictions for every sample.
+        """
+        return self.predict_proba(X_test)
+
     def get_std(self, X_test: np.ndarray, n_samples: int = 50) -> np.array:
         """
         Predict standard deviation between predictions.
