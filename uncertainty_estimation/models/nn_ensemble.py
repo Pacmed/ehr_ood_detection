@@ -4,7 +4,6 @@ Module containing implementations of different neural network ensembles.
 
 # EXT
 import numpy as np
-import torch
 
 # PROJECT
 from uncertainty_estimation.models.mlp import MLP, AnchoredMLP, MultiplePredictionsMixin

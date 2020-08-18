@@ -6,7 +6,7 @@ Define custom types for me readable type annotations.
 from typing import Optional, Tuple, Dict, List
 
 # PROJECT
-from models.novelty_estimator import NoveltyEstimator
+from uncertainty_estimation.models.novelty_estimator import NoveltyEstimator
 
 # Tuple containing a prediction model for novelty estimation wrapped in the NoveltyEstimator class, a tuple specifying
 # the novelty scoring functions it will use, as well as its name
