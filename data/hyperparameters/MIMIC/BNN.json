@@ -1,0 +1,187 @@
+{
+    "32": {
+        "score": 0.7042255840144366,
+        "hyperparameters": {
+            "dropout_rate": 0.020342,
+            "hidden_sizes": [
+                30,
+                30,
+                30
+            ],
+            "lr": 0.002498,
+            "posterior_mu_init": 0.348937,
+            "posterior_rho_init": -3.170805,
+            "prior_pi": 0.233419,
+            "prior_sigma_1": 0.904837,
+            "prior_sigma_2": 0.740818,
+            "class_weight": false,
+            "input_size": 588
+        }
+    },
+    "51": {
+        "score": 0.6659509869135982,
+        "hyperparameters": {
+            "dropout_rate": 0.187571,
+            "hidden_sizes": [
+                75,
+                75,
+                75
+            ],
+            "lr": 0.000255,
+            "posterior_mu_init": 0.076398,
+            "posterior_rho_init": -3.63752,
+            "prior_pi": 0.636901,
+            "prior_sigma_1": 0.818731,
+            "prior_sigma_2": 0.740818,
+            "class_weight": false,
+            "input_size": 588
+        }
+    },
+    "7": {
+        "score": 0.651732614580109,
+        "hyperparameters": {
+            "dropout_rate": 0.170915,
+            "hidden_sizes": [
+                75,
+                75,
+                75
+            ],
+            "lr": 0.000199,
+            "posterior_mu_init": 0.115863,
+            "posterior_rho_init": -6.510981,
+            "prior_pi": 0.583472,
+            "prior_sigma_1": 0.818731,
+            "prior_sigma_2": 0.606531,
+            "class_weight": false,
+            "input_size": 588
+        }
+    },
+    "17": {
+        "score": 0.6405298115742539,
+        "hyperparameters": {
+            "dropout_rate": 0.038759,
+            "hidden_sizes": [
+                30,
+                30
+            ],
+            "lr": 0.002287,
+            "posterior_mu_init": 0.518821,
+            "posterior_rho_init": -4.475038,
+            "prior_pi": 0.858602,
+            "prior_sigma_1": 0.904837,
+            "prior_sigma_2": 0.67032,
+            "class_weight": false,
+            "input_size": 588
+        }
+    },
+    "26": {
+        "score": 0.6157709418652898,
+        "hyperparameters": {
+            "dropout_rate": 0.290357,
+            "hidden_sizes": [
+                100,
+                100,
+                100
+            ],
+            "lr": 0.000216,
+            "posterior_mu_init": 0.006965,
+            "posterior_rho_init": -5.33009,
+            "prior_pi": 0.246,
+            "prior_sigma_1": 0.818731,
+            "prior_sigma_2": 0.740818,
+            "class_weight": false,
+            "input_size": 588
+        }
+    },
+    "13": {
+        "score": 0.6042952310701609,
+        "hyperparameters": {
+            "dropout_rate": 0.485523,
+            "hidden_sizes": [
+                25
+            ],
+            "lr": 0.013505,
+            "posterior_mu_init": 0.550212,
+            "posterior_rho_init": -5.42112,
+            "prior_pi": 0.798303,
+            "prior_sigma_1": 0.904837,
+            "prior_sigma_2": 0.740818,
+            "class_weight": false,
+            "input_size": 588
+        }
+    },
+    "6": {
+        "score": 0.5500129250446202,
+        "hyperparameters": {
+            "dropout_rate": 0.058603,
+            "hidden_sizes": [
+                100,
+                100,
+                100
+            ],
+            "lr": 0.092254,
+            "posterior_mu_init": -0.149777,
+            "posterior_rho_init": -7.417771,
+            "prior_pi": 0.469527,
+            "prior_sigma_1": 0.740818,
+            "prior_sigma_2": 0.449329,
+            "class_weight": false,
+            "input_size": 588
+        }
+    },
+    "44": {
+        "score": 0.5377962881247653,
+        "hyperparameters": {
+            "dropout_rate": 0.065558,
+            "hidden_sizes": [
+                25,
+                25,
+                25
+            ],
+            "lr": 0.000146,
+            "posterior_mu_init": 0.01119,
+            "posterior_rho_init": -7.986293,
+            "prior_pi": 0.248723,
+            "prior_sigma_1": 0.496585,
+            "prior_sigma_2": 0.496585,
+            "class_weight": false,
+            "input_size": 588
+        }
+    },
+    "59": {
+        "score": 0.5374546388561418,
+        "hyperparameters": {
+            "dropout_rate": 0.019413,
+            "hidden_sizes": [
+                75,
+                75,
+                75
+            ],
+            "lr": 0.023876,
+            "posterior_mu_init": -0.308445,
+            "posterior_rho_init": -5.209112,
+            "prior_pi": 0.447989,
+            "prior_sigma_1": 0.67032,
+            "prior_sigma_2": 0.740818,
+            "class_weight": false,
+            "input_size": 588
+        }
+    },
+    "0": {
+        "score": 0.5290722946317433,
+        "hyperparameters": {
+            "dropout_rate": 0.033387,
+            "hidden_sizes": [
+                25
+            ],
+            "lr": 0.005808,
+            "posterior_mu_init": 0.301409,
+            "posterior_rho_init": -4.932096,
+            "prior_pi": 0.836401,
+            "prior_sigma_1": 0.606531,
+            "prior_sigma_2": 0.818731,
+            "class_weight": false,
+            "input_size": 588
+        }
+    }
+}
