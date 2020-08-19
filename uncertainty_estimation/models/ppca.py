@@ -25,4 +25,4 @@ class PPCA(PCA):
         return self.score_samples(X_test)
 
     def fit(self, *args, **train_kwargs):
-        self.fit(*args)
+        super().fit(*args)
