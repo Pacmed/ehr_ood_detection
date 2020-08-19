@@ -1,0 +1,113 @@
+{
+    "34": {
+        "score": -0.5947330594062805,
+        "hyperparameters": {
+            "hidden_sizes": [
+                100
+            ],
+            "latent_dim": 15,
+            "lr": 0.005216,
+            "input_size": 588
+        }
+    },
+    "24": {
+        "score": -0.5985010862350464,
+        "hyperparameters": {
+            "hidden_sizes": [
+                75
+            ],
+            "latent_dim": 15,
+            "lr": 0.006897,
+            "input_size": 588
+        }
+    },
+    "11": {
+        "score": -0.6067898869514465,
+        "hyperparameters": {
+            "hidden_sizes": [
+                75
+            ],
+            "latent_dim": 20,
+            "lr": 0.006809,
+            "input_size": 588
+        }
+    },
+    "1": {
+        "score": -0.6083167195320129,
+        "hyperparameters": {
+            "hidden_sizes": [
+                100
+            ],
+            "latent_dim": 15,
+            "lr": 0.004508,
+            "input_size": 588
+        }
+    },
+    "30": {
+        "score": -0.6112688779830933,
+        "hyperparameters": {
+            "hidden_sizes": [
+                75
+            ],
+            "latent_dim": 15,
+            "lr": 0.005725,
+            "input_size": 588
+        }
+    },
+    "31": {
+        "score": -0.6138479113578796,
+        "hyperparameters": {
+            "hidden_sizes": [
+                30
+            ],
+            "latent_dim": 20,
+            "lr": 0.01057,
+            "input_size": 588
+        }
+    },
+    "3": {
+        "score": -0.6227942705154419,
+        "hyperparameters": {
+            "hidden_sizes": [
+                50
+            ],
+            "latent_dim": 10,
+            "lr": 0.011337,
+            "input_size": 588
+        }
+    },
+    "36": {
+        "score": -0.648996114730835,
+        "hyperparameters": {
+            "hidden_sizes": [
+                30
+            ],
+            "latent_dim": 5,
+            "lr": 0.0148,
+            "input_size": 588
+        }
+    },
+    "7": {
+        "score": -0.6615648865699768,
+        "hyperparameters": {
+            "hidden_sizes": [
+                25
+            ],
+            "latent_dim": 5,
+            "lr": 0.016368,
+            "input_size": 588
+        }
+    },
+    "28": {
+        "score": -0.671851634979248,
+        "hyperparameters": {
+            "hidden_sizes": [
+                25,
+                25
+            ],
+            "latent_dim": 15,
+            "lr": 0.011064,
+            "input_size": 588
+        }
+    }
+}
