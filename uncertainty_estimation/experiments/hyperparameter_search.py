@@ -105,7 +105,7 @@ def perform_hyperparameter_search(
 
                 # PPCA: Just use the (mean) log-likelihood
                 else:
-                    score = -preds.mean()
+                    score = preds.mean()
 
                 scores[run] = {"score": score, "hyperparameters": param_set}
                 progress_bar.update(1)
