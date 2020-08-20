@@ -189,7 +189,6 @@ MODEL_PARAMS = {
     "AnchoredNNEnsemble": {
         "MIMIC": {
             "n_models": 10,
-            "bootstrap": False,
             "model_params": {
                 "dropout_rate": 0,
                 "hidden_sizes": [30],
@@ -199,7 +198,6 @@ MODEL_PARAMS = {
         },
         "eICU": {
             "n_models": 10,
-            "bootstrap": False,
             "model_params": {
                 "dropout_rate": 0,
                 "hidden_sizes": [75],
