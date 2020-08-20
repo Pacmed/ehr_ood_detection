@@ -67,7 +67,9 @@ if __name__ == "__main__":
     uncertainties = defaultdict(list)
 
     for ne, scoring_funcs, method_name in init_models(
-        input_dim=len(feature_names), selection=AVAILABLE_MODELS
+        input_dim=len(feature_names),
+        selection=AVAILABLE_MODELS,
+        origin=args.data_origin,
     ):
         print(method_name)
         predictions = []
