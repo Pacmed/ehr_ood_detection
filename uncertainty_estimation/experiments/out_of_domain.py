@@ -59,7 +59,9 @@ if __name__ == "__main__":
     ood_mappings = dh.load_ood_mappings()
 
     # loop over the different methods
-    for model_info in init_models(input_dim=len(feature_names), selection=args.models):
+    for model_info in init_models(
+        input_dim=len(feature_names), selection=args.models, origin=args.data_origin
+    ):
         print(model_info[2])
         ood_detect_aucs, ood_recall = (
             defaultdict(lambda: defaultdict(list)),

@@ -104,10 +104,15 @@ if __name__ == "__main__":
 
     del all_eicu, all_mimic
 
-    for model_info in init_models(
-        input_dim=len(feature_names_eicu), selection=args.models
+    for mimic_model_info, eicu_model_info in zip(
+        init_models(
+            input_dim=len(feature_names_eicu), selection=args.models, origin="MIMIC"
+        ),
+        init_models(
+            input_dim=len(feature_names_eicu), selection=args.models, origin="eICU"
+        ),
     ):
-        print(model_info[2])
+        print(mimic_model_info[2])
         ood_detect_aucs, ood_recall = (
             defaultdict(lambda: defaultdict(list)),
             defaultdict(lambda: defaultdict(list)),
@@ -117,7 +122,7 @@ if __name__ == "__main__":
         ood_detect_aucs, ood_recall, metrics = ood_utils.run_ood_experiment_on_group(
             id_data=mimic_data,
             ood_data=eicu_data,
-            model_info=model_info,
+            model_info=mimic_model_info,
             ood_detect_aucs=ood_detect_aucs,
             ood_recall=ood_recall,
             ood_metrics=metrics,
@@ -128,7 +133,7 @@ if __name__ == "__main__":
         ood_detect_aucs, ood_recall, metrics = ood_utils.run_ood_experiment_on_group(
             id_data=eicu_data,
             ood_data=mimic_data,
-            model_info=model_info,
+            model_info=eicu_model_info,
             ood_detect_aucs=ood_detect_aucs,
             ood_recall=ood_recall,
             ood_metrics=metrics,
@@ -150,7 +155,7 @@ if __name__ == "__main__":
         ) = ood_utils.run_ood_experiment_on_group(
             id_data=mimic_data,
             ood_data=mimic_data,
-            model_info=model_info,
+            model_info=mimic_model_info,
             ood_detect_aucs=ood_detect_aucs_id,
             ood_recall=ood_recall_id,
             ood_metrics=metrics_id,
@@ -165,7 +170,7 @@ if __name__ == "__main__":
         ) = ood_utils.run_ood_experiment_on_group(
             id_data=eicu_data,
             ood_data=eicu_data,
-            model_info=model_info,
+            model_info=eicu_model_info,
             ood_detect_aucs=ood_detect_aucs_id,
             ood_recall=ood_recall_id,
             ood_metrics=metrics_id,
@@ -173,7 +178,7 @@ if __name__ == "__main__":
             impute_and_scale=True,
         )
 
-        ne, scoring_funcs, method_name = model_info
+        ne, scoring_funcs, method_name = mimic_model_info
         # Save everything for this model
         dir_name = os.path.join(args.result_dir, "DA", method_name)
 

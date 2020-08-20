@@ -101,7 +101,7 @@ if __name__ == "__main__":
     y_name = dh.load_target_name()
 
     for ne, scoring_funcs, name in init_models(
-        input_dim=len(feature_names), selection=args.models
+        input_dim=len(feature_names), selection=args.models, origin=args.data_origin
     ):
         print(name)
         nov_an = NoveltyAnalyzer(

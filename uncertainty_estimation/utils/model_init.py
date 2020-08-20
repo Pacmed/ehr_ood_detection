@@ -48,6 +48,7 @@ MODEL_CLASSES = {
 def init_models(
     input_dim: int,
     selection: Iterable[str] = AVAILABLE_MODELS - {"BootstrappedNNEnsemble"},
+    origin: Optional[str] = "MIMIC",
     model_classes: Dict[str, Type] = MODEL_CLASSES,
     scoring_funcs: Dict[str, Tuple[Optional[str], ...]] = AVAILABLE_SCORING_FUNCS,
 ) -> List[ModelInfo]:
@@ -61,6 +62,8 @@ def init_models(
     selection: Iterable[str]
         Iterable of strings defining the names of all the models that will be initialized. Default is the set
         AVAILABLE_MODELS defined in uncertainty_estimation.models.infos.
+    origin: Optional[str]
+        Specify the dataset for which the best found hyperparameters should be used. Default is "MIMIC".
     model_classes: Dict[str, Type]
         Dictionary mapping from model class name to their Python types.
     scoring_funcs: Dict[str, Tuple[Optional[str], ...]]
@@ -80,7 +83,7 @@ def init_models(
     def _add_input_dim(model_params, model_name):
         """ Add input_size parameter to the model parameter dict if necessary. """
         if model_name in NO_ENSEMBLE_NN_MODELS:
-            return {"input_size": input_dim, **MODEL_PARAMS[model_name]}
+            return {"input_size": input_dim, **model_params}
 
         if model_name in ENSEMBLE_MODELS:
             model_params["model_params"]["input_size"] = input_dim
@@ -91,7 +94,7 @@ def init_models(
         (
             NoveltyEstimator(
                 model_classes[model_name],
-                _add_input_dim(MODEL_PARAMS[model_name], model_name),
+                _add_input_dim(MODEL_PARAMS[model_name][origin], model_name),
                 TRAIN_PARAMS[model_name],
                 model_name,
             ),

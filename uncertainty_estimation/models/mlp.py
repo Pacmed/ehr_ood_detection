@@ -474,7 +474,7 @@ class MLP:
                 loss.backward()
                 self.optimizer.step()
 
-            if early_stopping and None not in (X_val, y_val):
+            if early_stopping and X_val is not None and y_val is not None:
                 val_loss = self.validate(X_val, y_val)
 
                 if val_loss >= prev_val_loss:
