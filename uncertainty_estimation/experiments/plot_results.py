@@ -302,7 +302,7 @@ def plot_ood_jointly(
                     }
                     for data_origin in data_origins
                 },
-                name=f"OOD detection AUC {', '.join(data_origins)}",
+                name=f"OOD detection AUC {', '.join(data_origins)} for {ood_group}",
                 kind="bar",
                 x_name=" ",
                 horizontal=True,
@@ -325,7 +325,7 @@ def plot_ood_jointly(
                     }
                     for data_origin in data_origins
                 },
-                name=f"95% OOD recall {', '.join(data_origins)}",
+                name=f"95% OOD recall {', '.join(data_origins)} for {ood_group}",
                 kind="bar",
                 x_name=" ",
                 save_dir=os.path.join(
@@ -350,7 +350,7 @@ def plot_ood_jointly(
                     }
                     for data_origin in data_origins
                 },
-                name=f"OOD detection AUC {', '.join(data_origins)}",
+                name=f"OOD detection AUC {', '.join(data_origins)} for {ood_group}",
                 save_dir=os.path.join(
                     ood_plot_dir_name, ood_group, f"ood_detection_auc{suffix}.png"
                 ),
@@ -365,7 +365,7 @@ def plot_ood_jointly(
                     }
                     for data_origin in data_origins
                 },
-                name=f"95% OOD recall {', '.join(data_origins)}",
+                name=f"95% OOD recall {', '.join(data_origins)} for {ood_group}",
                 save_dir=os.path.join(
                     ood_plot_dir_name, ood_group, f"ood_recall{suffix}.png"
                 ),
