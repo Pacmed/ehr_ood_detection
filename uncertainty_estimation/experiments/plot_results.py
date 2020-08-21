@@ -180,7 +180,7 @@ def plot_ood(
 
         else:  # plot_type is "heatmap"
             plot_results_as_heatmap(
-                auc_dict,
+                metric_dict[m],
                 name=f"{name_dict[m.split('.')[0]]} ({data_origin})",
                 save_dir=os.path.join(
                     ood_plot_dir_name, m.split(".")[0] + f"{suffix}.png"
@@ -638,7 +638,7 @@ def plot_perturbation(
     if plot_type == "boxplot":
         plot_results_as_boxplot(
             recall_dict,
-            "perturbation 95% recall",
+            f"perturbation 95% recall {data_origin}",
             hline=0.05,
             xlim=None,
             ylim=None,
@@ -649,7 +649,7 @@ def plot_perturbation(
         )
         plot_results_as_boxplot(
             auc_dict,
-            "perturbation detection AUC",
+            f"perturbation detection AUC {data_origin}",
             hline=0.5,
             ylim=None,
             figsize=(4, 4),
@@ -663,14 +663,14 @@ def plot_perturbation(
     else:  # plot_type is "heatmap"
         plot_results_as_heatmap(
             auc_dict,
-            name="perturbation detection AUC",
+            name=f"perturbation detection AUC {data_origin}",
             save_dir=os.path.join(perturb_plot_dir_name, f"detect_AUC{suffix}.png"),
             lower_cmap_limit=0.5,
         )
 
         plot_results_as_heatmap(
             recall_dict,
-            name="perturbation 95% recall",
+            name=f"perturbation 95% recall {data_origin}",
             save_dir=os.path.join(perturb_plot_dir_name, f"recall{suffix}.png"),
         )
 
@@ -945,7 +945,7 @@ if __name__ == "__main__":
         help="For the OOD experiments, add the relative size of the OOD group to the plot.",
     )
     parser.add_argument(
-        "--show-percentage-sig",
+        "--show-percentage-sigs",
         action="store_true",
         default=False,
         help="For the OOD / DA experiments, add the percentage of feature that are significantly different compared to "

@@ -58,8 +58,8 @@ class NoveltyEstimator:
             Validation labels.
         """
         if self.name == "AE":
-            self.model = self.model_type(**self.model_params, train_data=X_train)
-            self.model.train(**self.train_params)
+            self.model = self.model_type(**self.model_params)
+            self.model.train(X_train, **self.train_params)
 
         elif self.name in BASELINES:
             self.model = self.model_type(**self.model_params)

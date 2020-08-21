@@ -185,7 +185,7 @@ class AE:
     def train(
         self,
         X_train: np.ndarray,
-        y_train: np.ndarray,
+        y_train: Optional[np.ndarray] = None,
         X_val: Optional[np.ndarray] = None,
         y_val: Optional[np.ndarray] = None,
         batch_size: int = DEFAULT_BATCH_SIZE,
@@ -227,7 +227,7 @@ class AE:
                         f"{val_reconstruction_error}"
                     )
 
-    def fit(self, X: np.array, y: np.array, **train_kwargs):
+    def fit(self, X: np.array, y: Optional[np.array] = None, **train_kwargs):
         """
         Fit an auto-encoder to a dataset. Implemented for compatibility with scikit-learn.
 
