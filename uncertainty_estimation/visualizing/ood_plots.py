@@ -68,6 +68,7 @@ def plot_results_as_heatmap(
 
     df = df.sort_index()
     df = df.applymap(lambda l: np.array(l).mean())
+    df = df.reindex(sorted(df.columns), axis=1)
     annotations = df.applymap(lambda l: f"{np.array(l).mean():.2f}".lstrip("0"))
 
     _, ax = plt.subplots(figsize=(12, 12))
@@ -180,6 +181,8 @@ def plot_results_as_boxplot(
     df.columns = [x_name, "", name]
     df = df.explode(name)
     df = df.sort_index()
+    df = df.sort_values(by="")
+    df = df.reindex(sorted(df.columns), axis=1)
 
     if dummy_group_name:
         methods = [m for m in df[""].unique()]
