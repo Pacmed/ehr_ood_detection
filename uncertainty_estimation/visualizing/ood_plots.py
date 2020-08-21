@@ -182,6 +182,7 @@ def plot_results_as_boxplot(
     df = df.explode(name)
     df = df.sort_index()
     df = df.sort_values(by="")
+    df = df.sort_values(by=" ")
     df = df.reindex(sorted(df.columns), axis=1)
 
     if dummy_group_name:
