@@ -120,14 +120,14 @@ MODEL_PARAMS = {
     },
     "BNN": {
         "MIMIC": {
-            "dropout_rate": 0.020342,
-            "hidden_sizes": [30, 30, 30],
-            "lr": 0.002498,
-            "posterior_mu_init": 0.348937,
-            "posterior_rho_init": -3.170805,
-            "prior_pi": 0.233419,
-            "prior_sigma_1": 0.904837,
-            "prior_sigma_2": 0.740818,
+            "dropout_rate": 0.177533,
+            "hidden_sizes": [25, 25, 25],
+            "lr": 0.002418,
+            "posterior_mu_init": 0.22187,
+            "posterior_rho_init": -5.982621,
+            "prior_pi": 0.896689,
+            "prior_sigma_1": 0.740818,
+            "prior_sigma_2": 0.606531,
             "class_weight": False,
         },
         "eICU": {
@@ -230,7 +230,12 @@ TRAIN_PARAMS = {
         "early_stopping_patience": 3,
         "n_epochs": 10,
     },
-    "BNN": {"batch_size": 128, "early_stopping": True, "early_stopping_patience": 3},
+    "BNN": {
+        "batch_size": 128,
+        "early_stopping": True,
+        "early_stopping_patience": 3,
+        "n_epochs": 10,
+    },
     "NNEnsemble": {
         "batch_size": 256,
         "early_stopping": True,
@@ -270,7 +275,7 @@ PARAM_SEARCH = {
     "prior_sigma_1": [np.exp(d) for d in np.arange(-0.8, 0, 0.1)],
     "prior_sigma_2": [np.exp(d) for d in np.arange(-0.8, 0, 0.1)],
 }
-NUM_EVALS = {"AE": 40, "NN": 40, "MCDropout": 40, "BNN": 60, "PPCA": 30}
+NUM_EVALS = {"AE": 40, "NN": 40, "MCDropout": 40, "BNN": 100, "PPCA": 30}
 
 
 # Default training hyperparameters

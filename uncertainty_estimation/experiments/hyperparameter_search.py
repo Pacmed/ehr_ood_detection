@@ -86,7 +86,7 @@ def perform_hyperparameter_search(
                 model.fit(X_train, y_train, **TRAIN_PARAMS[model_name])
                 preds = model.predict(X_val)
 
-                # Neural predictors: Use the ROC-AUC score
+                # Neural predictors: Use the AUC-ROC score
                 if model_name in NEURAL_PREDICTORS:
                     # When model training goes completely awry
                     if np.isnan(preds).all():
@@ -158,7 +158,9 @@ def sample_hyperparameters(
         ParameterSampler(
             param_distributions={
                 hyperparam: PARAM_SEARCH[hyperparam]
-                for hyperparam, val in MODEL_PARAMS[model_name].items()
+                for hyperparam, val in MODEL_PARAMS[model_name][
+                    "MIMIC"
+                ].items()  # MIMIC is just a default here
                 if hyperparam in PARAM_SEARCH
             },
             n_iter=NUM_EVALS[model_name],
@@ -175,7 +177,9 @@ def sample_hyperparameters(
             **{
                 # Add hyperparameters that stay fixed
                 hyperparam: val
-                for hyperparam, val in MODEL_PARAMS[model_name].items()
+                for hyperparam, val in MODEL_PARAMS[model_name][
+                    "MIMIC"
+                ].items()  # MIMIC is just a default here
                 if hyperparam not in PARAM_SEARCH
             },
         )
