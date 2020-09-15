@@ -98,9 +98,6 @@ def run_ood_experiment_on_group(
         nov_an.set_ood(
             all_ood[ood_data.feature_names], impute_and_scale=impute_and_scale
         )
-        nov_an.set_ood(
-            all_ood[ood_data.feature_names], impute_and_scale=impute_and_scale
-        )
 
         for scoring_func in scoring_funcs:
             nov_an.calculate_novelty(scoring_func=scoring_func)

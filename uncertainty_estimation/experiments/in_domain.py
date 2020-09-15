@@ -14,6 +14,7 @@ from sklearn import pipeline
 from sklearn.preprocessing import StandardScaler
 import numpy as np
 import torch
+from tqdm import tqdm
 
 # PROJECT
 from uncertainty_estimation.models.info import NEURAL_PREDICTORS, AVAILABLE_MODELS
@@ -67,14 +68,12 @@ if __name__ == "__main__":
     uncertainties = defaultdict(list)
 
     for ne, scoring_funcs, method_name in init_models(
-        input_dim=len(feature_names),
-        selection=AVAILABLE_MODELS,
-        origin=args.data_origin,
+        input_dim=len(feature_names), selection=args.models, origin=args.data_origin,
     ):
         print(method_name)
         predictions = []
 
-        for i in range(N_SEEDS):
+        for i in tqdm(range(N_SEEDS)):
             ne.train(X_train, train_data[y_name].values, X_val, val_data[y_name].values)
 
             for scoring_func in scoring_funcs:
@@ -89,7 +88,7 @@ if __name__ == "__main__":
         dir_name = os.path.join(args.result_dir, args.data_origin, "ID", method_name)
 
         if not os.path.exists(dir_name):
-            os.mkdir(dir_name)
+            os.makedirs(dir_name)
 
         uncertainties_dir_name = os.path.join(dir_name, "uncertainties")
 
@@ -99,7 +98,7 @@ if __name__ == "__main__":
         predictions_dir_name = os.path.join(dir_name, "predictions")
 
         if not os.path.exists(predictions_dir_name):
-            os.mkdir(predictions_dir_name)
+            os.makedirs(predictions_dir_name)
 
         for scoring_func in scoring_funcs:
             with open(
@@ -108,11 +107,9 @@ if __name__ == "__main__":
                 pickle.dump(uncertainties[scoring_func], f)
 
         if method_name in NEURAL_PREDICTORS:
-            predictions = ne.model.predict_proba(X_test)[:, 1]
-
             with open(os.path.join(predictions_dir_name, "predictions.pkl"), "wb") as f:
                 pickle.dump(predictions, f)
     with open(
-        os.path.join("pickled_results", args.data_origin, "ID", "y_test.pkl"), "wb"
+        os.path.join(args.result_dir, args.data_origin, "ID", "y_test.pkl"), "wb"
     ) as f:
         pickle.dump(test_data[y_name].values, f)

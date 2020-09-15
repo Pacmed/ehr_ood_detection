@@ -149,7 +149,7 @@ def plot_ood(
 
     name_dict = {
         "ece": "ECE",
-        "roc_auc_score": "ROC-AUC",
+        "roc_auc_score": "AUC-ROC",
         "accuracy": "accuracy",
         "brier_score_loss": "Brier score",
         "nll": "NLL",
@@ -198,19 +198,19 @@ def plot_ood(
 
         # Update dicts for easier looping
         name_dict = {
-            "OOD ROC-AUC": "OOD ROC-AUC",
+            "OOD AUC-ROC": "OOD AUC-ROC",
             "OOD Recall": "OOD Recall",
             **name_dict,
         }
         metric_dict = {
-            "OOD ROC-AUC": auc_dict,
+            "OOD AUC-ROC": auc_dict,
             "OOD Recall": recall_dict,
             **metric_dict,
         }
 
         result_tables = {
             metric: pd.DataFrame(columns=ood_groups)
-            for metric in ["OOD ROC-AUC", "OOD Recall"] + list(name_dict.values())
+            for metric in ["OOD AUC-ROC", "OOD Recall"] + list(name_dict.values())
         }
 
         for metric, metric_results in metric_dict.items():
@@ -225,6 +225,7 @@ def plot_ood(
                     ] = f"${ood_results.mean():.2f} \pm {ood_results.std():.2f}$"
 
         for metric_name, table in result_tables.items():
+            table.index = map(lambda name: "\\texttt{" + name + "}", table.index)
             table.sort_index(inplace=True)
             print("\\begin{figure}[h]\n\\centering")
             print(table.to_latex(escape=False))
@@ -508,7 +509,7 @@ def plot_domain_adaption(
 
     name_dict = {
         "ece": "ECE",
-        "roc_auc_score": "ROC-AUC",
+        "roc_auc_score": "AUC-ROC",
         "accuracy": "accuracy",
         "brier_score_loss": "Brier score",
         "nll": "NLL",
@@ -549,19 +550,19 @@ def plot_domain_adaption(
     if print_latex:
         # Update dicts for easier looping
         name_dict = {
-            "OOD ROC-AUC": "OOD ROC-AUC",
+            "OOD AUC-ROC": "OOD AUC-ROC",
             "OOD Recall": "OOD Recall",
             **name_dict,
         }
         metric_dict = {
-            "OOD ROC-AUC": auc_dict,
+            "OOD AUC-ROC": auc_dict,
             "OOD Recall": recall_dict,
             **metric_dict,
         }
 
         result_tables = {
             metric: pd.DataFrame(columns=["eICU", "MIMIC"])
-            for metric in ["OOD ROC-AUC", "OOD Recall"] + list(name_dict.values())
+            for metric in ["OOD AUC-ROC", "OOD Recall"] + list(name_dict.values())
         }
 
         for metric, metric_results in metric_dict.items():
@@ -576,6 +577,7 @@ def plot_domain_adaption(
                     ] = f"${origin_results.mean():.2f} \pm {origin_results.std():.2f}$"
 
         for metric_name, table in result_tables.items():
+            table.index = map(lambda name: "\\texttt{" + name + "}", table.index)
             table.sort_index(inplace=True)
             print("\\begin{figure}[h]\n\\centering")
             print(table.to_latex(escape=False))
@@ -676,7 +678,7 @@ def plot_perturbation(
 
     # Add to DataFrame and export to Latex
     if print_latex:
-        columns = ["OOD ROC-AUC", "OOD Recall"]
+        columns = ["OOD AUC-ROC", "OOD Recall"]
         result_tables = {scale: pd.DataFrame(columns=columns) for scale in scales}
 
         for column, result_dict in zip(columns, [auc_dict, recall_dict]):

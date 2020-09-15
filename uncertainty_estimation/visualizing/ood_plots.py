@@ -33,7 +33,7 @@ def plot_results_as_heatmap(
     name: str
         Name of plot.
     lower_cmap_limit: float
-        Metric score that corresponds to the lower limit color on the colorbar (e.g. for ROC-AUC, 0.5 is considered to
+        Metric score that corresponds to the lower limit color on the colorbar (e.g. for AUC-ROC, 0.5 is considered to
         be as good for random guessing - thus color everything below that the same way).
     save_dir: Optional[str]
         Path that figure should be saved to if given.
@@ -79,6 +79,7 @@ def plot_results_as_heatmap(
         fmt="",
         linewidths=0.5,
         vmin=lower_cmap_limit,
+        vmax=1,
         square=True,
         ax=ax,
         cmap="OrRd",
