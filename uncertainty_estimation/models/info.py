@@ -84,18 +84,18 @@ MODEL_PARAMS = {
     },
     "VAE": {
         "MIMIC": {
-            "hidden_sizes": [75],
-            "latent_dim": 15,
-            "lr": 0.0001,
-            "reconstr_error_weight": 0.5,
+            "hidden_sizes": [75, 75],
+            "latent_dim": 10,
+            "lr": 0.001316,
+            "reconstr_error_weight": 0.070318,
         },
         "eICU": {
             "hidden_sizes": [100],
-            "latent_dim": 15,
-            "lr": 0.0001,
-            "reconstr_error_weight": 0.5,
+            "latent_dim": 10,
+            "lr": 0.001633,
+            "reconstr_error_weight": 0.334395,
         },
-    },  # TODO: Perform hyperparameter search for VAE
+    },
     "SVM": {},
     "NN": {
         "MIMIC": {
