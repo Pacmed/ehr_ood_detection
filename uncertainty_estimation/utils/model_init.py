@@ -10,6 +10,7 @@ from typing import Optional, Iterable, Dict, Tuple, List, Type
 # PROJECT
 from uncertainty_estimation.models.nn_ensemble import NNEnsemble, AnchoredNNEnsemble
 from uncertainty_estimation.models.autoencoder import AE
+from uncertainty_estimation.models.vae import VAE
 from uncertainty_estimation.models.mlp import (
     MLP,
     BayesianMLP,
@@ -35,6 +36,7 @@ MODEL_CLASSES = {
     "PPCA": PPCA,
     # "SVM": OneClassSVM,
     "AE": AE,
+    "VAE": VAE,
     "NN": MLP,
     "PlattScalingNN": PlattScalingMLP,
     "BNN": BayesianMLP,
