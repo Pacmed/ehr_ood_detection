@@ -28,6 +28,7 @@ from uncertainty_estimation.models.info import (
     NEURAL_PREDICTORS,
     NEURAL_MODELS,
     TRAIN_PARAMS,
+    AUTOENCODERS,
 )
 from uncertainty_estimation.utils.model_init import MODEL_CLASSES
 
@@ -83,29 +84,38 @@ def perform_hyperparameter_search(
                     param_set.update(input_size=len(feat_names))
 
                 model = model_type(**param_set)
-                model.fit(X_train, y_train, **TRAIN_PARAMS[model_name])
-                preds = model.predict(X_val)
 
-                # Neural predictors: Use the AUC-ROC score
-                if model_name in NEURAL_PREDICTORS:
-                    # When model training goes completely awry
-                    if np.isnan(preds).all():
-                        score = 0
+                try:
+                    model.fit(X_train, y_train, **TRAIN_PARAMS[model_name])
+                    preds = model.predict(X_val)
 
+                    # Neural predictors: Use the AUC-ROC score
+                    if model_name in NEURAL_PREDICTORS:
+                        # When model training goes completely awry
+                        if np.isnan(preds).all():
+                            score = 0
+
+                        else:
+                            preds = preds[:, 1]
+                            score = roc_auc_score(
+                                y_true=y_val[~np.isnan(preds)],
+                                y_score=preds[~np.isnan(preds)],
+                            )
+
+                    # Auto-encoders: Use mean negative reconstruction error (because score are sorted descendingly)
+                    elif model_name in AUTOENCODERS:
+                        score = -float(preds.mean())
+
+                    # PPCA: Just use the (mean) log-likelihood
                     else:
-                        preds = preds[:, 1]
-                        score = roc_auc_score(
-                            y_true=y_val[~np.isnan(preds)],
-                            y_score=preds[~np.isnan(preds)],
-                        )
+                        score = preds.mean()
 
-                # Auto-encoders: Use mean negative reconstruction error (because score are sorted descendingly)
-                elif model_name == "AE":
-                    score = -float(preds.mean())
+                # In case of nans due bad training parameters
+                except ValueError:
+                    score = -np.inf
 
-                # PPCA: Just use the (mean) log-likelihood
-                else:
-                    score = preds.mean()
+                if np.isnan(score):
+                    score = -np.inf
 
                 scores[run] = {"score": score, "hyperparameters": param_set}
                 progress_bar.update(1)

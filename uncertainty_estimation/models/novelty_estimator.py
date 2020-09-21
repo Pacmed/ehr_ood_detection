@@ -17,6 +17,7 @@ from uncertainty_estimation.models.info import (
     NEURAL_PREDICTORS,
     MULTIPLE_PRED_NN_MODELS,
     SINGLE_PRED_NN_MODELS,
+    AUTOENCODERS,
 )
 
 
@@ -57,7 +58,7 @@ class NoveltyEstimator:
         y_val: np.array
             Validation labels.
         """
-        if self.name == "AE":
+        if self.name in AUTOENCODERS:
             self.model = self.model_type(**self.model_params)
             self.model.train(X_train, **self.train_params)
 
@@ -95,7 +96,7 @@ class NoveltyEstimator:
         except AttributeError:
             pass
 
-        if self.name == "AE":
+        if self.name in AUTOENCODERS:
             return self.model.get_reconstr_error(data)
 
         elif self.name in BASELINES:

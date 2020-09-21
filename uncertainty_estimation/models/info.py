@@ -35,8 +35,14 @@ SINGLE_INST_MULTIPLE_PRED_NN_MODELS = {
     "BNN",  # Bayesian Neural Network
 }
 
+AUTOENCODERS = {
+    "AE",
+    "VAE",
+    # "HI-VAE"  # Coming soon!
+}
+
 NO_ENSEMBLE_NN_MODELS = (
-    SINGLE_PRED_NN_MODELS | {"AE"} | SINGLE_INST_MULTIPLE_PRED_NN_MODELS
+    SINGLE_PRED_NN_MODELS | AUTOENCODERS | SINGLE_INST_MULTIPLE_PRED_NN_MODELS
 )
 
 MULTIPLE_PRED_NN_MODELS = SINGLE_INST_MULTIPLE_PRED_NN_MODELS | ENSEMBLE_MODELS
@@ -49,7 +55,7 @@ NEURAL_PREDICTORS = (
     SINGLE_PRED_NN_MODELS | MULTIPLE_PRED_NN_MODELS
 )  # All neural network-based discriminators
 
-NEURAL_MODELS = NEURAL_PREDICTORS | {"AE"}  # All neural models
+NEURAL_MODELS = NEURAL_PREDICTORS | AUTOENCODERS  # All neural models
 AVAILABLE_MODELS = NEURAL_MODELS | BASELINES  # All available models in this project
 
 # Available novelty scoring functions for models
@@ -57,6 +63,7 @@ AVAILABLE_MODELS = NEURAL_MODELS | BASELINES  # All available models in this pro
 AVAILABLE_SCORING_FUNCS = {
     "PPCA": ("default",),  # Default: log-prob
     "AE": ("default",),  # Default: Reconstruction error
+    "VAE": ("default",),  # Default: Reconstruction error
     "SVM": ("default",),  # Default: Distance to decision boundary
     "NN": ("entropy", "max_prob"),  # Default: entropy
     "PlattScalingNN": ("entropy", "max_prob"),
@@ -75,6 +82,20 @@ MODEL_PARAMS = {
         "MIMIC": {"hidden_sizes": [75], "latent_dim": 15, "lr": 0.006897},
         "eICU": {"hidden_sizes": [100], "latent_dim": 15, "lr": 0.005216},
     },
+    "VAE": {
+        "MIMIC": {
+            "hidden_sizes": [75],
+            "latent_dim": 15,
+            "lr": 0.0001,
+            "reconstr_error_weight": 0.5,
+        },
+        "eICU": {
+            "hidden_sizes": [100],
+            "latent_dim": 15,
+            "lr": 0.0001,
+            "reconstr_error_weight": 0.5,
+        },
+    },  # TODO: Perform hyperparameter search for VAE
     "SVM": {},
     "NN": {
         "MIMIC": {
@@ -211,6 +232,7 @@ MODEL_PARAMS = {
 TRAIN_PARAMS = {
     "PPCA": {},
     "AE": {"n_epochs": 10, "batch_size": 64},
+    "VAE": {"n_epochs": 10, "batch_size": 64},
     "SVM": {},
     "NN": {
         "batch_size": 256,
@@ -266,16 +288,17 @@ PARAM_SEARCH = {
     ],
     "latent_dim": [5, 10, 15, 20],
     "batch_size": [64, 128, 256],
-    "lr": loguniform(1e-4, 0.1),
-    # Invervals become [loc, loc + scale] for uniform
+    "lr": loguniform(1e-5, 0.1),
+    # Intervals become [loc, loc + scale] for uniform
     "dropout_rate": uniform(loc=0, scale=0.5),  # [0, 0.5]
     "posterior_rho_init": uniform(loc=-8, scale=6),  # [-8, -2]
     "posterior_mu_init": uniform(loc=-0.6, scale=1.2),  # [-0.6, 0.6]
     "prior_pi": uniform(loc=0.1, scale=0.8),  # [0.1, 0.9]
     "prior_sigma_1": [np.exp(d) for d in np.arange(-0.8, 0, 0.1)],
     "prior_sigma_2": [np.exp(d) for d in np.arange(-0.8, 0, 0.1)],
+    "reconstr_error_weight": loguniform(0.001, 0.9),
 }
-NUM_EVALS = {"AE": 40, "NN": 40, "MCDropout": 40, "BNN": 100, "PPCA": 30}
+NUM_EVALS = {"AE": 40, "VAE": 100, "NN": 40, "MCDropout": 40, "BNN": 100, "PPCA": 30}
 
 
 # Default training hyperparameters
