@@ -66,6 +66,10 @@ def plot_results_as_heatmap(
 
         df.index = new_indices
 
+    # Introduce linebreaks into to ticks to make figures more compact
+    # Also, BNN was changed post-hoc to BBB, didn't want to re-run experiments
+    df.columns = [col.replace("(", "\n(").replace("BNN", "BBB") for col in df.columns]
+
     df = df.sort_index()
     df = df.applymap(lambda l: np.array(l).mean())
     df = df.reindex(sorted(df.columns), axis=1)
@@ -85,8 +89,8 @@ def plot_results_as_heatmap(
         cmap="OrRd",
         cbar=False,
     )
-    plt.title(name)
-    plt.xticks(fontsize=8)
+    # plt.title(name)  # TODO: Re-add after generating paper plots
+    plt.xticks(fontsize=7)
     plt.yticks(fontsize=8)
     plt.setp(ax.get_xticklabels(), rotation=40, ha="right", rotation_mode="anchor")
 

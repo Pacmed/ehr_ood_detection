@@ -13,7 +13,8 @@ import numpy as np
 from uncertainty_estimation.utils.metrics import entropy, max_prob
 from uncertainty_estimation.models.info import (
     ENSEMBLE_MODELS,
-    BASELINES,
+    DENSITY_BASELINES,
+    DISCRIMINATOR_BASELINES,
     NEURAL_PREDICTORS,
     MULTIPLE_PRED_NN_MODELS,
     SINGLE_PRED_NN_MODELS,
@@ -61,9 +62,13 @@ class NoveltyEstimator:
             self.model = self.model_type(**self.model_params)
             self.model.train(X_train, **self.train_params)
 
-        elif self.name in BASELINES:
+        elif self.name in DENSITY_BASELINES:
             self.model = self.model_type(**self.model_params)
             self.model.fit(X_train)
+
+        elif self.name in self.name in DISCRIMINATOR_BASELINES:
+            self.model = self.model_type(**self.model_params)
+            self.model.fit(X_train, y_train)
 
         elif self.name in ENSEMBLE_MODELS:
             self.model = self.model_type(**self.model_params)
@@ -98,8 +103,11 @@ class NoveltyEstimator:
         if self.name == "AE":
             return self.model.get_reconstr_error(data)
 
-        elif self.name in BASELINES:
+        elif self.name in DENSITY_BASELINES:
             return -self.model.score_samples(data)
+
+        elif self.name == "GP" and scoring_func == "var":
+            return self.model.get_var(data)
 
         elif self.name in MULTIPLE_PRED_NN_MODELS:
             if scoring_func == "std":
@@ -114,7 +122,7 @@ class NoveltyEstimator:
             else:
                 raise ValueError(f"Unknown type of scoring function: {scoring_func}")
 
-        elif self.name in SINGLE_PRED_NN_MODELS:
+        elif self.name in SINGLE_PRED_NN_MODELS or self.name in DISCRIMINATOR_BASELINES:
 
             if scoring_func == "entropy":
                 return entropy(self.model.predict_proba(data), axis=1)

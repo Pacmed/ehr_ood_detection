@@ -5,3 +5,5 @@ matplotlib
 seaborn
 sklearn
 blitz-bayesian-pytorch
+gpy
+

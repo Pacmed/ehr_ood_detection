@@ -5,11 +5,15 @@ Define how models for experiments are initialized.
 # STD
 from typing import Optional, Iterable, Dict, Tuple, List, Type
 
+# EXT
+from sklearn.linear_model import LogisticRegression
+
 # from sklearn.svm import OneClassSVM
 
 # PROJECT
 from uncertainty_estimation.models.nn_ensemble import NNEnsemble, AnchoredNNEnsemble
 from uncertainty_estimation.models.autoencoder import AE
+from uncertainty_estimation.models.gaussian_process import GaussianProcess
 from uncertainty_estimation.models.mlp import (
     MLP,
     BayesianMLP,
@@ -34,6 +38,8 @@ from uncertainty_estimation.utils.types import ModelInfo
 MODEL_CLASSES = {
     "PPCA": PPCA,
     # "SVM": OneClassSVM,
+    "LogReg": LogisticRegression,
+    "GP": GaussianProcess,
     "AE": AE,
     "NN": MLP,
     "PlattScalingNN": PlattScalingMLP,
