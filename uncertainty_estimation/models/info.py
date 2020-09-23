@@ -3,14 +3,10 @@ Module to be the single place to bundle all the information about models: Availa
 hyperparameters, etc.
 """
 
-# STD
-import math
-
 # EXT
 import numpy as np
 from sklearn.utils.fixes import loguniform
 from scipy.stats import uniform
-from GPy.kern import RBF, Exponential, Linear
 
 # ### Models and novelty scoring functions ###
 
@@ -21,7 +17,6 @@ DENSITY_BASELINES = {
 
 DISCRIMINATOR_BASELINES = {
     "LogReg",  # Logistic Regression
-    "GP",  # Gaussian Process
     # "SVM",  # One-class SVM for outlier detection
 }
 
@@ -68,7 +63,6 @@ AVAILABLE_SCORING_FUNCS = {
     "AE": ("default",),  # Default: Reconstruction error
     "SVM": ("default",),  # Default: Distance to decision boundary
     "LogReg": ("entropy", "max_prob"),
-    "GP": ("entropy", "var"),
     "NN": ("entropy", "max_prob"),
     "PlattScalingNN": ("entropy", "max_prob"),
     "MCDropout": ("entropy", "std", "mutual_information"),
@@ -88,10 +82,6 @@ MODEL_PARAMS = {
     },
     "SVM": {},
     "LogReg": {"MIMIC": {"C": 10}, "eICU": {"C": 1000}},
-    "GP": {
-        "MIMIC": {"input_size": 588, "N_limit": 8000, "kernel": "RBF"},
-        "eICU": {"input_size": 588, "N_limit": 50, "kernel": "RBF"},  # TODO: Debug
-    },
     "NN": {
         "MIMIC": {
             "dropout_rate": 0.157483,
@@ -228,7 +218,6 @@ TRAIN_PARAMS = {
     "PPCA": {},
     "AE": {"n_epochs": 10, "batch_size": 64},
     "SVM": {},
-    "GP": {},
     "LogReg": {},
     "NN": {
         "batch_size": 256,
@@ -288,7 +277,6 @@ PARAM_SEARCH = {
     # Intervals become [loc, loc + scale] for uniform
     "C": [10 ** i for i in range(0, 5)],
     #  Regularization for logistic regression baseline
-    "kernel": ["RBF", "Linear"],
     "dropout_rate": uniform(loc=0, scale=0.5),  # [0, 0.5]
     "posterior_rho_init": uniform(loc=-8, scale=6),  # [-8, -2]
     "posterior_mu_init": uniform(loc=-0.6, scale=1.2),  # [-0.6, 0.6]
@@ -303,7 +291,6 @@ NUM_EVALS = {
     "BNN": 100,
     "PPCA": 30,
     "LogReg": 5,
-    "GP": 3,
 }
 
 

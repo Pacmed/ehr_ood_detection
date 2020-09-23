@@ -106,9 +106,6 @@ class NoveltyEstimator:
         elif self.name in DENSITY_BASELINES:
             return -self.model.score_samples(data)
 
-        elif self.name == "GP" and scoring_func == "var":
-            return self.model.get_var(data)
-
         elif self.name in MULTIPLE_PRED_NN_MODELS:
             if scoring_func == "std":
                 return self.model.get_std(data)

@@ -13,7 +13,6 @@ from sklearn.linear_model import LogisticRegression
 # PROJECT
 from uncertainty_estimation.models.nn_ensemble import NNEnsemble, AnchoredNNEnsemble
 from uncertainty_estimation.models.autoencoder import AE
-from uncertainty_estimation.models.gaussian_process import GaussianProcess
 from uncertainty_estimation.models.mlp import (
     MLP,
     BayesianMLP,
@@ -39,7 +38,6 @@ MODEL_CLASSES = {
     "PPCA": PPCA,
     # "SVM": OneClassSVM,
     "LogReg": LogisticRegression,
-    "GP": GaussianProcess,
     "AE": AE,
     "NN": MLP,
     "PlattScalingNN": PlattScalingMLP,
