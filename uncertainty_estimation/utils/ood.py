@@ -14,7 +14,10 @@ from sklearn.metrics import brier_score_loss, roc_auc_score
 from tqdm import tqdm
 
 # PROJECT
-from uncertainty_estimation.models.info import NEURAL_PREDICTORS
+from uncertainty_estimation.models.info import (
+    NEURAL_PREDICTORS,
+    DISCRIMINATOR_BASELINES,
+)
 from uncertainty_estimation.utils.metrics import (
     ece,
     accuracy,
@@ -106,7 +109,7 @@ def run_ood_experiment_on_group(
             ]
             ood_recall[scoring_func][ood_data.name] += [nov_an.get_ood_recall()]
 
-        if method_name in NEURAL_PREDICTORS:
+        if method_name in NEURAL_PREDICTORS | DISCRIMINATOR_BASELINES:
             y_pred = nov_an.ne.model.predict_proba(nov_an.X_ood)[:, 1]
 
             for metric in metrics:

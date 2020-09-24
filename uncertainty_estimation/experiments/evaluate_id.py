@@ -14,7 +14,10 @@ import pandas as pd
 from sklearn.metrics import roc_auc_score
 
 # PROJECT
-from uncertainty_estimation.models.info import NEURAL_PREDICTORS
+from uncertainty_estimation.models.info import (
+    NEURAL_PREDICTORS,
+    DISCRIMINATOR_BASELINES,
+)
 
 # CONST
 RESULT_DIR = "../../data/results"
@@ -49,7 +52,7 @@ def evaluate_mortality_prediction(
 
     # Load model predictions
     for data_origin in data_origins:
-        for model in set(models) & NEURAL_PREDICTORS:
+        for model in set(models) & (NEURAL_PREDICTORS | DISCRIMINATOR_BASELINES):
 
             with open(
                 os.path.join(
@@ -87,7 +90,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--models",
         type=str,
-        default=NEURAL_PREDICTORS,
+        default=NEURAL_PREDICTORS | DISCRIMINATOR_BASELINES,
         nargs="+",
         help="Distinguish the methods that should be included in the plot.",
     )
