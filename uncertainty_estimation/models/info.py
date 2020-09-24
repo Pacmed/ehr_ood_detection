@@ -13,11 +13,16 @@ from scipy.stats import uniform
 
 # ### Models and novelty scoring functions ###
 
-BASELINES = {
+DENSITY_BASELINES = {
     "PPCA",  # Probabilistic PCA for density estimation
     "AE",  # Auto-Encoder for implicit density estimation
+}
+
+DISCRIMINATOR_BASELINES = {
+    "LogReg",  # Logistic Regression
     # "SVM",  # One-class SVM for outlier detection
 }
+
 
 SINGLE_PRED_NN_MODELS = {
     "NN",  # Single neural discriminator
@@ -42,7 +47,7 @@ NO_ENSEMBLE_NN_MODELS = (
 MULTIPLE_PRED_NN_MODELS = SINGLE_INST_MULTIPLE_PRED_NN_MODELS | ENSEMBLE_MODELS
 
 SINGLE_PRED_MODELS = (
-    BASELINES | SINGLE_PRED_NN_MODELS
+    DENSITY_BASELINES | SINGLE_PRED_NN_MODELS
 )  # All models only making a single prediction
 
 NEURAL_PREDICTORS = (
@@ -50,7 +55,9 @@ NEURAL_PREDICTORS = (
 )  # All neural network-based discriminators
 
 NEURAL_MODELS = NEURAL_PREDICTORS | {"AE"}  # All neural models
-AVAILABLE_MODELS = NEURAL_MODELS | BASELINES  # All available models in this project
+AVAILABLE_MODELS = (
+    NEURAL_MODELS | DENSITY_BASELINES | DISCRIMINATOR_BASELINES
+)  # All available models in this project
 
 # Available novelty scoring functions for models
 
@@ -58,7 +65,8 @@ AVAILABLE_SCORING_FUNCS = {
     "PPCA": ("default",),  # Default: log-prob
     "AE": ("default",),  # Default: Reconstruction error
     "SVM": ("default",),  # Default: Distance to decision boundary
-    "NN": ("entropy", "max_prob"),  # Default: entropy
+    "LogReg": ("entropy", "max_prob"),
+    "NN": ("entropy", "max_prob"),
     "PlattScalingNN": ("entropy", "max_prob"),
     "MCDropout": ("entropy", "std", "mutual_information"),
     "BNN": ("entropy", "std", "mutual_information"),
@@ -76,6 +84,7 @@ MODEL_PARAMS = {
         "eICU": {"hidden_sizes": [100], "latent_dim": 15, "lr": 0.005216},
     },
     "SVM": {},
+    "LogReg": {"MIMIC": {"C": 10}, "eICU": {"C": 1000}},
     "NN": {
         "MIMIC": {
             "dropout_rate": 0.157483,
@@ -212,6 +221,7 @@ TRAIN_PARAMS = {
     "PPCA": {},
     "AE": {"n_epochs": 10, "batch_size": 64},
     "SVM": {},
+    "LogReg": {},
     "NN": {
         "batch_size": 256,
         "early_stopping": True,
@@ -267,7 +277,9 @@ PARAM_SEARCH = {
     "latent_dim": [5, 10, 15, 20],
     "batch_size": [64, 128, 256],
     "lr": loguniform(1e-4, 0.1),
-    # Invervals become [loc, loc + scale] for uniform
+    # Intervals become [loc, loc + scale] for uniform
+    "C": [10 ** i for i in range(0, 5)],
+    #  Regularization for logistic regression baseline
     "dropout_rate": uniform(loc=0, scale=0.5),  # [0, 0.5]
     "posterior_rho_init": uniform(loc=-8, scale=6),  # [-8, -2]
     "posterior_mu_init": uniform(loc=-0.6, scale=1.2),  # [-0.6, 0.6]
@@ -275,7 +287,14 @@ PARAM_SEARCH = {
     "prior_sigma_1": [np.exp(d) for d in np.arange(-0.8, 0, 0.1)],
     "prior_sigma_2": [np.exp(d) for d in np.arange(-0.8, 0, 0.1)],
 }
-NUM_EVALS = {"AE": 40, "NN": 40, "MCDropout": 40, "BNN": 100, "PPCA": 30}
+NUM_EVALS = {
+    "AE": 40,
+    "NN": 40,
+    "MCDropout": 40,
+    "BNN": 100,
+    "PPCA": 30,
+    "LogReg": 5,
+}
 
 
 # Default training hyperparameters

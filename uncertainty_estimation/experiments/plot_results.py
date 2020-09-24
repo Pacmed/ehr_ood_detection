@@ -26,6 +26,7 @@ from uncertainty_estimation.models.info import (
     NEURAL_PREDICTORS,
     AVAILABLE_MODELS,
     AVAILABLE_SCORING_FUNCS,
+    DISCRIMINATOR_BASELINES,
 )
 from uncertainty_estimation.experiments.perturbation import SCALES
 from uncertainty_estimation.utils.types import ResultDict
@@ -434,7 +435,7 @@ def plot_domain_adaption(
             ) as f:
                 recall_dict[name] = pickle.load(f)
 
-        if method in NEURAL_PREDICTORS:
+        if method in NEURAL_PREDICTORS | DISCRIMINATOR_BASELINES:
             metrics_dir = os.path.join(method_dir, "metrics")
 
             for metric in os.listdir(metrics_dir):
@@ -862,7 +863,7 @@ def load_ood_results_from_origin(
             ) as f:
                 recall_dict[name] = pickle.load(f)
 
-        if method in NEURAL_PREDICTORS:
+        if method in NEURAL_PREDICTORS | DISCRIMINATOR_BASELINES:
             metrics_dir = os.path.join(method_dir, "metrics")
 
             for metric in os.listdir(metrics_dir):

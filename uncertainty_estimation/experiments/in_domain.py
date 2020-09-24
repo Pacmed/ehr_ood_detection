@@ -17,7 +17,11 @@ import torch
 from tqdm import tqdm
 
 # PROJECT
-from uncertainty_estimation.models.info import NEURAL_PREDICTORS, AVAILABLE_MODELS
+from uncertainty_estimation.models.info import (
+    NEURAL_PREDICTORS,
+    AVAILABLE_MODELS,
+    DISCRIMINATOR_BASELINES,
+)
 from uncertainty_estimation.utils.model_init import init_models
 from uncertainty_estimation.utils.datahandler import DataHandler
 
@@ -82,7 +86,7 @@ if __name__ == "__main__":
                 ]
                 print(len(uncertainties[scoring_func][0]))
 
-            if method_name in NEURAL_PREDICTORS:
+            if method_name in NEURAL_PREDICTORS | DISCRIMINATOR_BASELINES:
                 predictions += [ne.model.predict_proba(X_test)[:, 1]]
 
         dir_name = os.path.join(args.result_dir, args.data_origin, "ID", method_name)
@@ -106,7 +110,7 @@ if __name__ == "__main__":
             ) as f:
                 pickle.dump(uncertainties[scoring_func], f)
 
-        if method_name in NEURAL_PREDICTORS:
+        if method_name in NEURAL_PREDICTORS | DISCRIMINATOR_BASELINES:
             with open(os.path.join(predictions_dir_name, "predictions.pkl"), "wb") as f:
                 pickle.dump(predictions, f)
     with open(
