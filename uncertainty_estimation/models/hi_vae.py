@@ -3,7 +3,7 @@ Module providing an implementation of a Heterogenous-Incomplete Variational Auto
 """
 
 # STD
-from typing import Tuple, List
+from typing import Tuple, List, Optional
 
 # EXT
 import torch
@@ -22,6 +22,9 @@ DECODING_FUNCS = {
     "categorical": ...,  # Categorical # TODO
     "ordinal": ...,  # Thermometer  # TODO
 }
+
+# TYPES
+FeatTypes = List[Tuple[str, Optional[int], Optional[int]]]
 
 
 class HIEncoder(nn.Module):
@@ -43,18 +46,24 @@ class HIEncoder(nn.Module):
         hidden_sizes: List[int],
         input_size: int,
         latent_dim: int,
-        feat_types: List[str],
+        feat_types: FeatTypes,
     ):
         super().__init__()
 
-        assert set(feat_types) & set(DECODING_FUNCS.keys()) == set(feat_types), (
+        only_types = list(zip(*feat_types))[0]
+
+        assert set(only_types) & set(DECODING_FUNCS.keys()) == set(only_types), (
             "Unknown feature type declared. Must "
             "be in ['real', 'positive_real', "
             "'count', 'categorical', 'ordinal']."
         )
 
+        self.feat_types = feat_types
+
         architecture = [input_size] + hidden_sizes
         self.layers = []
+
+        self.real_batch_norm = None
 
         for l, (in_dim, out_dim) in enumerate(zip(architecture[:-1], architecture[1:])):
             self.layers.append(nn.Linear(in_dim, out_dim))
@@ -65,12 +74,56 @@ class HIEncoder(nn.Module):
         self.log_var = nn.Linear(architecture[-1], latent_dim)
 
     def categorical_encode(
-        self, input_tensor: torch.Tensor, feat_types: List[str]
-    ) -> Tuple[torch.Tensor, List[str]]:
+        self, input_tensor: torch.Tensor, observed_mask: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor, List[str]]:
         """
         Create one-hot / thermometer encodings for categorical / ordinal variables.
         """
-        ...  # TODO
+        encoded_input_tensor = torch.empty(input_tensor.shape[0], 0)
+        encoded_observed_mask = torch.empty(observed_mask.shape[0], 0)
+        encoded_types = []
+
+        for dim, (feat_type, feat_min, feat_max) in enumerate(self.feat_types):
+            observed = observed_mask[:, dim]
+
+            # Use one-hot encoding
+            if feat_type == "categorical":
+                one_hot_encoding = torch.zeros(
+                    input_tensor.shape[0], feat_max
+                )  # B x number of categories
+                one_hot_encoding[:, input_tensor[:, dim]] = 1
+                encoded_input_tensor = torch.cat(
+                    [encoded_input_tensor, one_hot_encoding], dim=1
+                )
+                encoded_observed_mask = torch.cat(
+                    [encoded_observed_mask, torch.cat([observed] * feat_max, dim=1)]
+                )
+                encoded_types.extend(["categorical"] * feat_max)
+
+            # Use thermometer encoding
+            if feat_type == "ordinal":
+                num_values = feat_max - feat_min + 1
+                thermometer_encoding = torch.zeros(input_tensor.shape[0], num_values)
+                thermometer_encoding[:, : input_tensor[:, dim] + 1] = 1
+                encoded_input_tensor = torch.cat(
+                    [encoded_input_tensor, thermometer_encoding], dim=1
+                )
+                encoded_observed_mask = torch.cat(
+                    [encoded_observed_mask, torch.cat([observed] * num_values, dim=1)]
+                )
+                encoded_types.extend(["ordinal"] * num_values)
+
+            # Simply add the feature dim, untouched
+            else:
+                encoded_input_tensor = torch.cat(
+                    [encoded_input_tensor, input_tensor[:, dim]], dim=1
+                )
+                encoded_observed_mask = torch.cat(
+                    [encoded_observed_mask, observed], dim=1
+                )
+                encoded_types.append(feat_type)
+
+        return encoded_input_tensor, encoded_observed_mask, encoded_types
 
     def forward(
         self, input_tensor: torch.Tensor
@@ -88,6 +141,21 @@ class HIEncoder(nn.Module):
         )  # Remember which values where observed
         input_tensor[torch.isnan(input_tensor)] = 0  # Replace missing values with 0
 
+        input_tensor, encoded_observed_mask, encoded_types = self.categorical_encode(
+            input_tensor, observed_mask
+        )
+
+        if self.real_batch_norm is None:
+            self.real_batch_norm = torch.nn.BatchNorm1d(num_features=len(encoded_types))
+
+        # Get mask for real-valued variables, these will be scaled by batch norm
+        real_mask = torch.from_numpy(
+            [feat_type in ("real", "positive_real") for feat_type in encoded_types]
+        )
+
+        normed_input_tensor = self.real_batch_norm(input_tensor)
+        normed_input_tensor[~real_mask] = input_tensor
+
         h = self.hidden(input_tensor)
         mean = self.mean(h)
         log_var = self.log_var(h)
@@ -97,6 +165,8 @@ class HIEncoder(nn.Module):
 
 
 class HIDecoder(nn.Module):
+    # TODO: Add batch-denormalization
+
     ...  # TODO
 
 
