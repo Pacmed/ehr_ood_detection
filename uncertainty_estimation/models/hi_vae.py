@@ -3,14 +3,13 @@ Module providing an implementation of a Heterogenous-Incomplete Variational Auto
 """
 
 # STD
-from typing import Tuple, List, Optional
+from typing import Tuple, List, Optional, Set
 
 # EXT
+import numpy as np
 import torch
 from torch import nn
 
-# PROJECT
-from uncertainty_estimation.models.vae import Encoder
 
 # CONSTANTS
 
@@ -24,7 +23,54 @@ DECODING_FUNCS = {
 }
 
 # TYPES
+# A list of tuples specifying the types of input features
+# Just name of the distribution and optionally the min and max value for ordinal / categorical features
+# e.g. [("real", None, None), ("categorical", None, 5), ("ordinal", 1, 3)]
 FeatTypes = List[Tuple[str, Optional[int], Optional[int]]]
+
+
+# TODO: Add documentation
+
+
+def infer_types(
+    X: np.array,
+    feat_names: List[str],
+    count_kws: Set[str] = frozenset({"num", "count"}),
+    ordinal_kws: Set[str] = frozenset(
+        {"scale", "Verbal", "Eyes", "Motor", "GSC Total"}
+    ),
+) -> FeatTypes:
+    """
+    A basic function to infer the types from a data set automatically.
+    """
+    feat_types = []
+
+    for dim, feat_name in enumerate(feat_names):
+
+        # Distinguish real-valued from integer-valued
+        if X[:, dim].astype(int) == X[:, dim]:
+
+            # Count features
+            if any(kw in feat_name for kw in count_kws):
+                feat_types.append(("count", None, None))
+
+            # Ordinal features
+            elif any(kw in feat_name for kw in ordinal_kws):
+                feat_types.append(("ordinal", np.min(X[:, dim]), np.max(X[:, dim])))
+
+            # Categorical
+            else:
+                feat_types.append(("categorical", None, np.max(X[:, dim])))
+
+        # Real-valued
+        else:
+            if all(X[:, dim] > 0):
+                feat_types.append(("positive_real", None, None))
+
+            else:
+                feat_types.append(("real", None, None))
+
+    return feat_types
 
 
 class HIEncoder(nn.Module):
@@ -59,11 +105,14 @@ class HIEncoder(nn.Module):
         )
 
         self.feat_types = feat_types
+        self.encoded_input_size = self.get_encoded_input_size(feat_types)
 
-        architecture = [input_size] + hidden_sizes
+        architecture = [self.encoded_input_size] + hidden_sizes
         self.layers = []
 
-        self.real_batch_norm = None
+        self.real_batch_norm = torch.nn.BatchNorm1d(
+            num_features=self.encoded_input_size
+        )
 
         for l, (in_dim, out_dim) in enumerate(zip(architecture[:-1], architecture[1:])):
             self.layers.append(nn.Linear(in_dim, out_dim))
@@ -72,6 +121,26 @@ class HIEncoder(nn.Module):
         self.hidden = nn.Sequential(*self.layers)
         self.mean = nn.Linear(architecture[-1], latent_dim)
         self.log_var = nn.Linear(architecture[-1], latent_dim)
+
+    @staticmethod
+    def get_encoded_input_size(feat_types: FeatTypes) -> int:
+        """
+        Get the number of features after encoding categorical and ordinal features.
+        """
+        input_size = 0
+
+        for feat_type, feat_min, feat_max in feat_types:
+
+            if feat_type == "categorical":
+                input_size += feat_max
+
+            elif feat_type == "ordinal":
+                input_size += feat_max - feat_min + 1
+
+            else:
+                input_size += 1
+
+        return input_size
 
     def categorical_encode(
         self, input_tensor: torch.Tensor, observed_mask: torch.Tensor
@@ -144,9 +213,6 @@ class HIEncoder(nn.Module):
         input_tensor, encoded_observed_mask, encoded_types = self.categorical_encode(
             input_tensor, observed_mask
         )
-
-        if self.real_batch_norm is None:
-            self.real_batch_norm = torch.nn.BatchNorm1d(num_features=len(encoded_types))
 
         # Get mask for real-valued variables, these will be scaled by batch norm
         real_mask = torch.from_numpy(
