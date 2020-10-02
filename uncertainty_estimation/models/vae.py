@@ -66,7 +66,8 @@ class Encoder(nn.Module):
 
 
 class Decoder(nn.Module):
-    """The decoder module, which decodes a sample from the latent space back to the space of
+    """
+    The decoder module, which decodes a sample from the latent space back to the space of
     the input data.
 
     Parameters

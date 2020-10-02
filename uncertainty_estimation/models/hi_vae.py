@@ -3,6 +3,7 @@ Module providing an implementation of a Heterogenous-Incomplete Variational Auto
 """
 
 # STD
+import abc
 from typing import Tuple, List, Optional, Set
 
 # EXT
@@ -12,15 +13,7 @@ from torch import nn
 
 
 # CONSTANTS
-
-# Map from feature types to likelihood functions p(x_nd|gamma_nd)
-DECODING_FUNCS = {
-    "real": ...,  # Normal # TODO
-    "positive_real": ...,  # Log-normal # TODO
-    "count": ...,  # Poisson    # TODO
-    "categorical": ...,  # Categorical # TODO
-    "ordinal": ...,  # Thermometer  # TODO
-}
+AVAILABLE_TYPES = {"real", "positive_real", "count", "categorical", "ordinal"}
 
 # TYPES
 # A list of tuples specifying the types of input features
@@ -29,48 +22,7 @@ DECODING_FUNCS = {
 FeatTypes = List[Tuple[str, Optional[int], Optional[int]]]
 
 
-# TODO: Add documentation
-
-
-def infer_types(
-    X: np.array,
-    feat_names: List[str],
-    count_kws: Set[str] = frozenset({"num", "count"}),
-    ordinal_kws: Set[str] = frozenset(
-        {"scale", "Verbal", "Eyes", "Motor", "GSC Total"}
-    ),
-) -> FeatTypes:
-    """
-    A basic function to infer the types from a data set automatically.
-    """
-    feat_types = []
-
-    for dim, feat_name in enumerate(feat_names):
-
-        # Distinguish real-valued from integer-valued
-        if X[:, dim].astype(int) == X[:, dim]:
-
-            # Count features
-            if any(kw in feat_name for kw in count_kws):
-                feat_types.append(("count", None, None))
-
-            # Ordinal features
-            elif any(kw in feat_name for kw in ordinal_kws):
-                feat_types.append(("ordinal", np.min(X[:, dim]), np.max(X[:, dim])))
-
-            # Categorical
-            else:
-                feat_types.append(("categorical", None, np.max(X[:, dim])))
-
-        # Real-valued
-        else:
-            if all(X[:, dim] > 0):
-                feat_types.append(("positive_real", None, None))
-
-            else:
-                feat_types.append(("real", None, None))
-
-    return feat_types
+# -------------------------------------------------- Encoder -----------------------------------------------------------
 
 
 class HIEncoder(nn.Module):
@@ -98,7 +50,7 @@ class HIEncoder(nn.Module):
 
         only_types = list(zip(*feat_types))[0]
 
-        assert set(only_types) & set(DECODING_FUNCS.keys()) == set(only_types), (
+        assert set(only_types) & AVAILABLE_TYPES == set(only_types), (
             "Unknown feature type declared. Must "
             "be in ['real', 'positive_real', "
             "'count', 'categorical', 'ordinal']."
@@ -219,6 +171,12 @@ class HIEncoder(nn.Module):
             [feat_type in ("real", "positive_real") for feat_type in encoded_types]
         )
 
+        # Transform log-normal and count features
+        input_tensor[
+            :, torch.from_numpy(encoded_types in ("positive_real", "count"))
+        ] = torch.log(input_tensor)
+
+        # Normalize real features
         normed_input_tensor = self.real_batch_norm(input_tensor)
         normed_input_tensor[~real_mask] = input_tensor
 
@@ -230,10 +188,124 @@ class HIEncoder(nn.Module):
         return mean, std, observed_mask
 
 
-class HIDecoder(nn.Module):
-    # TODO: Add batch-denormalization
+# -------------------------------------------------- Decoder -----------------------------------------------------------
 
+
+class VarDecoder(nn.Module, abc.ABC):
+    """
+    Abstract variable decoder class that forces subclasses to implement some common methods.
+    """
+
+    def __init__(
+        self,
+        hidden_size: int,
+        latent_dim: int,
+        feat_type: Tuple[str, Optional[int], Optional[int]],
+    ):
+        super().__init__()
+
+        self.hidden_size = hidden_size
+        self.latent_dim = latent_dim
+        self.feat_type = feat_type
+
+    @abc.abstractmethod
+    def reconstruction_error(
+        self, input_tensor: torch.Tensor, latent_tensor: torch.Tensor
+    ) -> torch.Tensor:
+        """
+        Compute the log probability of the original data sample under p(x|z).
+
+        Parameters
+        ----------
+        input_tensor: torch.Tensor
+            Original data sample.
+        latent_tensor: torch.Tensor
+            A sample from the latent space, which has to be decoded.
+
+        Returns
+        -------
+        reconstr_error: torch.Tensor
+            Log probability of the input under the decoder's distribution.
+        """
+        ...
+
+
+class NormalDecoder(VarDecoder):
     ...  # TODO
+
+
+class LogNormalDecoder(VarDecoder):
+    ...  # TODO
+
+
+class PoissonDecoder(VarDecoder):
+    ...  # TODO
+
+
+class CategoricalDecoder(VarDecoder):
+    ...  # TODO
+
+
+class OrdinalDecoder(VarDecoder):
+    ...  # TODO
+
+
+class HIDecoder(nn.Module):
+
+    # TODO: Add batch-denormalization
+    """
+    The decoder module, which decodes a sample from the latent space back to the space of
+    the input data.
+
+    Parameters
+    ----------
+    hidden_sizes: List[int]
+        A list with the sizes of the hidden layers.
+    input_size: int
+        The dimensionality of the input
+    latent_dim: int
+        The size of the latent space.
+    """
+
+    def __init__(
+        self,
+        hidden_sizes: List[int],
+        input_size: int,
+        latent_dim: int,
+        feat_types: FeatTypes,
+    ):
+        self.decoding_models = {
+            "real": NormalDecoder,
+            "positive_real": LogNormalDecoder,
+            "count": PoissonDecoder,
+            "categorical": CategoricalDecoder,
+            "ordinal": OrdinalDecoder,
+        }
+
+        super().__init__()
+        architecture = [latent_dim] + hidden_sizes[:-1]
+        self.layers = []
+
+        for l, (in_dim, out_dim) in enumerate(zip(architecture[:-1], architecture[1:])):
+            self.layers.append(nn.Linear(in_dim, out_dim))
+            self.layers.append(nn.ReLU())
+
+        self.hidden = nn.Sequential(*self.layers)
+
+        # Initialize all the output networks
+        self.decoding_funcs = [
+            self.decoding_models[feat_type[0]](hidden_sizes[-1], latent_dim, feat_type)
+            for feat_type in feat_types
+        ]
+
+    def forward(self):
+        ...  # TODO
+
+    def reconstr_error(self):
+        ...  # TODO
+
+
+# ------------------------------------------------- Full model ---------------------------------------------------------
 
 
 class HIVAEModule(nn.Module):
@@ -242,3 +314,47 @@ class HIVAEModule(nn.Module):
 
 class HIVAE:
     ...  # TODO
+
+
+# ---------------------------------------------- Helper functions ------------------------------------------------------
+
+
+def infer_types(
+    X: np.array,
+    feat_names: List[str],
+    count_kws: Set[str] = frozenset({"num", "count"}),
+    ordinal_kws: Set[str] = frozenset(
+        {"scale", "Verbal", "Eyes", "Motor", "GSC Total"}
+    ),
+) -> FeatTypes:
+    """
+    A basic function to infer the types from a data set automatically.
+    """
+    feat_types = []
+
+    for dim, feat_name in enumerate(feat_names):
+
+        # Distinguish real-valued from integer-valued
+        if X[:, dim].astype(int) == X[:, dim]:
+
+            # Count features
+            if any(kw in feat_name for kw in count_kws):
+                feat_types.append(("count", None, None))
+
+            # Ordinal features
+            elif any(kw in feat_name for kw in ordinal_kws):
+                feat_types.append(("ordinal", np.min(X[:, dim]), np.max(X[:, dim])))
+
+            # Categorical
+            else:
+                feat_types.append(("categorical", None, np.max(X[:, dim])))
+
+        # Real-valued
+        else:
+            if all(X[:, dim] > 0):
+                feat_types.append(("positive_real", None, None))
+
+            else:
+                feat_types.append(("real", None, None))
+
+    return feat_types
