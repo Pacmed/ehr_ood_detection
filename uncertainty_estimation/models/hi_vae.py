@@ -25,7 +25,6 @@ FeatTypes = List[Tuple[str, Optional[int], Optional[int]]]
 
 
 # TODO: Group variables of the same type together to make computations more efficient
-# TODO: Add option to differentiate between mean / sampling
 
 # -------------------------------------------------- Encoder -----------------------------------------------------------
 
@@ -73,7 +72,7 @@ class HIEncoder(nn.Module):
 
         for l, (in_dim, out_dim) in enumerate(zip(architecture[:-1], architecture[1:])):
             self.layers.append(nn.Linear(in_dim, out_dim))
-            self.layers.append(nn.ReLU())
+            self.layers.append(nn.LeakyReLU())
 
         self.hidden = nn.Sequential(*self.layers)
         self.mean = nn.Linear(architecture[-1], latent_dim)
@@ -244,10 +243,17 @@ class NormalDecoder(VarDecoder):
         self.mean = nn.Linear(hidden_size, 1)
         self.log_var = nn.Linear(hidden_size, 1)
 
-    def forward(self, hidden: torch.Tensor):
+    def forward(self, hidden: torch.Tensor, reconstruction_mode: str = "mean"):
         mean = self.mean(hidden)
 
-        return mean
+        if reconstruction_mode == "mean":
+            return mean
+
+        else:
+            log_var = self.log_var(hidden)
+            std = torch.sqrt(torch.exp(log_var))
+            eps = torch.randn(mean.shape)
+            return mean + eps * std
 
     def reconstruction_error(
         self, input_tensor: torch.Tensor, hidden: torch.Tensor
@@ -284,8 +290,8 @@ class LogNormalDecoder(NormalDecoder):
     Decode a variable that is distributed according to a log-normal distribution.
     """
 
-    def forward(self, hidden: torch.Tensor):
-        return torch.log(super().forward(hidden))
+    def forward(self, hidden: torch.Tensor, reconstruction_mode: str = "mean"):
+        return torch.log(super().forward(hidden, reconstruction_mode))
 
 
 class PoissonDecoder(VarDecoder):
@@ -300,10 +306,11 @@ class PoissonDecoder(VarDecoder):
 
         self.lambda_ = nn.Linear(hidden_size, 1)
 
-    def forward(self, hidden: torch.Tensor):
+    def forward(self, hidden: torch.Tensor, reconstruction_mode: str = "mean"):
         lambda_ = self.lambda_(hidden).int()
         lambda_ = F.softplus(lambda_)
 
+        # There is no reparameterization trick for poisson, so sadly just return the mean
         return lambda_
 
     def reconstruction_error(
@@ -312,7 +319,9 @@ class PoissonDecoder(VarDecoder):
         lambda_ = self.lambda_(hidden).int()
         input_tensor = input_tensor.int()
 
-        return lambda_.pow(input_tensor) * torch.exp(-lambda_) / factorial(input_tensor)
+        return -torch.log(
+            lambda_.pow(input_tensor) * torch.exp(-lambda_) / factorial(input_tensor)
+        )
 
 
 class CategoricalDecoder(VarDecoder):
@@ -327,10 +336,14 @@ class CategoricalDecoder(VarDecoder):
 
         self.linear = nn.Linear(hidden_size, self.feat_type[2])
 
-    def forward(self, hidden: torch.Tensor):
+    def forward(self, hidden: torch.Tensor, reconstruction_mode: str = "mean"):
         dist = self.linear(hidden)
 
-        return torch.argmax(dist, dim=1)
+        if reconstruction_mode == "mean":
+            return torch.argmax(dist, dim=1)
+
+        else:
+            return torch.argmax(F.gumbel_softmax(dist, dim=1), dim=1)
 
     def reconstruction_error(
         self, input_tensor: torch.Tensor, hidden: torch.Tensor
@@ -340,7 +353,7 @@ class CategoricalDecoder(VarDecoder):
         dist = self.linear(hidden)
         dist = F.softmax(dist, dim=1)
 
-        return dist[:, cls]
+        return -torch.log(dist[:, cls])
 
 
 class OrdinalDecoder(VarDecoder):
@@ -358,7 +371,7 @@ class OrdinalDecoder(VarDecoder):
         )
         self.region = nn.Linear(hidden_size, 1)
 
-    def forward(self, hidden: torch.Tensor):
+    def get_ordinal_probs(self, hidden: torch.Tensor):
         thresholds = F.softplus(self.thresholds(hidden))
         region = F.softplus(self.region)
 
@@ -375,7 +388,23 @@ class OrdinalDecoder(VarDecoder):
             (torch.ones(hidden.shape[0], 1), threshold_probs[:, :-1]), dim=1
         )
 
-        return torch.argmax(ordinal_probs, dim=1)
+        return ordinal_probs
+
+    def forward(self, hidden: torch.Tensor):
+        ordinal_probs = self.get_ordinal_probs(hidden)
+
+        return -torch.log(torch.argmax(ordinal_probs, dim=1))
+
+    def reconstruction_error(
+        self, hidden: torch.Tensor, reconstruction_mode: str = "mean"
+    ):
+        ordinal_probs = self.get_ordinal_probs(hidden)
+
+        if reconstruction_mode == "mean":
+            return torch.argmax(ordinal_probs, dim=1)
+
+        else:
+            return torch.argmax(F.gumbel_softmax(ordinal_probs, dim=1), dim=1)
 
 
 class HIDecoder(nn.Module):
@@ -398,7 +427,6 @@ class HIDecoder(nn.Module):
     def __init__(
         self,
         hidden_sizes: List[int],
-        input_size: int,
         latent_dim: int,
         feat_types: FeatTypes,
         encoder_batch_norm: torch.nn.BatchNorm1d,
@@ -419,21 +447,45 @@ class HIDecoder(nn.Module):
 
         for l, (in_dim, out_dim) in enumerate(zip(architecture[:-1], architecture[1:])):
             self.layers.append(nn.Linear(in_dim, out_dim))
-            self.layers.append(nn.ReLU())
+            self.layers.append(nn.LeakyReLU())
 
         self.hidden = nn.Sequential(*self.layers)
 
         # Initialize all the output networks
-        self.decoding_funcs = [
+        self.decoding_models = [
             self.decoding_models[feat_type[0]](hidden_sizes[-1], feat_type)
             for feat_type in feat_types
         ]
 
-    def forward(self):
-        ...  # TODO
+    def forward(
+        self, latent_tensor: torch.Tensor, reconstruction_mode: str = "mean"
+    ) -> torch.Tensor:
+        h = self.hidden(latent_tensor)
 
-    def reconstr_error(self):
-        ...  # TODO
+        reconstructed = torch.cat(
+            [
+                decoding_func(h[:, dim], reconstruction_mode)
+                for dim, decoding_func in enumerate(self.decoding_models)
+            ]
+        )
+
+        return reconstructed
+
+    def reconstruction_error(
+        self, input_tensor: torch.Tensor, latent_tensor: torch.Tensor
+    ) -> torch.Tensor:
+        h = self.hidden(latent_tensor)
+
+        return torch.sum(
+            torch.cat(
+                [
+                    decoding_model.reconstruction_loss(input_tensor[:, dim], h[:, dim])
+                    for dim, decoding_model in enumerate(self.decoding_models)
+                ],
+                dim=1,
+            ),
+            dim=1,
+        )
 
 
 # ------------------------------------------------- Full model ---------------------------------------------------------

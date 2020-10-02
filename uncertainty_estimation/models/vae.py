@@ -42,7 +42,7 @@ class Encoder(nn.Module):
 
         for l, (in_dim, out_dim) in enumerate(zip(architecture[:-1], architecture[1:])):
             self.layers.append(nn.Linear(in_dim, out_dim))
-            self.layers.append(nn.ReLU())
+            self.layers.append(nn.LeakyReLU())
 
         self.hidden = nn.Sequential(*self.layers)
         self.mean = nn.Linear(architecture[-1], latent_dim)
