@@ -10,7 +10,9 @@ from typing import Tuple, List, Optional, Set
 import numpy as np
 import torch
 from torch import nn
-
+import torch.distributions as dist
+from torch.jit._builtins.math import factorial
+import torch.nn.functional as F
 
 # CONSTANTS
 AVAILABLE_TYPES = {"real", "positive_real", "count", "categorical", "ordinal"}
@@ -21,6 +23,9 @@ AVAILABLE_TYPES = {"real", "positive_real", "count", "categorical", "ordinal"}
 # e.g. [("real", None, None), ("categorical", None, 5), ("ordinal", 1, 3)]
 FeatTypes = List[Tuple[str, Optional[int], Optional[int]]]
 
+
+# TODO: Group variables of the same type together to make computations more efficient
+# TODO: Add option to differentiate between mean / sampling
 
 # -------------------------------------------------- Encoder -----------------------------------------------------------
 
@@ -197,20 +202,16 @@ class VarDecoder(nn.Module, abc.ABC):
     """
 
     def __init__(
-        self,
-        hidden_size: int,
-        latent_dim: int,
-        feat_type: Tuple[str, Optional[int], Optional[int]],
+        self, hidden_size: int, feat_type: Tuple[str, Optional[int], Optional[int]],
     ):
         super().__init__()
 
         self.hidden_size = hidden_size
-        self.latent_dim = latent_dim
         self.feat_type = feat_type
 
     @abc.abstractmethod
     def reconstruction_error(
-        self, input_tensor: torch.Tensor, latent_tensor: torch.Tensor
+        self, input_tensor: torch.Tensor, hidden: torch.Tensor
     ) -> torch.Tensor:
         """
         Compute the log probability of the original data sample under p(x|z).
@@ -231,23 +232,150 @@ class VarDecoder(nn.Module, abc.ABC):
 
 
 class NormalDecoder(VarDecoder):
-    ...  # TODO
+    """
+    Decode a variable that is normally distributed.
+    """
+
+    def __init__(
+        self, hidden_size: int, feat_type: Tuple[str, Optional[int], Optional[int]],
+    ):
+        super().__init__(hidden_size, feat_type)
+
+        self.mean = nn.Linear(hidden_size, 1)
+        self.log_var = nn.Linear(hidden_size, 1)
+
+    def forward(self, hidden: torch.Tensor):
+        mean = self.mean(hidden)
+
+        return mean
+
+    def reconstruction_error(
+        self, input_tensor: torch.Tensor, hidden: torch.Tensor
+    ) -> torch.Tensor:
+        """
+        Compute the log probability of the original data sample under p(x|z).
+
+        Parameters
+        ----------
+        input_tensor: torch.Tensor
+            Original feature.
+        latent_tensor: torch.Tensor
+            A sample from the latent space, which has to be decoded.
+
+        Returns
+        -------
+        reconstr_error: torch.Tensor
+            Log probability of the input under the decoder's distribution.
+        """
+        mean = self.mean(hidden)
+        log_var = self.log_var(hidden)
+        std = torch.sqrt(torch.exp(log_var))
+
+        distribution = dist.independent.Independent(dist.normal.Normal(mean, std), 1)
+
+        # calculating losses
+        reconstr_error = -distribution.log_prob(input_tensor)
+
+        return reconstr_error
 
 
-class LogNormalDecoder(VarDecoder):
-    ...  # TODO
+class LogNormalDecoder(NormalDecoder):
+    """
+    Decode a variable that is distributed according to a log-normal distribution.
+    """
+
+    def forward(self, hidden: torch.Tensor):
+        return torch.log(super().forward(hidden))
 
 
 class PoissonDecoder(VarDecoder):
-    ...  # TODO
+    """
+    Decode a variable that is distributed according to a Poisson distribution.
+    """
+
+    def __init__(
+        self, hidden_size: int, feat_type: Tuple[str, Optional[int], Optional[int]],
+    ):
+        super().__init__(hidden_size, feat_type)
+
+        self.lambda_ = nn.Linear(hidden_size, 1)
+
+    def forward(self, hidden: torch.Tensor):
+        lambda_ = self.lambda_(hidden).int()
+        lambda_ = F.softplus(lambda_)
+
+        return lambda_
+
+    def reconstruction_error(
+        self, input_tensor: torch.Tensor, hidden: torch.Tensor
+    ) -> torch.Tensor:
+        lambda_ = self.lambda_(hidden).int()
+        input_tensor = input_tensor.int()
+
+        return lambda_.pow(input_tensor) * torch.exp(-lambda_) / factorial(input_tensor)
 
 
 class CategoricalDecoder(VarDecoder):
-    ...  # TODO
+    """
+    Decode a categorical variable.
+    """
+
+    def __init__(
+        self, hidden_size: int, feat_type: Tuple[str, Optional[int], Optional[int]],
+    ):
+        super().__init__(hidden_size, feat_type)
+
+        self.linear = nn.Linear(hidden_size, self.feat_type[2])
+
+    def forward(self, hidden: torch.Tensor):
+        dist = self.linear(hidden)
+
+        return torch.argmax(dist, dim=1)
+
+    def reconstruction_error(
+        self, input_tensor: torch.Tensor, hidden: torch.Tensor
+    ) -> torch.Tensor:
+        cls = torch.argmax(input_tensor, dim=1)
+
+        dist = self.linear(hidden)
+        dist = F.softmax(dist, dim=1)
+
+        return dist[:, cls]
 
 
 class OrdinalDecoder(VarDecoder):
-    ...  # TODO
+    """
+    Decode an ordinal variable.
+    """
+
+    def __init__(
+        self, hidden_size: int, feat_type: Tuple[str, Optional[int], Optional[int]],
+    ):
+        super().__init__(hidden_size, feat_type)
+
+        self.thresholds = nn.Linear(
+            hidden_size, self.feat_type[2] - self.feat_type[1] + 1
+        )
+        self.region = nn.Linear(hidden_size, 1)
+
+    def forward(self, hidden: torch.Tensor):
+        thresholds = F.softplus(self.thresholds(hidden))
+        region = F.softplus(self.region)
+
+        # Thresholds might not be ordered, use a cumulative sum
+        thresholds = torch.cumsum(thresholds, dim=1)
+
+        # Calculate probs that the predicted region is enclosed by threshold
+        # p(x<=r|z)
+        threshold_probs = 1 / (1 + torch.exp(thresholds) - region)
+
+        # Now calculate probability for different ordinals
+        # p(x=r|z) = p(x<=r|x) - p(x<=r-1|x)
+        ordinal_probs = threshold_probs - torch.cat(
+            (torch.ones(hidden.shape[0], 1), threshold_probs[:, :-1]), dim=1
+        )
+
+        return torch.argmax(ordinal_probs, dim=1)
 
 
 class HIDecoder(nn.Module):
@@ -273,6 +401,7 @@ class HIDecoder(nn.Module):
         input_size: int,
         latent_dim: int,
         feat_types: FeatTypes,
+        encoder_batch_norm: torch.nn.BatchNorm1d,
     ):
         self.decoding_models = {
             "real": NormalDecoder,
@@ -282,8 +411,10 @@ class HIDecoder(nn.Module):
             "ordinal": OrdinalDecoder,
         }
 
+        self.encoder_batch_norm = encoder_batch_norm
+
         super().__init__()
-        architecture = [latent_dim] + hidden_sizes[:-1]
+        architecture = [latent_dim] + hidden_sizes
         self.layers = []
 
         for l, (in_dim, out_dim) in enumerate(zip(architecture[:-1], architecture[1:])):
@@ -294,7 +425,7 @@ class HIDecoder(nn.Module):
 
         # Initialize all the output networks
         self.decoding_funcs = [
-            self.decoding_models[feat_type[0]](hidden_sizes[-1], latent_dim, feat_type)
+            self.decoding_models[feat_type[0]](hidden_sizes[-1], feat_type)
             for feat_type in feat_types
         ]
 
