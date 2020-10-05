@@ -1,13 +1,13 @@
 {
     "Invasive BP Diastolic_full_min": [
-        "categorical",
+        "positive_real",
         0,
-        137.0
+        0
     ],
     "Invasive BP Diastolic_full_max": [
-        "categorical",
+        "positive_real",
         0,
-        345.0
+        0
     ],
     "Invasive BP Diastolic_full_mean": [
         "positive_real",
@@ -30,14 +30,14 @@
         0
     ],
     "Invasive BP Diastolic_first10_min": [
-        "categorical",
+        "positive_real",
         0,
-        190.0
+        0
     ],
     "Invasive BP Diastolic_first10_max": [
-        "categorical",
+        "positive_real",
         0,
-        344.0
+        0
     ],
     "Invasive BP Diastolic_first10_mean": [
         "positive_real",
@@ -60,14 +60,14 @@
         0
     ],
     "Invasive BP Diastolic_first25_min": [
-        "categorical",
+        "positive_real",
         0,
-        190.0
+        0
     ],
     "Invasive BP Diastolic_first25_max": [
-        "categorical",
+        "positive_real",
         0,
-        344.0
+        0
     ],
     "Invasive BP Diastolic_first25_mean": [
         "positive_real",
@@ -90,14 +90,14 @@
         0
     ],
     "Invasive BP Diastolic_first50_min": [
-        "categorical",
+        "positive_real",
         0,
-        137.0
+        0
     ],
     "Invasive BP Diastolic_first50_max": [
-        "categorical",
+        "positive_real",
         0,
-        345.0
+        0
     ],
     "Invasive BP Diastolic_first50_mean": [
         "positive_real",
@@ -120,14 +120,14 @@
         0
     ],
     "Invasive BP Diastolic_last10_min": [
-        "categorical",
+        "positive_real",
         0,
-        137.0
+        0
     ],
     "Invasive BP Diastolic_last10_max": [
-        "categorical",
+        "positive_real",
         0,
-        327.0
+        0
     ],
     "Invasive BP Diastolic_last10_mean": [
         "real",
@@ -150,14 +150,14 @@
         0
     ],
     "Invasive BP Diastolic_last25_min": [
-        "categorical",
+        "positive_real",
         0,
-        137.0
+        0
     ],
     "Invasive BP Diastolic_last25_max": [
-        "categorical",
+        "positive_real",
         0,
-        340.0
+        0
     ],
     "Invasive BP Diastolic_last25_mean": [
         "real",
@@ -180,14 +180,14 @@
         0
     ],
     "Invasive BP Diastolic_last50_min": [
-        "categorical",
+        "positive_real",
         0,
-        137.0
+        0
     ],
     "Invasive BP Diastolic_last50_max": [
-        "categorical",
+        "positive_real",
         0,
-        340.0
+        0
     ],
     "Invasive BP Diastolic_last50_mean": [
         "real",
@@ -840,12 +840,12 @@
         0
     ],
     "GCS Total_full_min": [
-        "categorical",
+        "ordinal",
         0,
         15.0
     ],
     "GCS Total_full_max": [
-        "categorical",
+        "ordinal",
         0,
         15.0
     ],
@@ -870,12 +870,12 @@
         0
     ],
     "GCS Total_first10_min": [
-        "categorical",
+        "ordinal",
         0,
         15.0
     ],
     "GCS Total_first10_max": [
-        "categorical",
+        "ordinal",
         0,
         15.0
     ],
@@ -900,12 +900,12 @@
         0
     ],
     "GCS Total_first25_min": [
-        "categorical",
+        "ordinal",
         0,
         15.0
     ],
     "GCS Total_first25_max": [
-        "categorical",
+        "ordinal",
         0,
         15.0
     ],
@@ -930,12 +930,12 @@
         0
     ],
     "GCS Total_first50_min": [
-        "categorical",
+        "ordinal",
         0,
         15.0
     ],
     "GCS Total_first50_max": [
-        "categorical",
+        "ordinal",
         0,
         15.0
     ],
@@ -960,12 +960,12 @@
         0
     ],
     "GCS Total_last10_min": [
-        "categorical",
+        "ordinal",
         0,
         15.0
     ],
     "GCS Total_last10_max": [
-        "categorical",
+        "ordinal",
         0,
         15.0
     ],
@@ -990,12 +990,12 @@
         0
     ],
     "GCS Total_last25_min": [
-        "categorical",
+        "ordinal",
         0,
         15.0
     ],
     "GCS Total_last25_max": [
-        "categorical",
+        "ordinal",
         0,
         15.0
     ],
@@ -1020,12 +1020,12 @@
         0
     ],
     "GCS Total_last50_min": [
-        "categorical",
+        "ordinal",
         0,
         15.0
     ],
     "GCS Total_last50_max": [
-        "categorical",
+        "ordinal",
         0,
         15.0
     ],
@@ -1260,14 +1260,14 @@
         0
     ],
     "glucose_full_min": [
-        "categorical",
+        "positive_real",
         0,
-        1035.0
+        0
     ],
     "glucose_full_max": [
-        "categorical",
+        "positive_real",
         0,
-        1196.0
+        0
     ],
     "glucose_full_mean": [
         "positive_real",
@@ -1290,14 +1290,14 @@
         0
     ],
     "glucose_first10_min": [
-        "categorical",
+        "positive_real",
         0,
-        1159.0
+        0
     ],
     "glucose_first10_max": [
-        "categorical",
+        "positive_real",
         0,
-        1195.0
+        0
     ],
     "glucose_first10_mean": [
         "positive_real",
@@ -1320,14 +1320,14 @@
         0
     ],
     "glucose_first25_min": [
-        "categorical",
+        "positive_real",
         0,
-        1078.0
+        0
     ],
     "glucose_first25_max": [
-        "categorical",
+        "positive_real",
         0,
-        1195.0
+        0
     ],
     "glucose_first25_mean": [
         "positive_real",
@@ -1350,14 +1350,14 @@
         0
     ],
     "glucose_first50_min": [
-        "categorical",
+        "positive_real",
         0,
-        1035.0
+        0
     ],
     "glucose_first50_max": [
-        "categorical",
+        "positive_real",
         0,
-        1196.0
+        0
     ],
     "glucose_first50_mean": [
         "positive_real",
@@ -1380,14 +1380,14 @@
         0
     ],
     "glucose_last10_min": [
-        "categorical",
+        "positive_real",
         0,
-        1035.0
+        0
     ],
     "glucose_last10_max": [
-        "categorical",
+        "positive_real",
         0,
-        1035.0
+        0
     ],
     "glucose_last10_mean": [
         "positive_real",
@@ -1410,14 +1410,14 @@
         0
     ],
     "glucose_last25_min": [
-        "categorical",
+        "positive_real",
         0,
-        1035.0
+        0
     ],
     "glucose_last25_max": [
-        "categorical",
+        "positive_real",
         0,
-        1035.0
+        0
     ],
     "glucose_last25_mean": [
         "positive_real",
@@ -1440,14 +1440,14 @@
         0
     ],
     "glucose_last50_min": [
-        "categorical",
+        "positive_real",
         0,
-        1035.0
+        0
     ],
     "glucose_last50_max": [
-        "categorical",
+        "positive_real",
         0,
-        1035.0
+        0
     ],
     "glucose_last50_mean": [
         "positive_real",
@@ -1470,14 +1470,14 @@
         0
     ],
     "Heart Rate_full_min": [
-        "categorical",
+        "positive_real",
         0,
-        145.0
+        0
     ],
     "Heart Rate_full_max": [
-        "categorical",
+        "positive_real",
         0,
-        300.0
+        0
     ],
     "Heart Rate_full_mean": [
         "positive_real",
@@ -1500,14 +1500,14 @@
         0
     ],
     "Heart Rate_first10_min": [
-        "categorical",
+        "positive_real",
         0,
-        204.0
+        0
     ],
     "Heart Rate_first10_max": [
-        "categorical",
+        "positive_real",
         0,
-        282.0
+        0
     ],
     "Heart Rate_first10_mean": [
         "positive_real",
@@ -1530,14 +1530,14 @@
         0
     ],
     "Heart Rate_first25_min": [
-        "categorical",
+        "positive_real",
         0,
-        174.0
+        0
     ],
     "Heart Rate_first25_max": [
-        "categorical",
+        "positive_real",
         0,
-        300.0
+        0
     ],
     "Heart Rate_first25_mean": [
         "positive_real",
@@ -1560,14 +1560,14 @@
         0
     ],
     "Heart Rate_first50_min": [
-        "categorical",
+        "positive_real",
         0,
-        147.0
+        0
     ],
     "Heart Rate_first50_max": [
-        "categorical",
+        "positive_real",
         0,
-        300.0
+        0
     ],
     "Heart Rate_first50_mean": [
         "positive_real",
@@ -1590,14 +1590,14 @@
         0
     ],
     "Heart Rate_last10_min": [
-        "categorical",
+        "positive_real",
         0,
-        160.0
+        0
     ],
     "Heart Rate_last10_max": [
-        "categorical",
+        "positive_real",
         0,
-        239.0
+        0
     ],
     "Heart Rate_last10_mean": [
         "positive_real",
@@ -1620,14 +1620,14 @@
         0
     ],
     "Heart Rate_last25_min": [
-        "categorical",
+        "positive_real",
         0,
-        153.0
+        0
     ],
     "Heart Rate_last25_max": [
-        "categorical",
+        "positive_real",
         0,
-        293.0
+        0
     ],
     "Heart Rate_last25_mean": [
         "positive_real",
@@ -1650,14 +1650,14 @@
         0
     ],
     "Heart Rate_last50_min": [
-        "categorical",
+        "positive_real",
         0,
-        147.0
+        0
     ],
     "Heart Rate_last50_max": [
-        "categorical",
+        "positive_real",
         0,
-        293.0
+        0
     ],
     "Heart Rate_last50_mean": [
         "positive_real",
@@ -1680,14 +1680,14 @@
         0
     ],
     "MAP (mmHg)_full_min": [
-        "categorical",
+        "positive_real",
         0,
-        231.0
+        0
     ],
     "MAP (mmHg)_full_max": [
-        "categorical",
+        "positive_real",
         0,
-        329.0
+        0
     ],
     "MAP (mmHg)_full_mean": [
         "positive_real",
@@ -1710,14 +1710,14 @@
         0
     ],
     "MAP (mmHg)_first10_min": [
-        "categorical",
+        "positive_real",
         0,
-        231.0
+        0
     ],
     "MAP (mmHg)_first10_max": [
-        "categorical",
+        "positive_real",
         0,
-        324.0
+        0
     ],
     "MAP (mmHg)_first10_mean": [
         "positive_real",
@@ -1740,14 +1740,14 @@
         0
     ],
     "MAP (mmHg)_first25_min": [
-        "categorical",
+        "positive_real",
         0,
-        231.0
+        0
     ],
     "MAP (mmHg)_first25_max": [
-        "categorical",
+        "positive_real",
         0,
-        324.0
+        0
     ],
     "MAP (mmHg)_first25_mean": [
         "positive_real",
@@ -1770,14 +1770,14 @@
         0
     ],
     "MAP (mmHg)_first50_min": [
-        "categorical",
+        "positive_real",
         0,
-        231.0
+        0
     ],
     "MAP (mmHg)_first50_max": [
-        "categorical",
+        "positive_real",
         0,
-        324.0
+        0
     ],
     "MAP (mmHg)_first50_mean": [
         "positive_real",
@@ -1800,14 +1800,14 @@
         0
     ],
     "MAP (mmHg)_last10_min": [
-        "categorical",
+        "positive_real",
         0,
-        329.0
+        0
     ],
     "MAP (mmHg)_last10_max": [
-        "categorical",
+        "positive_real",
         0,
-        329.0
+        0
     ],
     "MAP (mmHg)_last10_mean": [
         "positive_real",
@@ -1830,14 +1830,14 @@
         0
     ],
     "MAP (mmHg)_last25_min": [
-        "categorical",
+        "positive_real",
         0,
-        322.0
+        0
     ],
     "MAP (mmHg)_last25_max": [
-        "categorical",
+        "positive_real",
         0,
-        329.0
+        0
     ],
     "MAP (mmHg)_last25_mean": [
         "positive_real",
@@ -1860,14 +1860,14 @@
         0
     ],
     "MAP (mmHg)_last50_min": [
-        "categorical",
+        "positive_real",
         0,
-        231.0
+        0
     ],
     "MAP (mmHg)_last50_max": [
-        "categorical",
+        "positive_real",
         0,
-        329.0
+        0
     ],
     "MAP (mmHg)_last50_mean": [
         "positive_real",
@@ -1890,14 +1890,14 @@
         0
     ],
     "O2 Saturation_full_min": [
-        "categorical",
+        "positive_real",
         0,
-        100.0
+        0
     ],
     "O2 Saturation_full_max": [
-        "categorical",
+        "positive_real",
         0,
-        100.0
+        0
     ],
     "O2 Saturation_full_mean": [
         "real",
@@ -1920,14 +1920,14 @@
         0
     ],
     "O2 Saturation_first10_min": [
-        "categorical",
+        "positive_real",
         0,
-        100.0
+        0
     ],
     "O2 Saturation_first10_max": [
-        "categorical",
+        "positive_real",
         0,
-        100.0
+        0
     ],
     "O2 Saturation_first10_mean": [
         "real",
@@ -1950,14 +1950,14 @@
         0
     ],
     "O2 Saturation_first25_min": [
-        "categorical",
+        "positive_real",
         0,
-        100.0
+        0
     ],
     "O2 Saturation_first25_max": [
-        "categorical",
+        "positive_real",
         0,
-        100.0
+        0
     ],
     "O2 Saturation_first25_mean": [
         "real",
@@ -1980,14 +1980,14 @@
         0
     ],
     "O2 Saturation_first50_min": [
-        "categorical",
+        "positive_real",
         0,
-        100.0
+        0
     ],
     "O2 Saturation_first50_max": [
-        "categorical",
+        "positive_real",
         0,
-        100.0
+        0
     ],
     "O2 Saturation_first50_mean": [
         "real",
@@ -2010,14 +2010,14 @@
         0
     ],
     "O2 Saturation_last10_min": [
-        "categorical",
+        "positive_real",
         0,
-        100.0
+        0
     ],
     "O2 Saturation_last10_max": [
-        "categorical",
+        "positive_real",
         0,
-        100.0
+        0
     ],
     "O2 Saturation_last10_mean": [
         "real",
@@ -2040,14 +2040,14 @@
         0
     ],
     "O2 Saturation_last25_min": [
-        "categorical",
+        "positive_real",
         0,
-        100.0
+        0
     ],
     "O2 Saturation_last25_max": [
-        "categorical",
+        "positive_real",
         0,
-        100.0
+        0
     ],
     "O2 Saturation_last25_mean": [
         "real",
@@ -2070,14 +2070,14 @@
         0
     ],
     "O2 Saturation_last50_min": [
-        "categorical",
+        "positive_real",
         0,
-        100.0
+        0
     ],
     "O2 Saturation_last50_max": [
-        "categorical",
+        "positive_real",
         0,
-        100.0
+        0
     ],
     "O2 Saturation_last50_mean": [
         "real",
@@ -2100,14 +2100,14 @@
         0
     ],
     "Respiratory Rate_full_min": [
-        "categorical",
+        "positive_real",
         0,
-        69.0
+        0
     ],
     "Respiratory Rate_full_max": [
-        "categorical",
+        "positive_real",
         0,
-        100.0
+        0
     ],
     "Respiratory Rate_full_mean": [
         "positive_real",
@@ -2130,14 +2130,14 @@
         0
     ],
     "Respiratory Rate_first10_min": [
-        "categorical",
+        "positive_real",
         0,
-        96.0
+        0
     ],
     "Respiratory Rate_first10_max": [
-        "categorical",
+        "positive_real",
         0,
-        100.0
+        0
     ],
     "Respiratory Rate_first10_mean": [
         "real",
@@ -2160,14 +2160,14 @@
         0
     ],
     "Respiratory Rate_first25_min": [
-        "categorical",
+        "positive_real",
         0,
-        96.0
+        0
     ],
     "Respiratory Rate_first25_max": [
-        "categorical",
+        "positive_real",
         0,
-        100.0
+        0
     ],
     "Respiratory Rate_first25_mean": [
         "real",
@@ -2190,14 +2190,14 @@
         0
     ],
     "Respiratory Rate_first50_min": [
-        "categorical",
+        "positive_real",
         0,
-        69.0
+        0
     ],
     "Respiratory Rate_first50_max": [
-        "categorical",
+        "positive_real",
         0,
-        100.0
+        0
     ],
     "Respiratory Rate_first50_mean": [
         "positive_real",
@@ -2220,14 +2220,14 @@
         0
     ],
     "Respiratory Rate_last10_min": [
-        "categorical",
+        "positive_real",
         0,
-        92.0
+        0
     ],
     "Respiratory Rate_last10_max": [
-        "categorical",
+        "positive_real",
         0,
-        100.0
+        0
     ],
     "Respiratory Rate_last10_mean": [
         "real",
@@ -2250,14 +2250,14 @@
         0
     ],
     "Respiratory Rate_last25_min": [
-        "categorical",
+        "positive_real",
         0,
-        92.0
+        0
     ],
     "Respiratory Rate_last25_max": [
-        "categorical",
+        "positive_real",
         0,
-        100.0
+        0
     ],
     "Respiratory Rate_last25_mean": [
         "real",
@@ -2280,14 +2280,14 @@
         0
     ],
     "Respiratory Rate_last50_min": [
-        "categorical",
+        "positive_real",
         0,
-        69.0
+        0
     ],
     "Respiratory Rate_last50_max": [
-        "categorical",
+        "positive_real",
         0,
-        100.0
+        0
     ],
     "Respiratory Rate_last50_mean": [
         "real",
@@ -2310,14 +2310,14 @@
         0
     ],
     "Invasive BP Systolic_full_min": [
-        "categorical",
+        "positive_real",
         0,
-        205.0
+        0
     ],
     "Invasive BP Systolic_full_max": [
-        "categorical",
+        "positive_real",
         0,
-        349.0
+        0
     ],
     "Invasive BP Systolic_full_mean": [
         "positive_real",
@@ -2340,14 +2340,14 @@
         0
     ],
     "Invasive BP Systolic_first10_min": [
-        "categorical",
+        "positive_real",
         0,
-        251.0
+        0
     ],
     "Invasive BP Systolic_first10_max": [
-        "categorical",
+        "positive_real",
         0,
-        347.0
+        0
     ],
     "Invasive BP Systolic_first10_mean": [
         "positive_real",
@@ -2370,14 +2370,14 @@
         0
     ],
     "Invasive BP Systolic_first25_min": [
-        "categorical",
+        "positive_real",
         0,
-        215.0
+        0
     ],
     "Invasive BP Systolic_first25_max": [
-        "categorical",
+        "positive_real",
         0,
-        347.0
+        0
     ],
     "Invasive BP Systolic_first25_mean": [
         "positive_real",
@@ -2400,14 +2400,14 @@
         0
     ],
     "Invasive BP Systolic_first50_min": [
-        "categorical",
+        "positive_real",
         0,
-        205.0
+        0
     ],
     "Invasive BP Systolic_first50_max": [
-        "categorical",
+        "positive_real",
         0,
-        349.0
+        0
     ],
     "Invasive BP Systolic_first50_mean": [
         "positive_real",
@@ -2430,14 +2430,14 @@
         0
     ],
     "Invasive BP Systolic_last10_min": [
-        "categorical",
+        "positive_real",
         0,
-        233.0
+        0
     ],
     "Invasive BP Systolic_last10_max": [
-        "categorical",
+        "positive_real",
         0,
-        327.0
+        0
     ],
     "Invasive BP Systolic_last10_mean": [
         "positive_real",
@@ -2460,14 +2460,14 @@
         0
     ],
     "Invasive BP Systolic_last25_min": [
-        "categorical",
+        "positive_real",
         0,
-        233.0
+        0
     ],
     "Invasive BP Systolic_last25_max": [
-        "categorical",
+        "positive_real",
         0,
-        340.0
+        0
     ],
     "Invasive BP Systolic_last25_mean": [
         "positive_real",
@@ -2490,14 +2490,14 @@
         0
     ],
     "Invasive BP Systolic_last50_min": [
-        "categorical",
+        "positive_real",
         0,
-        205.0
+        0
     ],
     "Invasive BP Systolic_last50_max": [
-        "categorical",
+        "positive_real",
         0,
-        341.0
+        0
     ],
     "Invasive BP Systolic_last50_mean": [
         "positive_real",

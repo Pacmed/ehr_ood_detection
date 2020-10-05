@@ -4,12 +4,22 @@ hyperparameters, etc.
 """
 
 # STD
-import math
+import json
 
 # EXT
 import numpy as np
 from sklearn.utils.fixes import loguniform
 from scipy.stats import uniform
+
+# CONST
+FEAT_TYPES_DIR = "../../data/feature_types"
+
+# Load feat types for HI-VAE
+with open(f"{FEAT_TYPES_DIR}/feat_types_eICU_corrected.json", "rb") as ft_eicu_file:
+    feat_types_eicu = json.load(ft_eicu_file)
+
+with open(f"{FEAT_TYPES_DIR}/feat_types_MIMIC_corrected.json", "rb") as ft_mimic_file:
+    feat_types_mimic = json.load(ft_mimic_file)
 
 # ### Models and novelty scoring functions ###
 
@@ -94,6 +104,22 @@ MODEL_PARAMS = {
             "latent_dim": 10,
             "lr": 0.001633,
             "reconstr_error_weight": 0.334395,
+        },
+    },
+    "HI-VAE": {
+        "MIMIC": {
+            "hidden_sizes": [75, 75],
+            "latent_dim": 10,
+            "lr": 0.001316,
+            "reconstr_error_weight": 0.070318,
+            "feat_types": feat_types_mimic,
+        },
+        "eICU": {
+            "hidden_sizes": [100],
+            "latent_dim": 10,
+            "lr": 0.001633,
+            "reconstr_error_weight": 0.334395,
+            "feat_types": feat_types_eicu,
         },
     },
     "SVM": {},
