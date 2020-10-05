@@ -1,0 +1,2942 @@
+{
+    "Diastolic blood pressure, full, min": [
+        "categorical",
+        0,
+        89.0
+    ],
+    "Diastolic blood pressure, full, max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, full, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, full, np.std": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, full, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, full, count": [
+        "count",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, first_10\\%, min": [
+        "categorical",
+        0,
+        117.0
+    ],
+    "Diastolic blood pressure, first_10\\%, max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, first_10\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, first_10\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, first_10\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, first_10\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, first_25\\%, min": [
+        "categorical",
+        0,
+        113.0
+    ],
+    "Diastolic blood pressure, first_25\\%, max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, first_25\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, first_25\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, first_25\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, first_25\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, first_50\\%, min": [
+        "categorical",
+        0,
+        93.0
+    ],
+    "Diastolic blood pressure, first_50\\%, max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, first_50\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, first_50\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, first_50\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, first_50\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, last_10\\%, min": [
+        "categorical",
+        0,
+        108.0
+    ],
+    "Diastolic blood pressure, last_10\\%, max": [
+        "categorical",
+        0,
+        573.0
+    ],
+    "Diastolic blood pressure, last_10\\%, mean": [
+        "real",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, last_10\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, last_10\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, last_10\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, last_25\\%, min": [
+        "categorical",
+        0,
+        108.0
+    ],
+    "Diastolic blood pressure, last_25\\%, max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, last_25\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, last_25\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, last_25\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, last_25\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, last_50\\%, min": [
+        "categorical",
+        0,
+        95.0
+    ],
+    "Diastolic blood pressure, last_50\\%, max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, last_50\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, last_50\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, last_50\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Diastolic blood pressure, last_50\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, full, min": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, full, max": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, full, mean": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, full, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, full, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, full, count": [
+        "count",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, first_10\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, first_10\\%, max": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, first_10\\%, mean": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, first_10\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, first_10\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, first_10\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, first_25\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, first_25\\%, max": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, first_25\\%, mean": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, first_25\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, first_25\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, first_25\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, first_50\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, first_50\\%, max": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, first_50\\%, mean": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, first_50\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, first_50\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, first_50\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, last_10\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, last_10\\%, max": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, last_10\\%, mean": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, last_10\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, last_10\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, last_10\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, last_25\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, last_25\\%, max": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, last_25\\%, mean": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, last_25\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, last_25\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, last_25\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, last_50\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, last_50\\%, max": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, last_50\\%, mean": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, last_50\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, last_50\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Fraction inspired oxygen, last_50\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glascow coma scale eye opening, full, min": [
+        "ordinal",
+        0.0,
+        4.0
+    ],
+    "Glascow coma scale eye opening, full, max": [
+        "ordinal",
+        0.0,
+        4.0
+    ],
+    "Glascow coma scale eye opening, full, mean": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale eye opening, full, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale eye opening, full, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale eye opening, full, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glascow coma scale eye opening, first_10\\%, min": [
+        "ordinal",
+        0.0,
+        4.0
+    ],
+    "Glascow coma scale eye opening, first_10\\%, max": [
+        "ordinal",
+        0.0,
+        4.0
+    ],
+    "Glascow coma scale eye opening, first_10\\%, mean": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale eye opening, first_10\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale eye opening, first_10\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale eye opening, first_10\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glascow coma scale eye opening, first_25\\%, min": [
+        "ordinal",
+        0.0,
+        4.0
+    ],
+    "Glascow coma scale eye opening, first_25\\%, max": [
+        "ordinal",
+        0.0,
+        4.0
+    ],
+    "Glascow coma scale eye opening, first_25\\%, mean": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale eye opening, first_25\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale eye opening, first_25\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale eye opening, first_25\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glascow coma scale eye opening, first_50\\%, min": [
+        "ordinal",
+        0.0,
+        4.0
+    ],
+    "Glascow coma scale eye opening, first_50\\%, max": [
+        "ordinal",
+        0.0,
+        4.0
+    ],
+    "Glascow coma scale eye opening, first_50\\%, mean": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale eye opening, first_50\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale eye opening, first_50\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale eye opening, first_50\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glascow coma scale eye opening, last_10\\%, min": [
+        "ordinal",
+        0.0,
+        4.0
+    ],
+    "Glascow coma scale eye opening, last_10\\%, max": [
+        "ordinal",
+        0.0,
+        4.0
+    ],
+    "Glascow coma scale eye opening, last_10\\%, mean": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale eye opening, last_10\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale eye opening, last_10\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale eye opening, last_10\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glascow coma scale eye opening, last_25\\%, min": [
+        "ordinal",
+        0.0,
+        4.0
+    ],
+    "Glascow coma scale eye opening, last_25\\%, max": [
+        "ordinal",
+        0.0,
+        4.0
+    ],
+    "Glascow coma scale eye opening, last_25\\%, mean": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale eye opening, last_25\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale eye opening, last_25\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale eye opening, last_25\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glascow coma scale eye opening, last_50\\%, min": [
+        "ordinal",
+        0.0,
+        4.0
+    ],
+    "Glascow coma scale eye opening, last_50\\%, max": [
+        "ordinal",
+        0.0,
+        4.0
+    ],
+    "Glascow coma scale eye opening, last_50\\%, mean": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale eye opening, last_50\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale eye opening, last_50\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale eye opening, last_50\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glascow coma scale motor response, full, min": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Glascow coma scale motor response, full, max": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Glascow coma scale motor response, full, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Glascow coma scale motor response, full, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale motor response, full, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale motor response, full, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glascow coma scale motor response, first_10\\%, min": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Glascow coma scale motor response, first_10\\%, max": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Glascow coma scale motor response, first_10\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Glascow coma scale motor response, first_10\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale motor response, first_10\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale motor response, first_10\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glascow coma scale motor response, first_25\\%, min": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Glascow coma scale motor response, first_25\\%, max": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Glascow coma scale motor response, first_25\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Glascow coma scale motor response, first_25\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale motor response, first_25\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale motor response, first_25\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glascow coma scale motor response, first_50\\%, min": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Glascow coma scale motor response, first_50\\%, max": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Glascow coma scale motor response, first_50\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Glascow coma scale motor response, first_50\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale motor response, first_50\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale motor response, first_50\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glascow coma scale motor response, last_10\\%, min": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Glascow coma scale motor response, last_10\\%, max": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Glascow coma scale motor response, last_10\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Glascow coma scale motor response, last_10\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale motor response, last_10\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale motor response, last_10\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glascow coma scale motor response, last_25\\%, min": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Glascow coma scale motor response, last_25\\%, max": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Glascow coma scale motor response, last_25\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Glascow coma scale motor response, last_25\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale motor response, last_25\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale motor response, last_25\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glascow coma scale motor response, last_50\\%, min": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Glascow coma scale motor response, last_50\\%, max": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Glascow coma scale motor response, last_50\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Glascow coma scale motor response, last_50\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale motor response, last_50\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale motor response, last_50\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glascow coma scale total, full, min": [
+        "ordinal",
+        3.0,
+        15.0
+    ],
+    "Glascow coma scale total, full, max": [
+        "ordinal",
+        3.0,
+        15.0
+    ],
+    "Glascow coma scale total, full, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Glascow coma scale total, full, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale total, full, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale total, full, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glascow coma scale total, first_10\\%, min": [
+        "ordinal",
+        3.0,
+        15.0
+    ],
+    "Glascow coma scale total, first_10\\%, max": [
+        "ordinal",
+        3.0,
+        15.0
+    ],
+    "Glascow coma scale total, first_10\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Glascow coma scale total, first_10\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale total, first_10\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale total, first_10\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glascow coma scale total, first_25\\%, min": [
+        "ordinal",
+        3.0,
+        15.0
+    ],
+    "Glascow coma scale total, first_25\\%, max": [
+        "ordinal",
+        3.0,
+        15.0
+    ],
+    "Glascow coma scale total, first_25\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Glascow coma scale total, first_25\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale total, first_25\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale total, first_25\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glascow coma scale total, first_50\\%, min": [
+        "ordinal",
+        3.0,
+        15.0
+    ],
+    "Glascow coma scale total, first_50\\%, max": [
+        "ordinal",
+        3.0,
+        15.0
+    ],
+    "Glascow coma scale total, first_50\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Glascow coma scale total, first_50\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale total, first_50\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale total, first_50\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glascow coma scale total, last_10\\%, min": [
+        "ordinal",
+        3.0,
+        15.0
+    ],
+    "Glascow coma scale total, last_10\\%, max": [
+        "ordinal",
+        3.0,
+        15.0
+    ],
+    "Glascow coma scale total, last_10\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Glascow coma scale total, last_10\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale total, last_10\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale total, last_10\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glascow coma scale total, last_25\\%, min": [
+        "ordinal",
+        3.0,
+        15.0
+    ],
+    "Glascow coma scale total, last_25\\%, max": [
+        "ordinal",
+        3.0,
+        15.0
+    ],
+    "Glascow coma scale total, last_25\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Glascow coma scale total, last_25\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale total, last_25\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale total, last_25\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glascow coma scale total, last_50\\%, min": [
+        "ordinal",
+        3.0,
+        15.0
+    ],
+    "Glascow coma scale total, last_50\\%, max": [
+        "ordinal",
+        3.0,
+        15.0
+    ],
+    "Glascow coma scale total, last_50\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Glascow coma scale total, last_50\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale total, last_50\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale total, last_50\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glascow coma scale verbal response, full, min": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Glascow coma scale verbal response, full, max": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Glascow coma scale verbal response, full, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Glascow coma scale verbal response, full, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale verbal response, full, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale verbal response, full, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glascow coma scale verbal response, first_10\\%, min": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Glascow coma scale verbal response, first_10\\%, max": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Glascow coma scale verbal response, first_10\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Glascow coma scale verbal response, first_10\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale verbal response, first_10\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale verbal response, first_10\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glascow coma scale verbal response, first_25\\%, min": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Glascow coma scale verbal response, first_25\\%, max": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Glascow coma scale verbal response, first_25\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Glascow coma scale verbal response, first_25\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale verbal response, first_25\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale verbal response, first_25\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glascow coma scale verbal response, first_50\\%, min": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Glascow coma scale verbal response, first_50\\%, max": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Glascow coma scale verbal response, first_50\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Glascow coma scale verbal response, first_50\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale verbal response, first_50\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale verbal response, first_50\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glascow coma scale verbal response, last_10\\%, min": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Glascow coma scale verbal response, last_10\\%, max": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Glascow coma scale verbal response, last_10\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Glascow coma scale verbal response, last_10\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale verbal response, last_10\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale verbal response, last_10\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glascow coma scale verbal response, last_25\\%, min": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Glascow coma scale verbal response, last_25\\%, max": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Glascow coma scale verbal response, last_25\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Glascow coma scale verbal response, last_25\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale verbal response, last_25\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale verbal response, last_25\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glascow coma scale verbal response, last_50\\%, min": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Glascow coma scale verbal response, last_50\\%, max": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Glascow coma scale verbal response, last_50\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Glascow coma scale verbal response, last_50\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale verbal response, last_50\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glascow coma scale verbal response, last_50\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glucose, full, min": [
+        "real",
+        0,
+        0
+    ],
+    "Glucose, full, max": [
+        "categorical",
+        0,
+        999999.0
+    ],
+    "Glucose, full, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Glucose, full, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glucose, full, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glucose, full, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glucose, first_10\\%, min": [
+        "categorical",
+        0,
+        1000.0
+    ],
+    "Glucose, first_10\\%, max": [
+        "categorical",
+        0,
+        9999.0
+    ],
+    "Glucose, first_10\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Glucose, first_10\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glucose, first_10\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glucose, first_10\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glucose, first_25\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "Glucose, first_25\\%, max": [
+        "categorical",
+        0,
+        9999.0
+    ],
+    "Glucose, first_25\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Glucose, first_25\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glucose, first_25\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glucose, first_25\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glucose, first_50\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "Glucose, first_50\\%, max": [
+        "categorical",
+        0,
+        999999.0
+    ],
+    "Glucose, first_50\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Glucose, first_50\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glucose, first_50\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glucose, first_50\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glucose, last_10\\%, min": [
+        "categorical",
+        0,
+        1000.0
+    ],
+    "Glucose, last_10\\%, max": [
+        "categorical",
+        0,
+        1591.0
+    ],
+    "Glucose, last_10\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Glucose, last_10\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glucose, last_10\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glucose, last_10\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glucose, last_25\\%, min": [
+        "categorical",
+        0,
+        592.0
+    ],
+    "Glucose, last_25\\%, max": [
+        "categorical",
+        0,
+        1748.0
+    ],
+    "Glucose, last_25\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Glucose, last_25\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glucose, last_25\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glucose, last_25\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Glucose, last_50\\%, min": [
+        "categorical",
+        0,
+        592.0
+    ],
+    "Glucose, last_50\\%, max": [
+        "categorical",
+        0,
+        1748.0
+    ],
+    "Glucose, last_50\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Glucose, last_50\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Glucose, last_50\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Glucose, last_50\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Heart Rate, full, min": [
+        "categorical",
+        0,
+        140.0
+    ],
+    "Heart Rate, full, max": [
+        "categorical",
+        0,
+        6632.0
+    ],
+    "Heart Rate, full, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Heart Rate, full, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Heart Rate, full, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Heart Rate, full, count": [
+        "count",
+        0,
+        0
+    ],
+    "Heart Rate, first_10\\%, min": [
+        "categorical",
+        0,
+        165.0
+    ],
+    "Heart Rate, first_10\\%, max": [
+        "categorical",
+        0,
+        941.0
+    ],
+    "Heart Rate, first_10\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Heart Rate, first_10\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Heart Rate, first_10\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Heart Rate, first_10\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Heart Rate, first_25\\%, min": [
+        "categorical",
+        0,
+        150.0
+    ],
+    "Heart Rate, first_25\\%, max": [
+        "categorical",
+        0,
+        941.0
+    ],
+    "Heart Rate, first_25\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Heart Rate, first_25\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Heart Rate, first_25\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Heart Rate, first_25\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Heart Rate, first_50\\%, min": [
+        "categorical",
+        0,
+        140.0
+    ],
+    "Heart Rate, first_50\\%, max": [
+        "categorical",
+        0,
+        941.0
+    ],
+    "Heart Rate, first_50\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Heart Rate, first_50\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Heart Rate, first_50\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Heart Rate, first_50\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Heart Rate, last_10\\%, min": [
+        "categorical",
+        0,
+        161.0
+    ],
+    "Heart Rate, last_10\\%, max": [
+        "categorical",
+        0,
+        214.0
+    ],
+    "Heart Rate, last_10\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Heart Rate, last_10\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Heart Rate, last_10\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Heart Rate, last_10\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Heart Rate, last_25\\%, min": [
+        "categorical",
+        0,
+        149.0
+    ],
+    "Heart Rate, last_25\\%, max": [
+        "categorical",
+        0,
+        6632.0
+    ],
+    "Heart Rate, last_25\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Heart Rate, last_25\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Heart Rate, last_25\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Heart Rate, last_25\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Heart Rate, last_50\\%, min": [
+        "categorical",
+        0,
+        144.0
+    ],
+    "Heart Rate, last_50\\%, max": [
+        "categorical",
+        0,
+        6632.0
+    ],
+    "Heart Rate, last_50\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Heart Rate, last_50\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Heart Rate, last_50\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Heart Rate, last_50\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Mean blood pressure, full, min": [
+        "real",
+        0,
+        0
+    ],
+    "Mean blood pressure, full, max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Mean blood pressure, full, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Mean blood pressure, full, np.std": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Mean blood pressure, full, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Mean blood pressure, full, count": [
+        "count",
+        0,
+        0
+    ],
+    "Mean blood pressure, first_10\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "Mean blood pressure, first_10\\%, max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Mean blood pressure, first_10\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Mean blood pressure, first_10\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Mean blood pressure, first_10\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Mean blood pressure, first_10\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Mean blood pressure, first_25\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "Mean blood pressure, first_25\\%, max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Mean blood pressure, first_25\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Mean blood pressure, first_25\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Mean blood pressure, first_25\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Mean blood pressure, first_25\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Mean blood pressure, first_50\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "Mean blood pressure, first_50\\%, max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Mean blood pressure, first_50\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Mean blood pressure, first_50\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Mean blood pressure, first_50\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Mean blood pressure, first_50\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Mean blood pressure, last_10\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "Mean blood pressure, last_10\\%, max": [
+        "real",
+        0,
+        0
+    ],
+    "Mean blood pressure, last_10\\%, mean": [
+        "real",
+        0,
+        0
+    ],
+    "Mean blood pressure, last_10\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Mean blood pressure, last_10\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Mean blood pressure, last_10\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Mean blood pressure, last_25\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "Mean blood pressure, last_25\\%, max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Mean blood pressure, last_25\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Mean blood pressure, last_25\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Mean blood pressure, last_25\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Mean blood pressure, last_25\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Mean blood pressure, last_50\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "Mean blood pressure, last_50\\%, max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Mean blood pressure, last_50\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Mean blood pressure, last_50\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Mean blood pressure, last_50\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Mean blood pressure, last_50\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Oxygen saturation, full, min": [
+        "real",
+        0,
+        0
+    ],
+    "Oxygen saturation, full, max": [
+        "categorical",
+        0,
+        981023.0
+    ],
+    "Oxygen saturation, full, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Oxygen saturation, full, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Oxygen saturation, full, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Oxygen saturation, full, count": [
+        "count",
+        0,
+        0
+    ],
+    "Oxygen saturation, first_10\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "Oxygen saturation, first_10\\%, max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Oxygen saturation, first_10\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Oxygen saturation, first_10\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Oxygen saturation, first_10\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Oxygen saturation, first_10\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Oxygen saturation, first_25\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "Oxygen saturation, first_25\\%, max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Oxygen saturation, first_25\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Oxygen saturation, first_25\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Oxygen saturation, first_25\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Oxygen saturation, first_25\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Oxygen saturation, first_50\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "Oxygen saturation, first_50\\%, max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Oxygen saturation, first_50\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Oxygen saturation, first_50\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Oxygen saturation, first_50\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Oxygen saturation, first_50\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Oxygen saturation, last_10\\%, min": [
+        "categorical",
+        0,
+        100.0
+    ],
+    "Oxygen saturation, last_10\\%, max": [
+        "categorical",
+        0,
+        10099.0
+    ],
+    "Oxygen saturation, last_10\\%, mean": [
+        "real",
+        0,
+        0
+    ],
+    "Oxygen saturation, last_10\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Oxygen saturation, last_10\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Oxygen saturation, last_10\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Oxygen saturation, last_25\\%, min": [
+        "categorical",
+        0,
+        100.0
+    ],
+    "Oxygen saturation, last_25\\%, max": [
+        "real",
+        0,
+        0
+    ],
+    "Oxygen saturation, last_25\\%, mean": [
+        "real",
+        0,
+        0
+    ],
+    "Oxygen saturation, last_25\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Oxygen saturation, last_25\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Oxygen saturation, last_25\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Oxygen saturation, last_50\\%, min": [
+        "categorical",
+        0,
+        100.0
+    ],
+    "Oxygen saturation, last_50\\%, max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Oxygen saturation, last_50\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Oxygen saturation, last_50\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Oxygen saturation, last_50\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Oxygen saturation, last_50\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Respiratory rate, full, min": [
+        "categorical",
+        0,
+        29.0
+    ],
+    "Respiratory rate, full, max": [
+        "categorical",
+        0,
+        2355555.0
+    ],
+    "Respiratory rate, full, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Respiratory rate, full, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory rate, full, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory rate, full, count": [
+        "count",
+        0,
+        0
+    ],
+    "Respiratory rate, first_10\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory rate, first_10\\%, max": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory rate, first_10\\%, mean": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory rate, first_10\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory rate, first_10\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory rate, first_10\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Respiratory rate, first_25\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory rate, first_25\\%, max": [
+        "categorical",
+        0,
+        2355555.0
+    ],
+    "Respiratory rate, first_25\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Respiratory rate, first_25\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory rate, first_25\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory rate, first_25\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Respiratory rate, first_50\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory rate, first_50\\%, max": [
+        "categorical",
+        0,
+        2355555.0
+    ],
+    "Respiratory rate, first_50\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Respiratory rate, first_50\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory rate, first_50\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory rate, first_50\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Respiratory rate, last_10\\%, min": [
+        "categorical",
+        0,
+        43.0
+    ],
+    "Respiratory rate, last_10\\%, max": [
+        "categorical",
+        0,
+        115.0
+    ],
+    "Respiratory rate, last_10\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Respiratory rate, last_10\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory rate, last_10\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory rate, last_10\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Respiratory rate, last_25\\%, min": [
+        "categorical",
+        0,
+        42.0
+    ],
+    "Respiratory rate, last_25\\%, max": [
+        "categorical",
+        0,
+        200.0
+    ],
+    "Respiratory rate, last_25\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Respiratory rate, last_25\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory rate, last_25\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory rate, last_25\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Respiratory rate, last_50\\%, min": [
+        "categorical",
+        0,
+        37.0
+    ],
+    "Respiratory rate, last_50\\%, max": [
+        "categorical",
+        0,
+        309.0
+    ],
+    "Respiratory rate, last_50\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Respiratory rate, last_50\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory rate, last_50\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory rate, last_50\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Systolic blood pressure, full, min": [
+        "categorical",
+        0,
+        157.0
+    ],
+    "Systolic blood pressure, full, max": [
+        "categorical",
+        0,
+        13756.0
+    ],
+    "Systolic blood pressure, full, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Systolic blood pressure, full, np.std": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Systolic blood pressure, full, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Systolic blood pressure, full, count": [
+        "count",
+        0,
+        0
+    ],
+    "Systolic blood pressure, first_10\\%, min": [
+        "categorical",
+        0,
+        200.0
+    ],
+    "Systolic blood pressure, first_10\\%, max": [
+        "categorical",
+        0,
+        284.0
+    ],
+    "Systolic blood pressure, first_10\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Systolic blood pressure, first_10\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Systolic blood pressure, first_10\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Systolic blood pressure, first_10\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Systolic blood pressure, first_25\\%, min": [
+        "categorical",
+        0,
+        190.0
+    ],
+    "Systolic blood pressure, first_25\\%, max": [
+        "categorical",
+        0,
+        13756.0
+    ],
+    "Systolic blood pressure, first_25\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Systolic blood pressure, first_25\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Systolic blood pressure, first_25\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Systolic blood pressure, first_25\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Systolic blood pressure, first_50\\%, min": [
+        "categorical",
+        0,
+        177.0
+    ],
+    "Systolic blood pressure, first_50\\%, max": [
+        "categorical",
+        0,
+        13756.0
+    ],
+    "Systolic blood pressure, first_50\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Systolic blood pressure, first_50\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Systolic blood pressure, first_50\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Systolic blood pressure, first_50\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Systolic blood pressure, last_10\\%, min": [
+        "categorical",
+        0,
+        207.0
+    ],
+    "Systolic blood pressure, last_10\\%, max": [
+        "categorical",
+        0,
+        11647.0
+    ],
+    "Systolic blood pressure, last_10\\%, mean": [
+        "real",
+        0,
+        0
+    ],
+    "Systolic blood pressure, last_10\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Systolic blood pressure, last_10\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Systolic blood pressure, last_10\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Systolic blood pressure, last_25\\%, min": [
+        "categorical",
+        0,
+        187.0
+    ],
+    "Systolic blood pressure, last_25\\%, max": [
+        "categorical",
+        0,
+        11647.0
+    ],
+    "Systolic blood pressure, last_25\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Systolic blood pressure, last_25\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Systolic blood pressure, last_25\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Systolic blood pressure, last_25\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Systolic blood pressure, last_50\\%, min": [
+        "categorical",
+        0,
+        179.0
+    ],
+    "Systolic blood pressure, last_50\\%, max": [
+        "categorical",
+        0,
+        11647.0
+    ],
+    "Systolic blood pressure, last_50\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Systolic blood pressure, last_50\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Systolic blood pressure, last_50\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Systolic blood pressure, last_50\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Temperature, full, min": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature, full, max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature, full, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature, full, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature, full, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature, full, count": [
+        "count",
+        0,
+        0
+    ],
+    "Temperature, first_10\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature, first_10\\%, max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature, first_10\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature, first_10\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature, first_10\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature, first_10\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Temperature, first_25\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature, first_25\\%, max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature, first_25\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature, first_25\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature, first_25\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature, first_25\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Temperature, first_50\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature, first_50\\%, max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature, first_50\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature, first_50\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature, first_50\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature, first_50\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Temperature, last_10\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature, last_10\\%, max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature, last_10\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature, last_10\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature, last_10\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature, last_10\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Temperature, last_25\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature, last_25\\%, max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature, last_25\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature, last_25\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature, last_25\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature, last_25\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "Temperature, last_50\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature, last_50\\%, max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature, last_50\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature, last_50\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature, last_50\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature, last_50\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "pH, full, min": [
+        "real",
+        0,
+        0
+    ],
+    "pH, full, max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH, full, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH, full, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "pH, full, skew": [
+        "real",
+        0,
+        0
+    ],
+    "pH, full, count": [
+        "count",
+        0,
+        0
+    ],
+    "pH, first_10\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "pH, first_10\\%, max": [
+        "real",
+        0,
+        0
+    ],
+    "pH, first_10\\%, mean": [
+        "real",
+        0,
+        0
+    ],
+    "pH, first_10\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "pH, first_10\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "pH, first_10\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "pH, first_25\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "pH, first_25\\%, max": [
+        "real",
+        0,
+        0
+    ],
+    "pH, first_25\\%, mean": [
+        "real",
+        0,
+        0
+    ],
+    "pH, first_25\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "pH, first_25\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "pH, first_25\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "pH, first_50\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "pH, first_50\\%, max": [
+        "real",
+        0,
+        0
+    ],
+    "pH, first_50\\%, mean": [
+        "real",
+        0,
+        0
+    ],
+    "pH, first_50\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "pH, first_50\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "pH, first_50\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "pH, last_10\\%, min": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH, last_10\\%, max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH, last_10\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH, last_10\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "pH, last_10\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "pH, last_10\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "pH, last_25\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "pH, last_25\\%, max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH, last_25\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH, last_25\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "pH, last_25\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "pH, last_25\\%, count": [
+        "count",
+        0,
+        0
+    ],
+    "pH, last_50\\%, min": [
+        "real",
+        0,
+        0
+    ],
+    "pH, last_50\\%, max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH, last_50\\%, mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH, last_50\\%, np.std": [
+        "real",
+        0,
+        0
+    ],
+    "pH, last_50\\%, skew": [
+        "real",
+        0,
+        0
+    ],
+    "pH, last_50\\%, count": [
+        "count",
+        0,
+        0
+    ]
+}
