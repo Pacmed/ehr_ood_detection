@@ -1,0 +1,2942 @@
+{
+    "Invasive BP Diastolic_full_min": [
+        "categorical",
+        0,
+        137.0
+    ],
+    "Invasive BP Diastolic_full_max": [
+        "categorical",
+        0,
+        345.0
+    ],
+    "Invasive BP Diastolic_full_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Invasive BP Diastolic_full_std": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Diastolic_full_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Diastolic_full_num": [
+        "count",
+        0,
+        0
+    ],
+    "Invasive BP Diastolic_first10_min": [
+        "categorical",
+        0,
+        190.0
+    ],
+    "Invasive BP Diastolic_first10_max": [
+        "categorical",
+        0,
+        344.0
+    ],
+    "Invasive BP Diastolic_first10_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Invasive BP Diastolic_first10_std": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Diastolic_first10_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Diastolic_first10_num": [
+        "count",
+        0,
+        0
+    ],
+    "Invasive BP Diastolic_first25_min": [
+        "categorical",
+        0,
+        190.0
+    ],
+    "Invasive BP Diastolic_first25_max": [
+        "categorical",
+        0,
+        344.0
+    ],
+    "Invasive BP Diastolic_first25_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Invasive BP Diastolic_first25_std": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Diastolic_first25_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Diastolic_first25_num": [
+        "count",
+        0,
+        0
+    ],
+    "Invasive BP Diastolic_first50_min": [
+        "categorical",
+        0,
+        137.0
+    ],
+    "Invasive BP Diastolic_first50_max": [
+        "categorical",
+        0,
+        345.0
+    ],
+    "Invasive BP Diastolic_first50_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Invasive BP Diastolic_first50_std": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Diastolic_first50_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Diastolic_first50_num": [
+        "count",
+        0,
+        0
+    ],
+    "Invasive BP Diastolic_last10_min": [
+        "categorical",
+        0,
+        137.0
+    ],
+    "Invasive BP Diastolic_last10_max": [
+        "categorical",
+        0,
+        327.0
+    ],
+    "Invasive BP Diastolic_last10_mean": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Diastolic_last10_std": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Diastolic_last10_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Diastolic_last10_num": [
+        "count",
+        0,
+        0
+    ],
+    "Invasive BP Diastolic_last25_min": [
+        "categorical",
+        0,
+        137.0
+    ],
+    "Invasive BP Diastolic_last25_max": [
+        "categorical",
+        0,
+        340.0
+    ],
+    "Invasive BP Diastolic_last25_mean": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Diastolic_last25_std": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Diastolic_last25_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Diastolic_last25_num": [
+        "count",
+        0,
+        0
+    ],
+    "Invasive BP Diastolic_last50_min": [
+        "categorical",
+        0,
+        137.0
+    ],
+    "Invasive BP Diastolic_last50_max": [
+        "categorical",
+        0,
+        340.0
+    ],
+    "Invasive BP Diastolic_last50_mean": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Diastolic_last50_std": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Diastolic_last50_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Diastolic_last50_num": [
+        "count",
+        0,
+        0
+    ],
+    "FiO2_full_min": [
+        "positive_real",
+        0,
+        0
+    ],
+    "FiO2_full_max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "FiO2_full_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "FiO2_full_std": [
+        "real",
+        0,
+        0
+    ],
+    "FiO2_full_skew": [
+        "real",
+        0,
+        0
+    ],
+    "FiO2_full_num": [
+        "count",
+        0,
+        0
+    ],
+    "FiO2_first10_min": [
+        "positive_real",
+        0,
+        0
+    ],
+    "FiO2_first10_max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "FiO2_first10_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "FiO2_first10_std": [
+        "real",
+        0,
+        0
+    ],
+    "FiO2_first10_skew": [
+        "real",
+        0,
+        0
+    ],
+    "FiO2_first10_num": [
+        "count",
+        0,
+        0
+    ],
+    "FiO2_first25_min": [
+        "positive_real",
+        0,
+        0
+    ],
+    "FiO2_first25_max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "FiO2_first25_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "FiO2_first25_std": [
+        "real",
+        0,
+        0
+    ],
+    "FiO2_first25_skew": [
+        "real",
+        0,
+        0
+    ],
+    "FiO2_first25_num": [
+        "count",
+        0,
+        0
+    ],
+    "FiO2_first50_min": [
+        "positive_real",
+        0,
+        0
+    ],
+    "FiO2_first50_max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "FiO2_first50_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "FiO2_first50_std": [
+        "real",
+        0,
+        0
+    ],
+    "FiO2_first50_skew": [
+        "real",
+        0,
+        0
+    ],
+    "FiO2_first50_num": [
+        "count",
+        0,
+        0
+    ],
+    "FiO2_last10_min": [
+        "positive_real",
+        0,
+        0
+    ],
+    "FiO2_last10_max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "FiO2_last10_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "FiO2_last10_std": [
+        "real",
+        0,
+        0
+    ],
+    "FiO2_last10_skew": [
+        "real",
+        0,
+        0
+    ],
+    "FiO2_last10_num": [
+        "count",
+        0,
+        0
+    ],
+    "FiO2_last25_min": [
+        "positive_real",
+        0,
+        0
+    ],
+    "FiO2_last25_max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "FiO2_last25_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "FiO2_last25_std": [
+        "real",
+        0,
+        0
+    ],
+    "FiO2_last25_skew": [
+        "real",
+        0,
+        0
+    ],
+    "FiO2_last25_num": [
+        "count",
+        0,
+        0
+    ],
+    "FiO2_last50_min": [
+        "positive_real",
+        0,
+        0
+    ],
+    "FiO2_last50_max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "FiO2_last50_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "FiO2_last50_std": [
+        "real",
+        0,
+        0
+    ],
+    "FiO2_last50_skew": [
+        "real",
+        0,
+        0
+    ],
+    "FiO2_last50_num": [
+        "count",
+        0,
+        0
+    ],
+    "Eyes_full_min": [
+        "ordinal",
+        1.0,
+        4.0
+    ],
+    "Eyes_full_max": [
+        "ordinal",
+        1.0,
+        4.0
+    ],
+    "Eyes_full_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Eyes_full_std": [
+        "real",
+        0,
+        0
+    ],
+    "Eyes_full_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Eyes_full_num": [
+        "count",
+        0,
+        0
+    ],
+    "Eyes_first10_min": [
+        "ordinal",
+        1.0,
+        4.0
+    ],
+    "Eyes_first10_max": [
+        "ordinal",
+        1.0,
+        4.0
+    ],
+    "Eyes_first10_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Eyes_first10_std": [
+        "real",
+        0,
+        0
+    ],
+    "Eyes_first10_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Eyes_first10_num": [
+        "count",
+        0,
+        0
+    ],
+    "Eyes_first25_min": [
+        "ordinal",
+        1.0,
+        4.0
+    ],
+    "Eyes_first25_max": [
+        "ordinal",
+        1.0,
+        4.0
+    ],
+    "Eyes_first25_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Eyes_first25_std": [
+        "real",
+        0,
+        0
+    ],
+    "Eyes_first25_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Eyes_first25_num": [
+        "count",
+        0,
+        0
+    ],
+    "Eyes_first50_min": [
+        "ordinal",
+        1.0,
+        4.0
+    ],
+    "Eyes_first50_max": [
+        "ordinal",
+        1.0,
+        4.0
+    ],
+    "Eyes_first50_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Eyes_first50_std": [
+        "real",
+        0,
+        0
+    ],
+    "Eyes_first50_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Eyes_first50_num": [
+        "count",
+        0,
+        0
+    ],
+    "Eyes_last10_min": [
+        "ordinal",
+        1.0,
+        4.0
+    ],
+    "Eyes_last10_max": [
+        "ordinal",
+        1.0,
+        4.0
+    ],
+    "Eyes_last10_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Eyes_last10_std": [
+        "real",
+        0,
+        0
+    ],
+    "Eyes_last10_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Eyes_last10_num": [
+        "count",
+        0,
+        0
+    ],
+    "Eyes_last25_min": [
+        "ordinal",
+        1.0,
+        4.0
+    ],
+    "Eyes_last25_max": [
+        "ordinal",
+        1.0,
+        4.0
+    ],
+    "Eyes_last25_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Eyes_last25_std": [
+        "real",
+        0,
+        0
+    ],
+    "Eyes_last25_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Eyes_last25_num": [
+        "count",
+        0,
+        0
+    ],
+    "Eyes_last50_min": [
+        "ordinal",
+        1.0,
+        4.0
+    ],
+    "Eyes_last50_max": [
+        "ordinal",
+        1.0,
+        4.0
+    ],
+    "Eyes_last50_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Eyes_last50_std": [
+        "real",
+        0,
+        0
+    ],
+    "Eyes_last50_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Eyes_last50_num": [
+        "count",
+        0,
+        0
+    ],
+    "Motor_full_min": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Motor_full_max": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Motor_full_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Motor_full_std": [
+        "real",
+        0,
+        0
+    ],
+    "Motor_full_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Motor_full_num": [
+        "count",
+        0,
+        0
+    ],
+    "Motor_first10_min": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Motor_first10_max": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Motor_first10_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Motor_first10_std": [
+        "real",
+        0,
+        0
+    ],
+    "Motor_first10_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Motor_first10_num": [
+        "count",
+        0,
+        0
+    ],
+    "Motor_first25_min": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Motor_first25_max": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Motor_first25_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Motor_first25_std": [
+        "real",
+        0,
+        0
+    ],
+    "Motor_first25_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Motor_first25_num": [
+        "count",
+        0,
+        0
+    ],
+    "Motor_first50_min": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Motor_first50_max": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Motor_first50_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Motor_first50_std": [
+        "real",
+        0,
+        0
+    ],
+    "Motor_first50_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Motor_first50_num": [
+        "count",
+        0,
+        0
+    ],
+    "Motor_last10_min": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Motor_last10_max": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Motor_last10_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Motor_last10_std": [
+        "real",
+        0,
+        0
+    ],
+    "Motor_last10_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Motor_last10_num": [
+        "count",
+        0,
+        0
+    ],
+    "Motor_last25_min": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Motor_last25_max": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Motor_last25_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Motor_last25_std": [
+        "real",
+        0,
+        0
+    ],
+    "Motor_last25_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Motor_last25_num": [
+        "count",
+        0,
+        0
+    ],
+    "Motor_last50_min": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Motor_last50_max": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Motor_last50_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Motor_last50_std": [
+        "real",
+        0,
+        0
+    ],
+    "Motor_last50_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Motor_last50_num": [
+        "count",
+        0,
+        0
+    ],
+    "GCS Total_full_min": [
+        "categorical",
+        0,
+        15.0
+    ],
+    "GCS Total_full_max": [
+        "categorical",
+        0,
+        15.0
+    ],
+    "GCS Total_full_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "GCS Total_full_std": [
+        "real",
+        0,
+        0
+    ],
+    "GCS Total_full_skew": [
+        "real",
+        0,
+        0
+    ],
+    "GCS Total_full_num": [
+        "count",
+        0,
+        0
+    ],
+    "GCS Total_first10_min": [
+        "categorical",
+        0,
+        15.0
+    ],
+    "GCS Total_first10_max": [
+        "categorical",
+        0,
+        15.0
+    ],
+    "GCS Total_first10_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "GCS Total_first10_std": [
+        "real",
+        0,
+        0
+    ],
+    "GCS Total_first10_skew": [
+        "real",
+        0,
+        0
+    ],
+    "GCS Total_first10_num": [
+        "count",
+        0,
+        0
+    ],
+    "GCS Total_first25_min": [
+        "categorical",
+        0,
+        15.0
+    ],
+    "GCS Total_first25_max": [
+        "categorical",
+        0,
+        15.0
+    ],
+    "GCS Total_first25_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "GCS Total_first25_std": [
+        "real",
+        0,
+        0
+    ],
+    "GCS Total_first25_skew": [
+        "real",
+        0,
+        0
+    ],
+    "GCS Total_first25_num": [
+        "count",
+        0,
+        0
+    ],
+    "GCS Total_first50_min": [
+        "categorical",
+        0,
+        15.0
+    ],
+    "GCS Total_first50_max": [
+        "categorical",
+        0,
+        15.0
+    ],
+    "GCS Total_first50_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "GCS Total_first50_std": [
+        "real",
+        0,
+        0
+    ],
+    "GCS Total_first50_skew": [
+        "real",
+        0,
+        0
+    ],
+    "GCS Total_first50_num": [
+        "count",
+        0,
+        0
+    ],
+    "GCS Total_last10_min": [
+        "categorical",
+        0,
+        15.0
+    ],
+    "GCS Total_last10_max": [
+        "categorical",
+        0,
+        15.0
+    ],
+    "GCS Total_last10_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "GCS Total_last10_std": [
+        "real",
+        0,
+        0
+    ],
+    "GCS Total_last10_skew": [
+        "real",
+        0,
+        0
+    ],
+    "GCS Total_last10_num": [
+        "count",
+        0,
+        0
+    ],
+    "GCS Total_last25_min": [
+        "categorical",
+        0,
+        15.0
+    ],
+    "GCS Total_last25_max": [
+        "categorical",
+        0,
+        15.0
+    ],
+    "GCS Total_last25_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "GCS Total_last25_std": [
+        "real",
+        0,
+        0
+    ],
+    "GCS Total_last25_skew": [
+        "real",
+        0,
+        0
+    ],
+    "GCS Total_last25_num": [
+        "count",
+        0,
+        0
+    ],
+    "GCS Total_last50_min": [
+        "categorical",
+        0,
+        15.0
+    ],
+    "GCS Total_last50_max": [
+        "categorical",
+        0,
+        15.0
+    ],
+    "GCS Total_last50_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "GCS Total_last50_std": [
+        "real",
+        0,
+        0
+    ],
+    "GCS Total_last50_skew": [
+        "real",
+        0,
+        0
+    ],
+    "GCS Total_last50_num": [
+        "count",
+        0,
+        0
+    ],
+    "Verbal_full_min": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Verbal_full_max": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Verbal_full_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Verbal_full_std": [
+        "real",
+        0,
+        0
+    ],
+    "Verbal_full_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Verbal_full_num": [
+        "count",
+        0,
+        0
+    ],
+    "Verbal_first10_min": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Verbal_first10_max": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Verbal_first10_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Verbal_first10_std": [
+        "real",
+        0,
+        0
+    ],
+    "Verbal_first10_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Verbal_first10_num": [
+        "count",
+        0,
+        0
+    ],
+    "Verbal_first25_min": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Verbal_first25_max": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Verbal_first25_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Verbal_first25_std": [
+        "real",
+        0,
+        0
+    ],
+    "Verbal_first25_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Verbal_first25_num": [
+        "count",
+        0,
+        0
+    ],
+    "Verbal_first50_min": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Verbal_first50_max": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Verbal_first50_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Verbal_first50_std": [
+        "real",
+        0,
+        0
+    ],
+    "Verbal_first50_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Verbal_first50_num": [
+        "count",
+        0,
+        0
+    ],
+    "Verbal_last10_min": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Verbal_last10_max": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Verbal_last10_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Verbal_last10_std": [
+        "real",
+        0,
+        0
+    ],
+    "Verbal_last10_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Verbal_last10_num": [
+        "count",
+        0,
+        0
+    ],
+    "Verbal_last25_min": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Verbal_last25_max": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Verbal_last25_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Verbal_last25_std": [
+        "real",
+        0,
+        0
+    ],
+    "Verbal_last25_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Verbal_last25_num": [
+        "count",
+        0,
+        0
+    ],
+    "Verbal_last50_min": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Verbal_last50_max": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Verbal_last50_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Verbal_last50_std": [
+        "real",
+        0,
+        0
+    ],
+    "Verbal_last50_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Verbal_last50_num": [
+        "count",
+        0,
+        0
+    ],
+    "glucose_full_min": [
+        "categorical",
+        0,
+        1035.0
+    ],
+    "glucose_full_max": [
+        "categorical",
+        0,
+        1196.0
+    ],
+    "glucose_full_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "glucose_full_std": [
+        "real",
+        0,
+        0
+    ],
+    "glucose_full_skew": [
+        "real",
+        0,
+        0
+    ],
+    "glucose_full_num": [
+        "count",
+        0,
+        0
+    ],
+    "glucose_first10_min": [
+        "categorical",
+        0,
+        1159.0
+    ],
+    "glucose_first10_max": [
+        "categorical",
+        0,
+        1195.0
+    ],
+    "glucose_first10_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "glucose_first10_std": [
+        "real",
+        0,
+        0
+    ],
+    "glucose_first10_skew": [
+        "real",
+        0,
+        0
+    ],
+    "glucose_first10_num": [
+        "count",
+        0,
+        0
+    ],
+    "glucose_first25_min": [
+        "categorical",
+        0,
+        1078.0
+    ],
+    "glucose_first25_max": [
+        "categorical",
+        0,
+        1195.0
+    ],
+    "glucose_first25_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "glucose_first25_std": [
+        "real",
+        0,
+        0
+    ],
+    "glucose_first25_skew": [
+        "real",
+        0,
+        0
+    ],
+    "glucose_first25_num": [
+        "count",
+        0,
+        0
+    ],
+    "glucose_first50_min": [
+        "categorical",
+        0,
+        1035.0
+    ],
+    "glucose_first50_max": [
+        "categorical",
+        0,
+        1196.0
+    ],
+    "glucose_first50_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "glucose_first50_std": [
+        "real",
+        0,
+        0
+    ],
+    "glucose_first50_skew": [
+        "real",
+        0,
+        0
+    ],
+    "glucose_first50_num": [
+        "count",
+        0,
+        0
+    ],
+    "glucose_last10_min": [
+        "categorical",
+        0,
+        1035.0
+    ],
+    "glucose_last10_max": [
+        "categorical",
+        0,
+        1035.0
+    ],
+    "glucose_last10_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "glucose_last10_std": [
+        "real",
+        0,
+        0
+    ],
+    "glucose_last10_skew": [
+        "real",
+        0,
+        0
+    ],
+    "glucose_last10_num": [
+        "count",
+        0,
+        0
+    ],
+    "glucose_last25_min": [
+        "categorical",
+        0,
+        1035.0
+    ],
+    "glucose_last25_max": [
+        "categorical",
+        0,
+        1035.0
+    ],
+    "glucose_last25_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "glucose_last25_std": [
+        "real",
+        0,
+        0
+    ],
+    "glucose_last25_skew": [
+        "real",
+        0,
+        0
+    ],
+    "glucose_last25_num": [
+        "count",
+        0,
+        0
+    ],
+    "glucose_last50_min": [
+        "categorical",
+        0,
+        1035.0
+    ],
+    "glucose_last50_max": [
+        "categorical",
+        0,
+        1035.0
+    ],
+    "glucose_last50_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "glucose_last50_std": [
+        "real",
+        0,
+        0
+    ],
+    "glucose_last50_skew": [
+        "real",
+        0,
+        0
+    ],
+    "glucose_last50_num": [
+        "count",
+        0,
+        0
+    ],
+    "Heart Rate_full_min": [
+        "categorical",
+        0,
+        145.0
+    ],
+    "Heart Rate_full_max": [
+        "categorical",
+        0,
+        300.0
+    ],
+    "Heart Rate_full_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Heart Rate_full_std": [
+        "real",
+        0,
+        0
+    ],
+    "Heart Rate_full_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Heart Rate_full_num": [
+        "count",
+        0,
+        0
+    ],
+    "Heart Rate_first10_min": [
+        "categorical",
+        0,
+        204.0
+    ],
+    "Heart Rate_first10_max": [
+        "categorical",
+        0,
+        282.0
+    ],
+    "Heart Rate_first10_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Heart Rate_first10_std": [
+        "real",
+        0,
+        0
+    ],
+    "Heart Rate_first10_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Heart Rate_first10_num": [
+        "count",
+        0,
+        0
+    ],
+    "Heart Rate_first25_min": [
+        "categorical",
+        0,
+        174.0
+    ],
+    "Heart Rate_first25_max": [
+        "categorical",
+        0,
+        300.0
+    ],
+    "Heart Rate_first25_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Heart Rate_first25_std": [
+        "real",
+        0,
+        0
+    ],
+    "Heart Rate_first25_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Heart Rate_first25_num": [
+        "count",
+        0,
+        0
+    ],
+    "Heart Rate_first50_min": [
+        "categorical",
+        0,
+        147.0
+    ],
+    "Heart Rate_first50_max": [
+        "categorical",
+        0,
+        300.0
+    ],
+    "Heart Rate_first50_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Heart Rate_first50_std": [
+        "real",
+        0,
+        0
+    ],
+    "Heart Rate_first50_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Heart Rate_first50_num": [
+        "count",
+        0,
+        0
+    ],
+    "Heart Rate_last10_min": [
+        "categorical",
+        0,
+        160.0
+    ],
+    "Heart Rate_last10_max": [
+        "categorical",
+        0,
+        239.0
+    ],
+    "Heart Rate_last10_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Heart Rate_last10_std": [
+        "real",
+        0,
+        0
+    ],
+    "Heart Rate_last10_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Heart Rate_last10_num": [
+        "count",
+        0,
+        0
+    ],
+    "Heart Rate_last25_min": [
+        "categorical",
+        0,
+        153.0
+    ],
+    "Heart Rate_last25_max": [
+        "categorical",
+        0,
+        293.0
+    ],
+    "Heart Rate_last25_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Heart Rate_last25_std": [
+        "real",
+        0,
+        0
+    ],
+    "Heart Rate_last25_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Heart Rate_last25_num": [
+        "count",
+        0,
+        0
+    ],
+    "Heart Rate_last50_min": [
+        "categorical",
+        0,
+        147.0
+    ],
+    "Heart Rate_last50_max": [
+        "categorical",
+        0,
+        293.0
+    ],
+    "Heart Rate_last50_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Heart Rate_last50_std": [
+        "real",
+        0,
+        0
+    ],
+    "Heart Rate_last50_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Heart Rate_last50_num": [
+        "count",
+        0,
+        0
+    ],
+    "MAP (mmHg)_full_min": [
+        "categorical",
+        0,
+        231.0
+    ],
+    "MAP (mmHg)_full_max": [
+        "categorical",
+        0,
+        329.0
+    ],
+    "MAP (mmHg)_full_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "MAP (mmHg)_full_std": [
+        "real",
+        0,
+        0
+    ],
+    "MAP (mmHg)_full_skew": [
+        "real",
+        0,
+        0
+    ],
+    "MAP (mmHg)_full_num": [
+        "count",
+        0,
+        0
+    ],
+    "MAP (mmHg)_first10_min": [
+        "categorical",
+        0,
+        231.0
+    ],
+    "MAP (mmHg)_first10_max": [
+        "categorical",
+        0,
+        324.0
+    ],
+    "MAP (mmHg)_first10_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "MAP (mmHg)_first10_std": [
+        "real",
+        0,
+        0
+    ],
+    "MAP (mmHg)_first10_skew": [
+        "real",
+        0,
+        0
+    ],
+    "MAP (mmHg)_first10_num": [
+        "count",
+        0,
+        0
+    ],
+    "MAP (mmHg)_first25_min": [
+        "categorical",
+        0,
+        231.0
+    ],
+    "MAP (mmHg)_first25_max": [
+        "categorical",
+        0,
+        324.0
+    ],
+    "MAP (mmHg)_first25_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "MAP (mmHg)_first25_std": [
+        "real",
+        0,
+        0
+    ],
+    "MAP (mmHg)_first25_skew": [
+        "real",
+        0,
+        0
+    ],
+    "MAP (mmHg)_first25_num": [
+        "count",
+        0,
+        0
+    ],
+    "MAP (mmHg)_first50_min": [
+        "categorical",
+        0,
+        231.0
+    ],
+    "MAP (mmHg)_first50_max": [
+        "categorical",
+        0,
+        324.0
+    ],
+    "MAP (mmHg)_first50_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "MAP (mmHg)_first50_std": [
+        "real",
+        0,
+        0
+    ],
+    "MAP (mmHg)_first50_skew": [
+        "real",
+        0,
+        0
+    ],
+    "MAP (mmHg)_first50_num": [
+        "count",
+        0,
+        0
+    ],
+    "MAP (mmHg)_last10_min": [
+        "categorical",
+        0,
+        329.0
+    ],
+    "MAP (mmHg)_last10_max": [
+        "categorical",
+        0,
+        329.0
+    ],
+    "MAP (mmHg)_last10_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "MAP (mmHg)_last10_std": [
+        "real",
+        0,
+        0
+    ],
+    "MAP (mmHg)_last10_skew": [
+        "real",
+        0,
+        0
+    ],
+    "MAP (mmHg)_last10_num": [
+        "count",
+        0,
+        0
+    ],
+    "MAP (mmHg)_last25_min": [
+        "categorical",
+        0,
+        322.0
+    ],
+    "MAP (mmHg)_last25_max": [
+        "categorical",
+        0,
+        329.0
+    ],
+    "MAP (mmHg)_last25_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "MAP (mmHg)_last25_std": [
+        "real",
+        0,
+        0
+    ],
+    "MAP (mmHg)_last25_skew": [
+        "real",
+        0,
+        0
+    ],
+    "MAP (mmHg)_last25_num": [
+        "count",
+        0,
+        0
+    ],
+    "MAP (mmHg)_last50_min": [
+        "categorical",
+        0,
+        231.0
+    ],
+    "MAP (mmHg)_last50_max": [
+        "categorical",
+        0,
+        329.0
+    ],
+    "MAP (mmHg)_last50_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "MAP (mmHg)_last50_std": [
+        "real",
+        0,
+        0
+    ],
+    "MAP (mmHg)_last50_skew": [
+        "real",
+        0,
+        0
+    ],
+    "MAP (mmHg)_last50_num": [
+        "count",
+        0,
+        0
+    ],
+    "O2 Saturation_full_min": [
+        "categorical",
+        0,
+        100.0
+    ],
+    "O2 Saturation_full_max": [
+        "categorical",
+        0,
+        100.0
+    ],
+    "O2 Saturation_full_mean": [
+        "real",
+        0,
+        0
+    ],
+    "O2 Saturation_full_std": [
+        "real",
+        0,
+        0
+    ],
+    "O2 Saturation_full_skew": [
+        "real",
+        0,
+        0
+    ],
+    "O2 Saturation_full_num": [
+        "count",
+        0,
+        0
+    ],
+    "O2 Saturation_first10_min": [
+        "categorical",
+        0,
+        100.0
+    ],
+    "O2 Saturation_first10_max": [
+        "categorical",
+        0,
+        100.0
+    ],
+    "O2 Saturation_first10_mean": [
+        "real",
+        0,
+        0
+    ],
+    "O2 Saturation_first10_std": [
+        "real",
+        0,
+        0
+    ],
+    "O2 Saturation_first10_skew": [
+        "real",
+        0,
+        0
+    ],
+    "O2 Saturation_first10_num": [
+        "count",
+        0,
+        0
+    ],
+    "O2 Saturation_first25_min": [
+        "categorical",
+        0,
+        100.0
+    ],
+    "O2 Saturation_first25_max": [
+        "categorical",
+        0,
+        100.0
+    ],
+    "O2 Saturation_first25_mean": [
+        "real",
+        0,
+        0
+    ],
+    "O2 Saturation_first25_std": [
+        "real",
+        0,
+        0
+    ],
+    "O2 Saturation_first25_skew": [
+        "real",
+        0,
+        0
+    ],
+    "O2 Saturation_first25_num": [
+        "count",
+        0,
+        0
+    ],
+    "O2 Saturation_first50_min": [
+        "categorical",
+        0,
+        100.0
+    ],
+    "O2 Saturation_first50_max": [
+        "categorical",
+        0,
+        100.0
+    ],
+    "O2 Saturation_first50_mean": [
+        "real",
+        0,
+        0
+    ],
+    "O2 Saturation_first50_std": [
+        "real",
+        0,
+        0
+    ],
+    "O2 Saturation_first50_skew": [
+        "real",
+        0,
+        0
+    ],
+    "O2 Saturation_first50_num": [
+        "count",
+        0,
+        0
+    ],
+    "O2 Saturation_last10_min": [
+        "categorical",
+        0,
+        100.0
+    ],
+    "O2 Saturation_last10_max": [
+        "categorical",
+        0,
+        100.0
+    ],
+    "O2 Saturation_last10_mean": [
+        "real",
+        0,
+        0
+    ],
+    "O2 Saturation_last10_std": [
+        "real",
+        0,
+        0
+    ],
+    "O2 Saturation_last10_skew": [
+        "real",
+        0,
+        0
+    ],
+    "O2 Saturation_last10_num": [
+        "count",
+        0,
+        0
+    ],
+    "O2 Saturation_last25_min": [
+        "categorical",
+        0,
+        100.0
+    ],
+    "O2 Saturation_last25_max": [
+        "categorical",
+        0,
+        100.0
+    ],
+    "O2 Saturation_last25_mean": [
+        "real",
+        0,
+        0
+    ],
+    "O2 Saturation_last25_std": [
+        "real",
+        0,
+        0
+    ],
+    "O2 Saturation_last25_skew": [
+        "real",
+        0,
+        0
+    ],
+    "O2 Saturation_last25_num": [
+        "count",
+        0,
+        0
+    ],
+    "O2 Saturation_last50_min": [
+        "categorical",
+        0,
+        100.0
+    ],
+    "O2 Saturation_last50_max": [
+        "categorical",
+        0,
+        100.0
+    ],
+    "O2 Saturation_last50_mean": [
+        "real",
+        0,
+        0
+    ],
+    "O2 Saturation_last50_std": [
+        "real",
+        0,
+        0
+    ],
+    "O2 Saturation_last50_skew": [
+        "real",
+        0,
+        0
+    ],
+    "O2 Saturation_last50_num": [
+        "count",
+        0,
+        0
+    ],
+    "Respiratory Rate_full_min": [
+        "categorical",
+        0,
+        69.0
+    ],
+    "Respiratory Rate_full_max": [
+        "categorical",
+        0,
+        100.0
+    ],
+    "Respiratory Rate_full_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Respiratory Rate_full_std": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory Rate_full_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory Rate_full_num": [
+        "count",
+        0,
+        0
+    ],
+    "Respiratory Rate_first10_min": [
+        "categorical",
+        0,
+        96.0
+    ],
+    "Respiratory Rate_first10_max": [
+        "categorical",
+        0,
+        100.0
+    ],
+    "Respiratory Rate_first10_mean": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory Rate_first10_std": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory Rate_first10_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory Rate_first10_num": [
+        "count",
+        0,
+        0
+    ],
+    "Respiratory Rate_first25_min": [
+        "categorical",
+        0,
+        96.0
+    ],
+    "Respiratory Rate_first25_max": [
+        "categorical",
+        0,
+        100.0
+    ],
+    "Respiratory Rate_first25_mean": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory Rate_first25_std": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory Rate_first25_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory Rate_first25_num": [
+        "count",
+        0,
+        0
+    ],
+    "Respiratory Rate_first50_min": [
+        "categorical",
+        0,
+        69.0
+    ],
+    "Respiratory Rate_first50_max": [
+        "categorical",
+        0,
+        100.0
+    ],
+    "Respiratory Rate_first50_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Respiratory Rate_first50_std": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory Rate_first50_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory Rate_first50_num": [
+        "count",
+        0,
+        0
+    ],
+    "Respiratory Rate_last10_min": [
+        "categorical",
+        0,
+        92.0
+    ],
+    "Respiratory Rate_last10_max": [
+        "categorical",
+        0,
+        100.0
+    ],
+    "Respiratory Rate_last10_mean": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory Rate_last10_std": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory Rate_last10_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory Rate_last10_num": [
+        "count",
+        0,
+        0
+    ],
+    "Respiratory Rate_last25_min": [
+        "categorical",
+        0,
+        92.0
+    ],
+    "Respiratory Rate_last25_max": [
+        "categorical",
+        0,
+        100.0
+    ],
+    "Respiratory Rate_last25_mean": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory Rate_last25_std": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory Rate_last25_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory Rate_last25_num": [
+        "count",
+        0,
+        0
+    ],
+    "Respiratory Rate_last50_min": [
+        "categorical",
+        0,
+        69.0
+    ],
+    "Respiratory Rate_last50_max": [
+        "categorical",
+        0,
+        100.0
+    ],
+    "Respiratory Rate_last50_mean": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory Rate_last50_std": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory Rate_last50_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Respiratory Rate_last50_num": [
+        "count",
+        0,
+        0
+    ],
+    "Invasive BP Systolic_full_min": [
+        "categorical",
+        0,
+        205.0
+    ],
+    "Invasive BP Systolic_full_max": [
+        "categorical",
+        0,
+        349.0
+    ],
+    "Invasive BP Systolic_full_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Invasive BP Systolic_full_std": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Systolic_full_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Systolic_full_num": [
+        "count",
+        0,
+        0
+    ],
+    "Invasive BP Systolic_first10_min": [
+        "categorical",
+        0,
+        251.0
+    ],
+    "Invasive BP Systolic_first10_max": [
+        "categorical",
+        0,
+        347.0
+    ],
+    "Invasive BP Systolic_first10_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Invasive BP Systolic_first10_std": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Systolic_first10_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Systolic_first10_num": [
+        "count",
+        0,
+        0
+    ],
+    "Invasive BP Systolic_first25_min": [
+        "categorical",
+        0,
+        215.0
+    ],
+    "Invasive BP Systolic_first25_max": [
+        "categorical",
+        0,
+        347.0
+    ],
+    "Invasive BP Systolic_first25_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Invasive BP Systolic_first25_std": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Systolic_first25_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Systolic_first25_num": [
+        "count",
+        0,
+        0
+    ],
+    "Invasive BP Systolic_first50_min": [
+        "categorical",
+        0,
+        205.0
+    ],
+    "Invasive BP Systolic_first50_max": [
+        "categorical",
+        0,
+        349.0
+    ],
+    "Invasive BP Systolic_first50_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Invasive BP Systolic_first50_std": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Systolic_first50_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Systolic_first50_num": [
+        "count",
+        0,
+        0
+    ],
+    "Invasive BP Systolic_last10_min": [
+        "categorical",
+        0,
+        233.0
+    ],
+    "Invasive BP Systolic_last10_max": [
+        "categorical",
+        0,
+        327.0
+    ],
+    "Invasive BP Systolic_last10_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Invasive BP Systolic_last10_std": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Systolic_last10_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Systolic_last10_num": [
+        "count",
+        0,
+        0
+    ],
+    "Invasive BP Systolic_last25_min": [
+        "categorical",
+        0,
+        233.0
+    ],
+    "Invasive BP Systolic_last25_max": [
+        "categorical",
+        0,
+        340.0
+    ],
+    "Invasive BP Systolic_last25_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Invasive BP Systolic_last25_std": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Systolic_last25_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Systolic_last25_num": [
+        "count",
+        0,
+        0
+    ],
+    "Invasive BP Systolic_last50_min": [
+        "categorical",
+        0,
+        205.0
+    ],
+    "Invasive BP Systolic_last50_max": [
+        "categorical",
+        0,
+        341.0
+    ],
+    "Invasive BP Systolic_last50_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Invasive BP Systolic_last50_std": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Systolic_last50_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Invasive BP Systolic_last50_num": [
+        "count",
+        0,
+        0
+    ],
+    "Temperature (C)_full_min": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature (C)_full_max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature (C)_full_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature (C)_full_std": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature (C)_full_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature (C)_full_num": [
+        "count",
+        0,
+        0
+    ],
+    "Temperature (C)_first10_min": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature (C)_first10_max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature (C)_first10_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature (C)_first10_std": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature (C)_first10_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature (C)_first10_num": [
+        "count",
+        0,
+        0
+    ],
+    "Temperature (C)_first25_min": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature (C)_first25_max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature (C)_first25_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature (C)_first25_std": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature (C)_first25_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature (C)_first25_num": [
+        "count",
+        0,
+        0
+    ],
+    "Temperature (C)_first50_min": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature (C)_first50_max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature (C)_first50_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature (C)_first50_std": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature (C)_first50_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature (C)_first50_num": [
+        "count",
+        0,
+        0
+    ],
+    "Temperature (C)_last10_min": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature (C)_last10_max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature (C)_last10_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature (C)_last10_std": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature (C)_last10_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature (C)_last10_num": [
+        "count",
+        0,
+        0
+    ],
+    "Temperature (C)_last25_min": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature (C)_last25_max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature (C)_last25_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature (C)_last25_std": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature (C)_last25_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature (C)_last25_num": [
+        "count",
+        0,
+        0
+    ],
+    "Temperature (C)_last50_min": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature (C)_last50_max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature (C)_last50_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "Temperature (C)_last50_std": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature (C)_last50_skew": [
+        "real",
+        0,
+        0
+    ],
+    "Temperature (C)_last50_num": [
+        "count",
+        0,
+        0
+    ],
+    "pH_full_min": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH_full_max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH_full_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH_full_std": [
+        "real",
+        0,
+        0
+    ],
+    "pH_full_skew": [
+        "real",
+        0,
+        0
+    ],
+    "pH_full_num": [
+        "count",
+        0,
+        0
+    ],
+    "pH_first10_min": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH_first10_max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH_first10_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH_first10_std": [
+        "real",
+        0,
+        0
+    ],
+    "pH_first10_skew": [
+        "real",
+        0,
+        0
+    ],
+    "pH_first10_num": [
+        "count",
+        0,
+        0
+    ],
+    "pH_first25_min": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH_first25_max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH_first25_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH_first25_std": [
+        "real",
+        0,
+        0
+    ],
+    "pH_first25_skew": [
+        "real",
+        0,
+        0
+    ],
+    "pH_first25_num": [
+        "count",
+        0,
+        0
+    ],
+    "pH_first50_min": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH_first50_max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH_first50_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH_first50_std": [
+        "real",
+        0,
+        0
+    ],
+    "pH_first50_skew": [
+        "real",
+        0,
+        0
+    ],
+    "pH_first50_num": [
+        "count",
+        0,
+        0
+    ],
+    "pH_last10_min": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH_last10_max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH_last10_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH_last10_std": [
+        "real",
+        0,
+        0
+    ],
+    "pH_last10_skew": [
+        "real",
+        0,
+        0
+    ],
+    "pH_last10_num": [
+        "count",
+        0,
+        0
+    ],
+    "pH_last25_min": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH_last25_max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH_last25_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH_last25_std": [
+        "real",
+        0,
+        0
+    ],
+    "pH_last25_skew": [
+        "real",
+        0,
+        0
+    ],
+    "pH_last25_num": [
+        "count",
+        0,
+        0
+    ],
+    "pH_last50_min": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH_last50_max": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH_last50_mean": [
+        "positive_real",
+        0,
+        0
+    ],
+    "pH_last50_std": [
+        "real",
+        0,
+        0
+    ],
+    "pH_last50_skew": [
+        "real",
+        0,
+        0
+    ],
+    "pH_last50_num": [
+        "count",
+        0,
+        0
+    ]
+}
