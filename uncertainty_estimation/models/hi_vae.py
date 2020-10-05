@@ -243,10 +243,10 @@ class NormalDecoder(VarDecoder):
         self.mean = nn.Linear(hidden_size, 1)
         self.log_var = nn.Linear(hidden_size, 1)
 
-    def forward(self, hidden: torch.Tensor, reconstruction_mode: str = "mean"):
+    def forward(self, hidden: torch.Tensor, reconstruction_mode: str = "mode"):
         mean = self.mean(hidden)
 
-        if reconstruction_mode == "mean":
+        if reconstruction_mode == "mode":
             return mean
 
         else:
@@ -290,7 +290,7 @@ class LogNormalDecoder(NormalDecoder):
     Decode a variable that is distributed according to a log-normal distribution.
     """
 
-    def forward(self, hidden: torch.Tensor, reconstruction_mode: str = "mean"):
+    def forward(self, hidden: torch.Tensor, reconstruction_mode: str = "mode"):
         return torch.log(super().forward(hidden, reconstruction_mode))
 
 
@@ -306,7 +306,7 @@ class PoissonDecoder(VarDecoder):
 
         self.lambda_ = nn.Linear(hidden_size, 1)
 
-    def forward(self, hidden: torch.Tensor, reconstruction_mode: str = "mean"):
+    def forward(self, hidden: torch.Tensor, reconstruction_mode: str = "mode"):
         lambda_ = self.lambda_(hidden).int()
         lambda_ = F.softplus(lambda_)
 
@@ -336,10 +336,10 @@ class CategoricalDecoder(VarDecoder):
 
         self.linear = nn.Linear(hidden_size, self.feat_type[2])
 
-    def forward(self, hidden: torch.Tensor, reconstruction_mode: str = "mean"):
+    def forward(self, hidden: torch.Tensor, reconstruction_mode: str = "mode"):
         dist = self.linear(hidden)
 
-        if reconstruction_mode == "mean":
+        if reconstruction_mode == "mode":
             return torch.argmax(dist, dim=1)
 
         else:
@@ -396,11 +396,11 @@ class OrdinalDecoder(VarDecoder):
         return -torch.log(torch.argmax(ordinal_probs, dim=1))
 
     def reconstruction_error(
-        self, hidden: torch.Tensor, reconstruction_mode: str = "mean"
+        self, hidden: torch.Tensor, reconstruction_mode: str = "mode"
     ):
         ordinal_probs = self.get_ordinal_probs(hidden)
 
-        if reconstruction_mode == "mean":
+        if reconstruction_mode == "mode":
             return torch.argmax(ordinal_probs, dim=1)
 
         else:
@@ -408,8 +408,6 @@ class OrdinalDecoder(VarDecoder):
 
 
 class HIDecoder(nn.Module):
-
-    # TODO: Add batch-denormalization
     """
     The decoder module, which decodes a sample from the latent space back to the space of
     the input data.
@@ -439,7 +437,9 @@ class HIDecoder(nn.Module):
             "ordinal": OrdinalDecoder,
         }
 
-        self.encoder_batch_norm = encoder_batch_norm
+        self.feat_types = feat_types
+
+        self.encoder_bn = encoder_batch_norm
 
         super().__init__()
         architecture = [latent_dim] + hidden_sizes
@@ -458,16 +458,20 @@ class HIDecoder(nn.Module):
         ]
 
     def forward(
-        self, latent_tensor: torch.Tensor, reconstruction_mode: str = "mean"
+        self, latent_tensor: torch.Tensor, reconstruction_mode: str = "mode"
     ) -> torch.Tensor:
         h = self.hidden(latent_tensor)
 
-        reconstructed = torch.cat(
-            [
-                decoding_func(h[:, dim], reconstruction_mode)
-                for dim, decoding_func in enumerate(self.decoding_models)
-            ]
-        )
+        dim = 0
+        reconstructions = []
+
+        for feat_type, decoding_func in zip(self.feat_types, self.decoding_models):
+            offset = feat_type[2] - feat_type[1] + 1
+            reconstructions.append(decoding_func(h[:, dim:offset], reconstruction_mode))
+            dim += offset
+
+        reconstructed = torch.cat(reconstructions)
+        reconstructed = self.denormalize_batch(reconstructed)
 
         return reconstructed
 
@@ -486,6 +490,16 @@ class HIDecoder(nn.Module):
             ),
             dim=1,
         )
+
+    def denormalize_batch(self, input_tensor: torch.Tensor) -> torch.Tensor:
+        denormalized_input = (
+            input_tensor * torch.sqrt(self.encoder_bn.running_var)
+            + self.encoder_bn.running_mean
+        )
+
+        input_tensor[self.real_mask] = denormalized_input
+
+        return input_tensor
 
 
 # ------------------------------------------------- Full model ---------------------------------------------------------
@@ -522,7 +536,7 @@ def infer_types(
 
             # Count features
             if any(kw in feat_name for kw in count_kws):
-                feat_types.append(("count", None, None))
+                feat_types.append(("count", 0, 0))
 
             # Ordinal features
             elif any(kw in feat_name for kw in ordinal_kws):
@@ -530,14 +544,14 @@ def infer_types(
 
             # Categorical
             else:
-                feat_types.append(("categorical", None, np.max(X[:, dim])))
+                feat_types.append(("categorical", 0, np.max(X[:, dim])))
 
         # Real-valued
         else:
             if all(X[:, dim] > 0):
-                feat_types.append(("positive_real", None, None))
+                feat_types.append(("positive_real", 0, 0))
 
             else:
-                feat_types.append(("real", None, None))
+                feat_types.append(("real", 0, 0))
 
     return feat_types
