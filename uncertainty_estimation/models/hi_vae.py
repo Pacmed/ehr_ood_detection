@@ -11,8 +11,15 @@ import numpy as np
 import torch
 from torch import nn
 import torch.distributions as dist
-from torch.jit._builtins.math import factorial
+from math import factorial
 import torch.nn.functional as F
+
+# PROJECT
+from uncertainty_estimation.models.vae import VAE
+from uncertainty_estimation.models.info import (
+    DEFAULT_LEARNING_RATE,
+    DEFAULT_RECONSTR_ERROR_WEIGHT,
+)
 
 # CONSTANTS
 AVAILABLE_TYPES = {"real", "positive_real", "count", "categorical", "ordinal"}
@@ -21,7 +28,7 @@ AVAILABLE_TYPES = {"real", "positive_real", "count", "categorical", "ordinal"}
 # A list of tuples specifying the types of input features
 # Just name of the distribution and optionally the min and max value for ordinal / categorical features
 # e.g. [("real", None, None), ("categorical", None, 5), ("ordinal", 1, 3)]
-FeatTypes = List[Tuple[str, Optional[int], Optional[int]]]
+FeatTypes = List[Tuple[str, int, int]]
 
 
 # TODO: Group variables of the same type together to make computations more efficient
@@ -44,11 +51,7 @@ class HIEncoder(nn.Module):
     """
 
     def __init__(
-        self,
-        hidden_sizes: List[int],
-        input_size: int,
-        latent_dim: int,
-        feat_types: FeatTypes,
+        self, hidden_sizes: List[int], latent_dim: int, feat_types: FeatTypes,
     ):
         super().__init__()
 
@@ -189,7 +192,7 @@ class HIEncoder(nn.Module):
         log_var = self.log_var(h)
         std = torch.sqrt(torch.exp(log_var))
 
-        return mean, std, observed_mask
+        return mean, std, encoded_observed_mask
 
 
 # -------------------------------------------------- Decoder -----------------------------------------------------------
@@ -442,14 +445,15 @@ class HIDecoder(nn.Module):
         self.encoder_bn = encoder_batch_norm
 
         super().__init__()
-        architecture = [latent_dim] + hidden_sizes
+        # architecture = [latent_dim] + hidden_sizes
         self.layers = []
 
-        for l, (in_dim, out_dim) in enumerate(zip(architecture[:-1], architecture[1:])):
-            self.layers.append(nn.Linear(in_dim, out_dim))
-            self.layers.append(nn.LeakyReLU())
+        # TODO: Re-add this in the more complex model
+        # for l, (in_dim, out_dim) in enumerate(zip(architecture[:-1], architecture[1:])):
+        #    self.layers.append(nn.Linear(in_dim, out_dim))
+        #    self.layers.append(nn.LeakyReLU())
 
-        self.hidden = nn.Sequential(*self.layers)
+        # self.hidden = nn.Sequential(*self.layers)
 
         # Initialize all the output networks
         self.decoding_models = [
@@ -460,7 +464,8 @@ class HIDecoder(nn.Module):
     def forward(
         self, latent_tensor: torch.Tensor, reconstruction_mode: str = "mode"
     ) -> torch.Tensor:
-        h = self.hidden(latent_tensor)
+        # h = self.hidden(latent_tensor)   # TODO: Re-add this in the more complex model
+        h = latent_tensor
 
         dim = 0
         reconstructions = []
@@ -476,41 +481,119 @@ class HIDecoder(nn.Module):
         return reconstructed
 
     def reconstruction_error(
-        self, input_tensor: torch.Tensor, latent_tensor: torch.Tensor
+        self,
+        input_tensor: torch.Tensor,
+        latent_tensor: torch.Tensor,
+        encoded_observed_mask: torch.Tensor,
     ) -> torch.Tensor:
         h = self.hidden(latent_tensor)
 
-        return torch.sum(
-            torch.cat(
-                [
-                    decoding_model.reconstruction_loss(input_tensor[:, dim], h[:, dim])
-                    for dim, decoding_model in enumerate(self.decoding_models)
-                ],
-                dim=1,
-            ),
-            dim=1,
-        )
+        dim = 0
+        reconstruction_loss = torch.zeros(input_tensor.shape)
+
+        for feat_num, (feat_type, decoding_model) in enumerate(
+            zip(self.feat_types, self.decoding_models)
+        ):
+            offset = feat_type[2] - feat_type[1] + 1
+            reconstruction_loss[:, feat_type] = decoding_model.reconstruction_loss(
+                input_tensor[:, dim:offset], h[:, dim:offset]
+            )
+            dim += offset
+
+        reconstruction_loss[
+            ~encoded_observed_mask
+        ] = 0  # Only compute reconstruction loss for observed vars
+        reconstruction_loss = reconstruction_loss.sum(dim=1)
+
+        return reconstruction_loss
 
     def denormalize_batch(self, input_tensor: torch.Tensor) -> torch.Tensor:
+        real_mask = self.construct_real_mask(self.feat_types)
+
         denormalized_input = (
             input_tensor * torch.sqrt(self.encoder_bn.running_var)
             + self.encoder_bn.running_mean
         )
 
-        input_tensor[self.real_mask] = denormalized_input
+        input_tensor[:, real_mask] = denormalized_input
 
         return input_tensor
+
+    @staticmethod
+    def construct_real_mask(feat_types: FeatTypes) -> torch.Tensor:
+        mask = []
+
+        for feat_type, feat_min, feat_max in feat_types:
+            mask.extend(
+                [int(feat_type in ("real", "positive_real"))]
+                * (feat_max - feat_min + 1)
+            )
+
+        return torch.from_numpy(mask)
 
 
 # ------------------------------------------------- Full model ---------------------------------------------------------
 
 
 class HIVAEModule(nn.Module):
-    ...  # TODO
+    """
+    Module for the Heterogenous-Incomplete Variational Autoencoder.
+    """
+
+    def __init__(
+        self, hidden_sizes: List[int], latent_dim: int, feat_types: FeatTypes,
+    ):
+        super().__init__()
+        self.latent_dim = latent_dim
+
+        self.encoder = HIEncoder(hidden_sizes, latent_dim, feat_types)
+        self.decoder = HIDecoder(
+            hidden_sizes,
+            latent_dim,
+            feat_types,
+            encoder_batch_norm=self.encoder.real_batch_norm,
+        )
+
+    def forward(
+        self, input_tensor: torch.Tensor, reconstr_error_weight: float,
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        input_tensor = input_tensor.float()
+
+        # Encoding
+        mean, std, encoded_observed_mask = self.encoder(input_tensor)
+        eps = torch.randn(mean.shape)
+        z = mean + eps * std
+
+        # Decoding
+        reconstr_error = self.decoder.reconstruction_error(
+            input_tensor, z, encoded_observed_mask
+        )
+        d = mean.shape[1]
+
+        # Calculating the KL divergence of the two independent Gaussians (closed-form solution)
+        kl = 0.5 * torch.sum(
+            std - torch.ones(d) - torch.log(std + 1e-8) + mean * mean, dim=1
+        )
+        average_negative_elbo = torch.mean(reconstr_error_weight * reconstr_error + kl)
+
+        return reconstr_error, kl, average_negative_elbo
 
 
-class HIVAE:
-    ...  # TODO
+class HIVAE(VAE):
+    def __init__(
+        self,
+        hidden_sizes: List[int],
+        input_size: int,
+        latent_dim: int,
+        feat_types: FeatTypes,
+        lr: float = DEFAULT_LEARNING_RATE,
+        reconstr_error_weight: float = DEFAULT_RECONSTR_ERROR_WEIGHT,
+    ):
+        super().__init__(
+            hidden_sizes, input_size, latent_dim, lr, reconstr_error_weight
+        )
+
+        self.model = HIVAEModule(hidden_sizes, latent_dim, feat_types)
 
 
 # ---------------------------------------------- Helper functions ------------------------------------------------------
@@ -530,9 +613,11 @@ def infer_types(
     feat_types = []
 
     for dim, feat_name in enumerate(feat_names):
+        feat_values = X[:, dim]
+        feat_values = feat_values[~np.isnan(feat_values)]
 
         # Distinguish real-valued from integer-valued
-        if X[:, dim].astype(int) == X[:, dim]:
+        if all(feat_values.astype(int) == feat_values):
 
             # Count features
             if any(kw in feat_name for kw in count_kws):
@@ -540,15 +625,15 @@ def infer_types(
 
             # Ordinal features
             elif any(kw in feat_name for kw in ordinal_kws):
-                feat_types.append(("ordinal", np.min(X[:, dim]), np.max(X[:, dim])))
+                feat_types.append(("ordinal", np.min(feat_values), np.max(feat_values)))
 
             # Categorical
             else:
-                feat_types.append(("categorical", 0, np.max(X[:, dim])))
+                feat_types.append(("categorical", 0, np.max(feat_values)))
 
         # Real-valued
         else:
-            if all(X[:, dim] > 0):
+            if all(feat_values > 0):
                 feat_types.append(("positive_real", 0, 0))
 
             else:
