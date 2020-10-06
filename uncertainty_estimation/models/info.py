@@ -4,6 +4,7 @@ hyperparameters, etc.
 """
 
 # STD
+from collections import OrderedDict
 import json
 
 # EXT
@@ -15,11 +16,15 @@ from scipy.stats import uniform
 FEAT_TYPES_DIR = "../../data/feature_types"
 
 # Load feat types for HI-VAE
-with open(f"{FEAT_TYPES_DIR}/feat_types_eICU_corrected.json", "rb") as ft_eicu_file:
-    feat_types_eicu = json.load(ft_eicu_file)
+with open(f"{FEAT_TYPES_DIR}/feat_types_eICU.json", "rb") as ft_eicu_file:
+    feat_types_eicu = list(
+        json.load(ft_eicu_file, object_pairs_hook=OrderedDict).values()
+    )
 
-with open(f"{FEAT_TYPES_DIR}/feat_types_MIMIC_corrected.json", "rb") as ft_mimic_file:
-    feat_types_mimic = json.load(ft_mimic_file)
+with open(f"{FEAT_TYPES_DIR}/feat_types_MIMIC.json", "rb") as ft_mimic_file:
+    feat_types_mimic = list(
+        json.load(ft_mimic_file, object_pairs_hook=OrderedDict).values()
+    )
 
 # ### Models and novelty scoring functions ###
 
@@ -255,6 +260,7 @@ TRAIN_PARAMS = {
     "PPCA": {},
     "AE": {"n_epochs": 10, "batch_size": 64},
     "VAE": {"n_epochs": 10, "batch_size": 64},
+    "HI-VAE": {"n_epochs": 10, "batch_size": 64},
     "SVM": {},
     "NN": {
         "batch_size": 256,
@@ -320,7 +326,15 @@ PARAM_SEARCH = {
     "prior_sigma_2": [np.exp(d) for d in np.arange(-0.8, 0, 0.1)],
     "reconstr_error_weight": loguniform(0.001, 0.9),
 }
-NUM_EVALS = {"AE": 40, "VAE": 100, "NN": 40, "MCDropout": 40, "BNN": 100, "PPCA": 30}
+NUM_EVALS = {
+    "AE": 40,
+    "VAE": 100,
+    "HI-VAE": 100,
+    "NN": 40,
+    "MCDropout": 40,
+    "BNN": 100,
+    "PPCA": 30,
+}
 
 
 # Default training hyperparameters

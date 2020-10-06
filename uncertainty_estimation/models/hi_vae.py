@@ -4,6 +4,7 @@ Module providing an implementation of a Heterogenous-Incomplete Variational Auto
 
 # STD
 import abc
+from collections import Counter
 from typing import Tuple, List, Optional, Set
 
 # EXT
@@ -70,7 +71,7 @@ class HIEncoder(nn.Module):
         self.layers = []
 
         self.real_batch_norm = torch.nn.BatchNorm1d(
-            num_features=self.encoded_input_size
+            num_features=self.get_num_reals(feat_types), affine=False
         )
 
         for l, (in_dim, out_dim) in enumerate(zip(architecture[:-1], architecture[1:])):
@@ -91,7 +92,7 @@ class HIEncoder(nn.Module):
         for feat_type, feat_min, feat_max in feat_types:
 
             if feat_type == "categorical":
-                input_size += feat_max
+                input_size += feat_max + 1
 
             elif feat_type == "ordinal":
                 input_size += feat_max - feat_min + 1
@@ -99,7 +100,16 @@ class HIEncoder(nn.Module):
             else:
                 input_size += 1
 
-        return input_size
+        return int(input_size)
+
+    @staticmethod
+    def get_num_reals(feat_types: FeatTypes) -> int:
+        """
+        Get the number of real features.
+        """
+        c = Counter(list(zip(*feat_types))[0])
+
+        return c["real"] + c["positive_real"]
 
     def categorical_encode(
         self, input_tensor: torch.Tensor, observed_mask: torch.Tensor
@@ -108,43 +118,47 @@ class HIEncoder(nn.Module):
         Create one-hot / thermometer encodings for categorical / ordinal variables.
         """
         encoded_input_tensor = torch.empty(input_tensor.shape[0], 0)
-        encoded_observed_mask = torch.empty(observed_mask.shape[0], 0)
+        encoded_observed_mask = torch.empty(observed_mask.shape[0], 0).bool()
         encoded_types = []
+        batch_size = input_tensor.shape[0]
 
         for dim, (feat_type, feat_min, feat_max) in enumerate(self.feat_types):
-            observed = observed_mask[:, dim]
+            observed = observed_mask[:, dim].unsqueeze(1)
 
             # Use one-hot encoding
             if feat_type == "categorical":
-                one_hot_encoding = torch.zeros(
-                    input_tensor.shape[0], feat_max
-                )  # B x number of categories
-                one_hot_encoding[:, input_tensor[:, dim]] = 1
+                num_options = int(feat_max) + 1
+                one_hot_encoding = F.one_hot(input_tensor[:, dim].long()).float()
                 encoded_input_tensor = torch.cat(
                     [encoded_input_tensor, one_hot_encoding], dim=1
                 )
                 encoded_observed_mask = torch.cat(
-                    [encoded_observed_mask, torch.cat([observed] * feat_max, dim=1)]
+                    [encoded_observed_mask, torch.cat([observed] * num_options, dim=1)],
+                    dim=1,
                 )
-                encoded_types.extend(["categorical"] * feat_max)
+                encoded_types.extend(["categorical"] * num_options)
 
             # Use thermometer encoding
             if feat_type == "ordinal":
-                num_values = feat_max - feat_min + 1
-                thermometer_encoding = torch.zeros(input_tensor.shape[0], num_values)
-                thermometer_encoding[:, : input_tensor[:, dim] + 1] = 1
+                num_values = int(feat_max - feat_min + 1)
+                thermometer_encoding = torch.cat(
+                    [torch.arange(0, num_values).unsqueeze(0)] * batch_size, dim=0
+                )
+                cmp = input_tensor[:, dim].unsqueeze(1).repeat(1, num_values)
+                thermometer_encoding = (thermometer_encoding <= cmp).float()
                 encoded_input_tensor = torch.cat(
                     [encoded_input_tensor, thermometer_encoding], dim=1
                 )
                 encoded_observed_mask = torch.cat(
-                    [encoded_observed_mask, torch.cat([observed] * num_values, dim=1)]
+                    [encoded_observed_mask, torch.cat([observed] * num_values, dim=1)],
+                    dim=1,
                 )
                 encoded_types.extend(["ordinal"] * num_values)
 
             # Simply add the feature dim, untouched
             else:
                 encoded_input_tensor = torch.cat(
-                    [encoded_input_tensor, input_tensor[:, dim]], dim=1
+                    [encoded_input_tensor, input_tensor[:, dim].unsqueeze(1)], dim=1
                 )
                 encoded_observed_mask = torch.cat(
                     [encoded_observed_mask, observed], dim=1
@@ -167,25 +181,31 @@ class HIEncoder(nn.Module):
         observed_mask = ~torch.isnan(
             input_tensor
         )  # Remember which values where observed
-        input_tensor[torch.isnan(input_tensor)] = 0  # Replace missing values with 0
+        input_tensor[~observed_mask] = 0  # Replace missing values with 0
 
         input_tensor, encoded_observed_mask, encoded_types = self.categorical_encode(
             input_tensor, observed_mask
         )
 
-        # Get mask for real-valued variables, these will be scaled by batch norm
-        real_mask = torch.from_numpy(
-            [feat_type in ("real", "positive_real") for feat_type in encoded_types]
+        # Transform log-normal and count features
+        log_transform_mask = torch.BoolTensor(
+            [feat_type in ("positive_real", "count") for feat_type in encoded_types]
+        )
+        log_transform_indices = torch.arange(0, input_tensor.shape[1])[
+            log_transform_mask
+        ]
+        input_tensor[:, log_transform_mask] = torch.log(
+            torch.index_select(input_tensor, dim=1, index=log_transform_indices) + 1e-6
         )
 
-        # Transform log-normal and count features
-        input_tensor[
-            :, torch.from_numpy(encoded_types in ("positive_real", "count"))
-        ] = torch.log(input_tensor)
-
         # Normalize real features
-        normed_input_tensor = self.real_batch_norm(input_tensor)
-        normed_input_tensor[~real_mask] = input_tensor
+        real_mask = torch.BoolTensor(
+            [feat_type in ("real", "positive_real") for feat_type in encoded_types]
+        )
+        real_indices = torch.arange(0, input_tensor.shape[1])[real_mask]
+        input_tensor[:, real_mask] = self.real_batch_norm(
+            torch.index_select(input_tensor, dim=1, index=real_indices)
+        )
 
         h = self.hidden(input_tensor)
         mean = self.mean(h)
@@ -337,7 +357,7 @@ class CategoricalDecoder(VarDecoder):
     ):
         super().__init__(hidden_size, feat_type)
 
-        self.linear = nn.Linear(hidden_size, self.feat_type[2])
+        self.linear = nn.Linear(hidden_size, int(self.feat_type[2]))
 
     def forward(self, hidden: torch.Tensor, reconstruction_mode: str = "mode"):
         dist = self.linear(hidden)
@@ -370,7 +390,7 @@ class OrdinalDecoder(VarDecoder):
         super().__init__(hidden_size, feat_type)
 
         self.thresholds = nn.Linear(
-            hidden_size, self.feat_type[2] - self.feat_type[1] + 1
+            hidden_size, int(self.feat_type[2] - self.feat_type[1] + 1)
         )
         self.region = nn.Linear(hidden_size, 1)
 
@@ -432,6 +452,8 @@ class HIDecoder(nn.Module):
         feat_types: FeatTypes,
         encoder_batch_norm: torch.nn.BatchNorm1d,
     ):
+        super().__init__()
+
         self.decoding_models = {
             "real": NormalDecoder,
             "positive_real": LogNormalDecoder,
@@ -444,7 +466,6 @@ class HIDecoder(nn.Module):
 
         self.encoder_bn = encoder_batch_norm
 
-        super().__init__()
         # architecture = [latent_dim] + hidden_sizes
         self.layers = []
 
@@ -471,7 +492,7 @@ class HIDecoder(nn.Module):
         reconstructions = []
 
         for feat_type, decoding_func in zip(self.feat_types, self.decoding_models):
-            offset = feat_type[2] - feat_type[1] + 1
+            offset = int(feat_type[2] - feat_type[1] + 1)
             reconstructions.append(decoding_func(h[:, dim:offset], reconstruction_mode))
             dim += offset
 
@@ -494,7 +515,7 @@ class HIDecoder(nn.Module):
         for feat_num, (feat_type, decoding_model) in enumerate(
             zip(self.feat_types, self.decoding_models)
         ):
-            offset = feat_type[2] - feat_type[1] + 1
+            offset = int(feat_type[2] - feat_type[1] + 1)
             reconstruction_loss[:, feat_type] = decoding_model.reconstruction_loss(
                 input_tensor[:, dim:offset], h[:, dim:offset]
             )
@@ -526,7 +547,7 @@ class HIDecoder(nn.Module):
         for feat_type, feat_min, feat_max in feat_types:
             mask.extend(
                 [int(feat_type in ("real", "positive_real"))]
-                * (feat_max - feat_min + 1)
+                * int(feat_max - feat_min + 1)
             )
 
         return torch.from_numpy(mask)
@@ -602,10 +623,9 @@ class HIVAE(VAE):
 def infer_types(
     X: np.array,
     feat_names: List[str],
+    unique_thresh: int = 20,
     count_kws: Set[str] = frozenset({"num", "count"}),
-    ordinal_kws: Set[str] = frozenset(
-        {"scale", "Verbal", "Eyes", "Motor", "GSC Total"}
-    ),
+    ordinal_kws: Set[str] = frozenset({"scale", "Verbal", "Eyes", "Motor", "GCS"}),
 ) -> FeatTypes:
     """
     A basic function to infer the types from a data set automatically.
@@ -621,22 +641,28 @@ def infer_types(
 
             # Count features
             if any(kw in feat_name for kw in count_kws):
-                feat_types.append(("count", 0, 0))
+                feat_type = "count"
 
             # Ordinal features
             elif any(kw in feat_name for kw in ordinal_kws):
-                feat_types.append(("ordinal", np.min(feat_values), np.max(feat_values)))
+                feat_type = "ordinal"
 
             # Categorical
+            elif len(set(feat_values)) <= unique_thresh:
+                feat_type = "categorical"
+
+            # Sometimes a variable has only integer values but definitely isn't categorical
             else:
-                feat_types.append(("categorical", 0, np.max(feat_values)))
+                feat_type = "real"
 
         # Real-valued
         else:
             if all(feat_values > 0):
-                feat_types.append(("positive_real", 0, 0))
+                feat_type = "positive_real"
 
             else:
-                feat_types.append(("real", 0, 0))
+                feat_type = "real"
+
+        feat_types.append((feat_type, np.min(feat_values), np.max(feat_values)))
 
     return feat_types

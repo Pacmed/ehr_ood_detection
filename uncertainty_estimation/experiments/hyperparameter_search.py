@@ -60,23 +60,32 @@ def perform_hyperparameter_search(
     feat_names = dh.load_feature_names()
     target_name = dh.load_target_name()
 
-    # Scale and impute
-    pipe = pipeline.Pipeline(
-        [("scaler", StandardScaler()), ("imputer", SimpleImputer())]
-    )
-    X_train = pipe.fit_transform(train_data[feat_names].values)
-    X_val = pipe.transform(val_data[feat_names].values)
-    y_train, y_val = train_data[target_name].values, val_data[target_name].values
-
     with tqdm(total=get_num_runs(models)) as progress_bar:
 
         for model_name in models:
+
+            X_train = train_data[feat_names].values
+            X_val = val_data[feat_names].values
+
+            # Scale and impute
+            if model_name != "HI-VAE":
+                pipe = pipeline.Pipeline(
+                    [("scaler", StandardScaler()), ("imputer", SimpleImputer())]
+                )
+                X_train = pipe.fit_transform(X_train)
+                X_val = pipe.transform(X_val)
+
+            y_train, y_val = (
+                train_data[target_name].values,
+                val_data[target_name].values,
+            )
+
             progress_bar.postfix = f"(model: {model_name})"
             progress_bar.update()
             scores = {}
             model_type = MODEL_CLASSES[model_name]
 
-            sampled_params = sample_hyperparameters(model_name)
+            sampled_params = sample_hyperparameters(model_name, data_origin)
 
             for run, param_set in enumerate(sampled_params):
 
@@ -145,7 +154,7 @@ def get_num_runs(models: List[str]) -> int:
 
 
 def sample_hyperparameters(
-    model_name: str, round_to: int = 6
+    model_name: str, data_origin: str, round_to: int = 6
 ) -> List[Dict[str, Union[int, float]]]:
     """
     Sample the hyperparameters for different runs of the same model. The distributions parameters are sampled from are
@@ -156,6 +165,8 @@ def sample_hyperparameters(
     ----------
     model_name: str
         Name of the model.
+    data_origin: str
+        Specify the data set which should be used to specify the hyperparameters to be sampled / default values.
     round_to: int
         Decimal that floats should be rounded to.
 
@@ -169,7 +180,7 @@ def sample_hyperparameters(
             param_distributions={
                 hyperparam: PARAM_SEARCH[hyperparam]
                 for hyperparam, val in MODEL_PARAMS[model_name][
-                    "MIMIC"
+                    data_origin
                 ].items()  # MIMIC is just a default here
                 if hyperparam in PARAM_SEARCH
             },
@@ -188,7 +199,7 @@ def sample_hyperparameters(
                 # Add hyperparameters that stay fixed
                 hyperparam: val
                 for hyperparam, val in MODEL_PARAMS[model_name][
-                    "MIMIC"
+                    data_origin
                 ].items()  # MIMIC is just a default here
                 if hyperparam not in PARAM_SEARCH
             },
