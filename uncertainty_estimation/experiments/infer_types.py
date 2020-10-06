@@ -4,6 +4,7 @@ Infer the types of features for usage with the HI-VAE.
 
 # STD
 import argparse
+from collections import OrderedDict
 import json
 
 # PROJECT
@@ -31,7 +32,7 @@ if __name__ == "__main__":
 
         feat_types = infer_types(train_data[feature_names].to_numpy(), feature_names)
 
-        mappings = dict(zip(feature_names, feat_types))
+        mappings = OrderedDict(zip(feature_names, feat_types))
 
         with open(
             f"{args.feat_types_dir}/feat_types_{data_origin}.json", "w"
