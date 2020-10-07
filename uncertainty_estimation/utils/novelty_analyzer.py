@@ -66,7 +66,7 @@ class NoveltyAnalyzer:
         self.id_novelty = None
         self.ood_novelty = None
 
-        if self.impute_and_scale:
+        if self.impute_and_scale and novelty_estimator.name != "HI-VAE":
             self._impute_and_scale()
 
     def _impute_and_scale(self):

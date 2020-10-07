@@ -212,7 +212,6 @@ class VAEModule(nn.Module):
 
         # decoding
         reconstr_error = self.decoder.reconstruction_error(input_tensor, z)
-
         d = mean.shape[1]
 
         # Calculating the KL divergence of the two independent Gaussians (closed-form solution)
@@ -365,17 +364,22 @@ class VAE:
         """
 
         average_epoch_elbo, i = 0, 0
+
         for i, batch in enumerate(data):
             _, _, average_negative_elbo = self.model(
                 batch, reconstr_error_weight=self.reconstr_error_weight,
             )
-            average_epoch_elbo += average_negative_elbo.item()
+            average_epoch_elbo += average_negative_elbo
 
-            if self.model.training:
-                self.optimizer.zero_grad()
-                average_negative_elbo.backward()
-                nn.utils.clip_grad_norm_(self.model.parameters(), 1)
-                self.optimizer.step()
+            with torch.autograd.detect_anomaly():
+                if self.model.training:
+                    self.optimizer.zero_grad()
+
+                    print(average_epoch_elbo)  # TODO: Debug
+
+                    average_negative_elbo.backward()
+                    nn.utils.clip_grad_norm_(self.model.parameters(), 1)
+                    self.optimizer.step()
 
         average_epoch_elbo = average_epoch_elbo / (i + 1)
 

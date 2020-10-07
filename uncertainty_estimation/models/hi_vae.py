@@ -32,7 +32,6 @@ FeatTypes = List[Tuple[str, int, int]]
 
 
 # TODO: Group variables of the same type together to make computations more efficient
-# TODO: Disable imputation and scaling for HI-VAE for all experiments
 # TODO: Debug reconstruction
 
 # -------------------------------------------------- Encoder -----------------------------------------------------------
@@ -72,8 +71,9 @@ class HIEncoder(nn.Module):
         self.layers = []
 
         self.real_batch_norm = torch.nn.BatchNorm1d(
-            num_features=self.encoded_input_size
+            num_features=len(feat_types), affine=False,
         )
+        self.real_batch_norm.register_forward_pre_hook(self.batch_norm_reset_hook)
 
         for l, (in_dim, out_dim) in enumerate(zip(architecture[:-1], architecture[1:])):
             self.layers.append(nn.Linear(in_dim, out_dim))
@@ -82,6 +82,12 @@ class HIEncoder(nn.Module):
         self.hidden = nn.Sequential(*self.layers)
         self.mean = nn.Linear(architecture[-1], latent_dim)
         self.log_var = nn.Linear(architecture[-1], latent_dim)
+
+    @staticmethod
+    def batch_norm_reset_hook(module, *args):
+        module.num_batches_tracked = torch.zeros(1)
+        module.running_mean = torch.zeros(module.running_mean.shape)
+        module.running_var = torch.ones(module.running_var.shape)
 
     @staticmethod
     def get_encoded_input_size(feat_types: FeatTypes) -> int:
@@ -105,17 +111,14 @@ class HIEncoder(nn.Module):
 
     def categorical_encode(
         self, input_tensor: torch.Tensor, observed_mask: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor, List[str]]:
+    ) -> Tuple[torch.Tensor, List[str]]:
         """
         Create one-hot / thermometer encodings for categorical / ordinal variables.
         """
         encoded_input_tensor = torch.empty(input_tensor.shape[0], 0)
-        encoded_observed_mask = torch.empty(observed_mask.shape[0], 0).bool()
-        encoded_types = []
         batch_size = input_tensor.shape[0]
 
         for dim, (feat_type, feat_min, feat_max) in enumerate(self.feat_types):
-            observed = observed_mask[:, dim].unsqueeze(1)
 
             # Use one-hot encoding
             if feat_type == "categorical":
@@ -126,11 +129,6 @@ class HIEncoder(nn.Module):
                 encoded_input_tensor = torch.cat(
                     [encoded_input_tensor, one_hot_encoding], dim=1
                 )
-                encoded_observed_mask = torch.cat(
-                    [encoded_observed_mask, torch.cat([observed] * num_options, dim=1)],
-                    dim=1,
-                )
-                encoded_types.extend(["categorical"] * num_options)
 
             # Use thermometer encoding
             elif feat_type == "ordinal":
@@ -143,23 +141,50 @@ class HIEncoder(nn.Module):
                 encoded_input_tensor = torch.cat(
                     [encoded_input_tensor, thermometer_encoding], dim=1
                 )
-                encoded_observed_mask = torch.cat(
-                    [encoded_observed_mask, torch.cat([observed] * num_values, dim=1)],
-                    dim=1,
-                )
-                encoded_types.extend(["ordinal"] * num_values)
 
             # Simply add the feature dim, untouched
             else:
                 encoded_input_tensor = torch.cat(
                     [encoded_input_tensor, input_tensor[:, dim].unsqueeze(1)], dim=1
                 )
-                encoded_observed_mask = torch.cat(
-                    [encoded_observed_mask, observed], dim=1
-                )
-                encoded_types.append(feat_type)
 
-        return encoded_input_tensor, encoded_observed_mask, encoded_types
+        return encoded_input_tensor
+
+    def normalize(
+        self, input_tensor: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        only_types = list(zip(*self.feat_types))[0]
+
+        observed_mask = ~torch.isnan(
+            input_tensor
+        )  # Remember which values where observed
+        input_tensor[~observed_mask] = 0  # Replace missing values with 0
+
+        # Transform log-normal and count features
+        log_transform_mask = torch.BoolTensor(
+            [feat_type in ("positive_real", "count") for feat_type in only_types]
+        )
+        log_transform_indices = torch.arange(0, input_tensor.shape[1])[
+            log_transform_mask
+        ]
+        input_tensor[:, log_transform_mask] = torch.log(
+            F.relu(torch.index_select(input_tensor, dim=1, index=log_transform_indices))
+            + 1e-8
+        )
+
+        # Normalize real features
+        real_mask = torch.BoolTensor(
+            [feat_type not in ("real", "positive_real") for feat_type in only_types]
+        )
+        real_indices = torch.arange(0, input_tensor.shape[1])[real_mask]
+
+        normed_input = self.real_batch_norm(input_tensor)
+        # Recover values for non-real variables
+        normed_input[:, real_mask] = torch.index_select(
+            input_tensor, dim=1, index=real_indices
+        )
+
+        return normed_input, observed_mask
 
     def forward(
         self, input_tensor: torch.Tensor
@@ -172,35 +197,9 @@ class HIEncoder(nn.Module):
         input_tensor: torch.Tensor
             The input to the encoder.
         """
-        observed_mask = ~torch.isnan(
-            input_tensor
-        )  # Remember which values where observed
-        input_tensor[~observed_mask] = 0  # Replace missing values with 0
+        input_tensor, observed_mask = self.normalize(input_tensor)
 
-        input_tensor, encoded_observed_mask, encoded_types = self.categorical_encode(
-            input_tensor, observed_mask
-        )
-
-        # Transform log-normal and count features
-        log_transform_mask = torch.BoolTensor(
-            [feat_type in ("positive_real", "count") for feat_type in encoded_types]
-        )
-        log_transform_indices = torch.arange(0, input_tensor.shape[1])[
-            log_transform_mask
-        ]
-        input_tensor[:, log_transform_mask] = torch.log(
-            F.relu(torch.index_select(input_tensor, dim=1, index=log_transform_indices))
-            + 1e-8
-        )
-
-        # Normalize real features
-        real_mask = torch.BoolTensor(
-            [feat_type in ("real", "positive_real") for feat_type in encoded_types]
-        )
-        real_indices = torch.arange(0, input_tensor.shape[1])[real_mask]
-        input_tensor[:, real_mask] = torch.index_select(
-            self.real_batch_norm(input_tensor), dim=1, index=real_indices
-        )
+        input_tensor = self.categorical_encode(input_tensor, observed_mask)
 
         h = self.hidden(input_tensor)
         mean = self.mean(h)
@@ -301,14 +300,14 @@ class NormalDecoder(VarDecoder):
         """
         mean = self.mean(hidden)
         mean = (
-            mean * self.encoder_sb.weight[dim] + self.encoder_sb.bias[dim]
+            mean * self.encoder_sb.running_var[dim] + self.encoder_sb.running_mean[dim]
         )  # Batch de-normalization
         log_var = self.log_var(hidden)
-        std = torch.sqrt(torch.exp(log_var)) * self.encoder_sb.weight[dim]
-
-        distribution = dist.independent.Independent(dist.normal.Normal(mean, std), 1)
+        std = torch.sqrt(torch.exp(log_var)) * self.encoder_sb.running_var[dim]
 
         # calculating losses
+        distribution = dist.independent.Independent(dist.normal.Normal(mean, std), 1)
+
         reconstr_error = -distribution.log_prob(input_tensor)
 
         return reconstr_error
@@ -322,13 +321,42 @@ class LogNormalDecoder(NormalDecoder):
     def forward(
         self, hidden: torch.Tensor, dim: int, reconstruction_mode: str = "mode"
     ):
-        return torch.log(super().forward(hidden, dim, reconstruction_mode))
+        return torch.exp(super().forward(hidden, dim, reconstruction_mode))
 
     def reconstruction_error(
         self, input_tensor: torch.Tensor, hidden: torch.Tensor, dim: int
     ) -> torch.Tensor:
+        """
+        Compute the log probability of the original data sample under p(x|z).
 
-        return super().reconstruction_error(torch.log(input_tensor + 1e-8), hidden, dim)
+        Parameters
+        ----------
+        input_tensor: torch.Tensor
+            Original feature.
+        latent_tensor: torch.Tensor
+            A sample from the latent space, which has to be decoded.
+
+        Returns
+        -------
+        reconstr_error: torch.Tensor
+            Log probability of the input under the decoder's distribution.
+        """
+        running_mean = self.encoder_sb.running_mean[dim]
+        running_var = self.encoder_sb.running_var[dim]
+        mean = self.mean(hidden)
+        mean = mean * torch.exp(running_var) + torch.exp(
+            running_mean
+        )  # Batch de-normalization
+        log_var = self.log_var(hidden)
+        std = torch.sqrt(torch.exp(log_var)) * torch.exp(running_var)
+
+        # calculating losses
+        distribution = dist.independent.Independent(dist.normal.Normal(mean, std), 1)
+
+        input_tensor = torch.exp(input_tensor * running_var + running_mean)
+        reconstr_error = -distribution.log_prob(input_tensor)
+
+        return reconstr_error
 
 
 class PoissonDecoder(VarDecoder):
@@ -402,7 +430,7 @@ class CategoricalDecoder(VarDecoder):
         dists = F.softmax(dists, dim=1)
 
         target_probs = torch.index_select(dists, dim=1, index=input_tensor.long())
-        target_probs = -torch.log(torch.diag(target_probs))
+        target_probs = -torch.log(torch.diag(target_probs) + 1e-8)
 
         return target_probs
 
@@ -472,7 +500,7 @@ class OrdinalDecoder(VarDecoder):
         target_probs = torch.index_select(
             ordinal_probs, dim=1, index=input_tensor.long()
         )
-        target_probs = -torch.log(torch.diag(target_probs))
+        target_probs = -torch.log(torch.diag(target_probs) + 1e-8)
 
         return target_probs
 
@@ -634,6 +662,9 @@ class HIVAEModule(nn.Module):
         z = mean + eps * std
 
         # Decoding
+        input_tensor, _ = self.encoder.normalize(
+            input_tensor
+        )  # Make sure necessary variables are normalized
         reconstr_error = self.decoder.reconstruction_error(
             input_tensor, z, observed_mask
         )

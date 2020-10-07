@@ -99,7 +99,7 @@ MODEL_PARAMS = {
             "hidden_sizes": [75, 75],
             "latent_dim": 10,
             "lr": 0.001316,
-            "reconstr_error_weight": 0.070318,
+            "reconstr_error_weight": 0.40318,
         },
         "eICU": {
             "hidden_sizes": [100],
@@ -113,7 +113,7 @@ MODEL_PARAMS = {
             "hidden_sizes": [75, 75],
             "latent_dim": 10,
             "lr": 0.001316,
-            "reconstr_error_weight": 0.070318,
+            "reconstr_error_weight": 0.40318,
             "feat_types": feat_types_mimic,
         },
         "eICU": {
