@@ -12,7 +12,6 @@ import numpy as np
 import torch
 from torch import nn
 import torch.distributions as dist
-from math import factorial
 import torch.nn.functional as F
 
 # PROJECT
@@ -33,6 +32,8 @@ FeatTypes = List[Tuple[str, int, int]]
 
 
 # TODO: Group variables of the same type together to make computations more efficient
+# TODO: Disable imputation and scaling for HI-VAE for all experiments
+# TODO: Debug reconstruction
 
 # -------------------------------------------------- Encoder -----------------------------------------------------------
 
@@ -71,7 +72,7 @@ class HIEncoder(nn.Module):
         self.layers = []
 
         self.real_batch_norm = torch.nn.BatchNorm1d(
-            num_features=self.get_num_reals(feat_types), affine=False
+            num_features=self.get_num_reals(feat_types)
         )
 
         for l, (in_dim, out_dim) in enumerate(zip(architecture[:-1], architecture[1:])):
@@ -92,15 +93,15 @@ class HIEncoder(nn.Module):
         for feat_type, feat_min, feat_max in feat_types:
 
             if feat_type == "categorical":
-                input_size += feat_max + 1
+                input_size += int(feat_max) + 1
 
             elif feat_type == "ordinal":
-                input_size += feat_max - feat_min + 1
+                input_size += int(feat_max - feat_min + 1)
 
             else:
                 input_size += 1
 
-        return int(input_size)
+        return input_size
 
     @staticmethod
     def get_num_reals(feat_types: FeatTypes) -> int:
@@ -128,7 +129,9 @@ class HIEncoder(nn.Module):
             # Use one-hot encoding
             if feat_type == "categorical":
                 num_options = int(feat_max) + 1
-                one_hot_encoding = F.one_hot(input_tensor[:, dim].long()).float()
+                one_hot_encoding = F.one_hot(
+                    input_tensor[:, dim].long(), num_classes=num_options
+                ).float()
                 encoded_input_tensor = torch.cat(
                     [encoded_input_tensor, one_hot_encoding], dim=1
                 )
@@ -139,7 +142,7 @@ class HIEncoder(nn.Module):
                 encoded_types.extend(["categorical"] * num_options)
 
             # Use thermometer encoding
-            if feat_type == "ordinal":
+            elif feat_type == "ordinal":
                 num_values = int(feat_max - feat_min + 1)
                 thermometer_encoding = torch.cat(
                     [torch.arange(0, num_values).unsqueeze(0)] * batch_size, dim=0
@@ -195,7 +198,8 @@ class HIEncoder(nn.Module):
             log_transform_mask
         ]
         input_tensor[:, log_transform_mask] = torch.log(
-            torch.index_select(input_tensor, dim=1, index=log_transform_indices) + 1e-6
+            F.relu(torch.index_select(input_tensor, dim=1, index=log_transform_indices))
+            + 1e-8
         )
 
         # Normalize real features
@@ -212,7 +216,7 @@ class HIEncoder(nn.Module):
         log_var = self.log_var(h)
         std = torch.sqrt(torch.exp(log_var))
 
-        return mean, std, encoded_observed_mask
+        return mean, std, observed_mask
 
 
 # -------------------------------------------------- Decoder -----------------------------------------------------------
@@ -327,24 +331,26 @@ class PoissonDecoder(VarDecoder):
     ):
         super().__init__(hidden_size, feat_type)
 
-        self.lambda_ = nn.Linear(hidden_size, 1)
+        self.log_lambda = nn.Linear(hidden_size, 1)
 
     def forward(self, hidden: torch.Tensor, reconstruction_mode: str = "mode"):
-        lambda_ = self.lambda_(hidden).int()
-        lambda_ = F.softplus(lambda_)
-
-        # There is no reparameterization trick for poisson, so sadly just return the mean
-        return lambda_
+        # There is no reparameterization trick for poisson, so sadly just return the mode
+        return torch.exp(self.log_lambda(hidden)).int().float()
 
     def reconstruction_error(
         self, input_tensor: torch.Tensor, hidden: torch.Tensor
     ) -> torch.Tensor:
-        lambda_ = self.lambda_(hidden).int()
-        input_tensor = input_tensor.int()
+        lambda_ = torch.exp(self.log_lambda(hidden)).int().squeeze()
+        input_tensor = torch.exp(input_tensor).int()
+        fac = self.factorial(input_tensor.float())
+        pow_ = lambda_.pow(input_tensor).float()
+        target_probs = -torch.log(pow_ * torch.exp(-lambda_.float()) / fac + 1e-8)
 
-        return -torch.log(
-            lambda_.pow(input_tensor) * torch.exp(-lambda_) / factorial(input_tensor)
-        )
+        return target_probs
+
+    @staticmethod
+    def factorial(tensor: torch.Tensor) -> torch.Tensor:
+        return torch.exp(torch.lgamma(tensor + 1))
 
 
 class CategoricalDecoder(VarDecoder):
@@ -357,7 +363,7 @@ class CategoricalDecoder(VarDecoder):
     ):
         super().__init__(hidden_size, feat_type)
 
-        self.linear = nn.Linear(hidden_size, int(self.feat_type[2]))
+        self.linear = nn.Linear(hidden_size, int(self.feat_type[2]) + 1)
 
     def forward(self, hidden: torch.Tensor, reconstruction_mode: str = "mode"):
         dist = self.linear(hidden)
@@ -371,12 +377,14 @@ class CategoricalDecoder(VarDecoder):
     def reconstruction_error(
         self, input_tensor: torch.Tensor, hidden: torch.Tensor
     ) -> torch.Tensor:
-        cls = torch.argmax(input_tensor, dim=1)
 
-        dist = self.linear(hidden)
-        dist = F.softmax(dist, dim=1)
+        dists = self.linear(hidden)
+        dists = F.softmax(dists, dim=1)
 
-        return -torch.log(dist[:, cls])
+        target_probs = torch.index_select(dists, dim=1, index=input_tensor.long())
+        target_probs = -torch.log(torch.diag(target_probs))
+
+        return target_probs
 
 
 class OrdinalDecoder(VarDecoder):
@@ -395,32 +403,26 @@ class OrdinalDecoder(VarDecoder):
         self.region = nn.Linear(hidden_size, 1)
 
     def get_ordinal_probs(self, hidden: torch.Tensor):
-        thresholds = F.softplus(self.thresholds(hidden))
-        region = F.softplus(self.region)
+        region = F.softplus(self.region(hidden))
 
         # Thresholds might not be ordered, use a cumulative sum
+        thresholds = F.softplus(self.thresholds(hidden))
         thresholds = torch.cumsum(thresholds, dim=1)
 
         # Calculate probs that the predicted region is enclosed by threshold
         # p(x<=r|z)
-        threshold_probs = 1 / (1 + torch.exp(thresholds) - region)
+        threshold_probs = 1 / (1 + torch.exp(-(thresholds - region)))
 
         # Now calculate probability for different ordinals
         # p(x=r|z) = p(x<=r|x) - p(x<=r-1|x)
-        ordinal_probs = threshold_probs - torch.cat(
-            (torch.ones(hidden.shape[0], 1), threshold_probs[:, :-1]), dim=1
-        )
+        cmp = torch.roll(threshold_probs, shifts=1, dims=1)
+        cmp[:, 0] = 0
+        ordinal_probs = threshold_probs - cmp
+        ordinal_probs = F.softmax(ordinal_probs, dim=1)
 
         return ordinal_probs
 
-    def forward(self, hidden: torch.Tensor):
-        ordinal_probs = self.get_ordinal_probs(hidden)
-
-        return -torch.log(torch.argmax(ordinal_probs, dim=1))
-
-    def reconstruction_error(
-        self, hidden: torch.Tensor, reconstruction_mode: str = "mode"
-    ):
+    def forward(self, hidden: torch.Tensor, reconstruction_mode: str = "mode"):
         ordinal_probs = self.get_ordinal_probs(hidden)
 
         if reconstruction_mode == "mode":
@@ -428,6 +430,24 @@ class OrdinalDecoder(VarDecoder):
 
         else:
             return torch.argmax(F.gumbel_softmax(ordinal_probs, dim=1), dim=1)
+
+    def reconstruction_error(self, input_tensor: torch.Tensor, hidden: torch.Tensor):
+        # Sometimes the lowest ordinal will be > 0, but the input dropout replaces missing with 0. Because this messes
+        # up the indexing this value is replaced here. Because components of the reconstruction loss corresponding to
+        # non-observed feature will be ignored later, this doesn't matter.
+        if self.feat_type[1] > 0:
+            input_tensor[input_tensor == 0] = self.feat_type[1]
+            input_tensor = (
+                input_tensor - self.feat_type[1]
+            )  # Shift labels so indexing matches up with tensor
+
+        ordinal_probs = self.get_ordinal_probs(hidden)
+        target_probs = torch.index_select(
+            ordinal_probs, dim=1, index=input_tensor.long()
+        )
+        target_probs = -torch.log(torch.diag(target_probs))
+
+        return target_probs
 
 
 class HIDecoder(nn.Module):
@@ -444,6 +464,8 @@ class HIDecoder(nn.Module):
     latent_dim: int
         The size of the latent space.
     """
+
+    # TODO: Add shift and scale parameters during de-normalization
 
     def __init__(
         self,
@@ -477,8 +499,9 @@ class HIDecoder(nn.Module):
         # self.hidden = nn.Sequential(*self.layers)
 
         # Initialize all the output networks
+        # TODO: CHange input size for decoders
         self.decoding_models = [
-            self.decoding_models[feat_type[0]](hidden_sizes[-1], feat_type)
+            self.decoding_models[feat_type[0]](latent_dim, feat_type)
             for feat_type in feat_types
         ]
 
@@ -487,12 +510,15 @@ class HIDecoder(nn.Module):
     ) -> torch.Tensor:
         # h = self.hidden(latent_tensor)   # TODO: Re-add this in the more complex model
         h = latent_tensor
-
         dim = 0
         reconstructions = []
 
         for feat_type, decoding_func in zip(self.feat_types, self.decoding_models):
-            offset = int(feat_type[2] - feat_type[1] + 1)
+            offset = (
+                int(feat_type[2] - feat_type[1] + 1)
+                if feat_type in ("categorical", "ordinal")
+                else 1
+            )
             reconstructions.append(decoding_func(h[:, dim:offset], reconstruction_mode))
             dim += offset
 
@@ -505,24 +531,19 @@ class HIDecoder(nn.Module):
         self,
         input_tensor: torch.Tensor,
         latent_tensor: torch.Tensor,
-        encoded_observed_mask: torch.Tensor,
+        observed_mask: torch.Tensor,
     ) -> torch.Tensor:
-        h = self.hidden(latent_tensor)
-
-        dim = 0
+        # h = self.hidden(latent_tensor)   # TODO: Re-add this in the more complex model
+        h = latent_tensor
         reconstruction_loss = torch.zeros(input_tensor.shape)
 
-        for feat_num, (feat_type, decoding_model) in enumerate(
-            zip(self.feat_types, self.decoding_models)
-        ):
-            offset = int(feat_type[2] - feat_type[1] + 1)
-            reconstruction_loss[:, feat_type] = decoding_model.reconstruction_loss(
-                input_tensor[:, dim:offset], h[:, dim:offset]
+        for feat_num, decoding_model in enumerate(self.decoding_models):
+            reconstruction_loss[:, feat_num] = decoding_model.reconstruction_error(
+                input_tensor[:, feat_num], h
             )
-            dim += offset
 
         reconstruction_loss[
-            ~encoded_observed_mask
+            ~observed_mask
         ] = 0  # Only compute reconstruction loss for observed vars
         reconstruction_loss = reconstruction_loss.sum(dim=1)
 
@@ -581,13 +602,13 @@ class HIVAEModule(nn.Module):
         input_tensor = input_tensor.float()
 
         # Encoding
-        mean, std, encoded_observed_mask = self.encoder(input_tensor)
+        mean, std, observed_mask = self.encoder(input_tensor)
         eps = torch.randn(mean.shape)
         z = mean + eps * std
 
         # Decoding
         reconstr_error = self.decoder.reconstruction_error(
-            input_tensor, z, encoded_observed_mask
+            input_tensor, z, observed_mask
         )
         d = mean.shape[1]
 
