@@ -72,7 +72,7 @@ class HIEncoder(nn.Module):
         self.layers = []
 
         self.real_batch_norm = torch.nn.BatchNorm1d(
-            num_features=self.get_num_reals(feat_types)
+            num_features=self.encoded_input_size
         )
 
         for l, (in_dim, out_dim) in enumerate(zip(architecture[:-1], architecture[1:])):
@@ -102,15 +102,6 @@ class HIEncoder(nn.Module):
                 input_size += 1
 
         return input_size
-
-    @staticmethod
-    def get_num_reals(feat_types: FeatTypes) -> int:
-        """
-        Get the number of real features.
-        """
-        c = Counter(list(zip(*feat_types))[0])
-
-        return c["real"] + c["positive_real"]
 
     def categorical_encode(
         self, input_tensor: torch.Tensor, observed_mask: torch.Tensor
@@ -207,8 +198,8 @@ class HIEncoder(nn.Module):
             [feat_type in ("real", "positive_real") for feat_type in encoded_types]
         )
         real_indices = torch.arange(0, input_tensor.shape[1])[real_mask]
-        input_tensor[:, real_mask] = self.real_batch_norm(
-            torch.index_select(input_tensor, dim=1, index=real_indices)
+        input_tensor[:, real_mask] = torch.index_select(
+            self.real_batch_norm(input_tensor), dim=1, index=real_indices
         )
 
         h = self.hidden(input_tensor)
@@ -227,6 +218,8 @@ class VarDecoder(nn.Module, abc.ABC):
     Abstract variable decoder class that forces subclasses to implement some common methods.
     """
 
+    # TODO: Add forward() here
+
     def __init__(
         self, hidden_size: int, feat_type: Tuple[str, Optional[int], Optional[int]],
     ):
@@ -237,7 +230,7 @@ class VarDecoder(nn.Module, abc.ABC):
 
     @abc.abstractmethod
     def reconstruction_error(
-        self, input_tensor: torch.Tensor, hidden: torch.Tensor
+        self, input_tensor: torch.Tensor, hidden: torch.Tensor, dim: int
     ) -> torch.Tensor:
         """
         Compute the log probability of the original data sample under p(x|z).
@@ -263,14 +256,20 @@ class NormalDecoder(VarDecoder):
     """
 
     def __init__(
-        self, hidden_size: int, feat_type: Tuple[str, Optional[int], Optional[int]],
+        self,
+        hidden_size: int,
+        feat_type: Tuple[str, Optional[int], Optional[int]],
+        encoder_batch_norm: torch.nn.BatchNorm1d,
     ):
         super().__init__(hidden_size, feat_type)
 
         self.mean = nn.Linear(hidden_size, 1)
         self.log_var = nn.Linear(hidden_size, 1)
+        self.encoder_sb = encoder_batch_norm
 
-    def forward(self, hidden: torch.Tensor, reconstruction_mode: str = "mode"):
+    def forward(
+        self, hidden: torch.Tensor, dim: int, reconstruction_mode: str = "mode"
+    ):
         mean = self.mean(hidden)
 
         if reconstruction_mode == "mode":
@@ -283,7 +282,7 @@ class NormalDecoder(VarDecoder):
             return mean + eps * std
 
     def reconstruction_error(
-        self, input_tensor: torch.Tensor, hidden: torch.Tensor
+        self, input_tensor: torch.Tensor, hidden: torch.Tensor, dim: int
     ) -> torch.Tensor:
         """
         Compute the log probability of the original data sample under p(x|z).
@@ -301,8 +300,11 @@ class NormalDecoder(VarDecoder):
             Log probability of the input under the decoder's distribution.
         """
         mean = self.mean(hidden)
+        mean = (
+            mean * self.encoder_sb.weight[dim] + self.encoder_sb.bias[dim]
+        )  # Batch de-normalization
         log_var = self.log_var(hidden)
-        std = torch.sqrt(torch.exp(log_var))
+        std = torch.sqrt(torch.exp(log_var)) * self.encoder_sb.weight[dim]
 
         distribution = dist.independent.Independent(dist.normal.Normal(mean, std), 1)
 
@@ -317,8 +319,16 @@ class LogNormalDecoder(NormalDecoder):
     Decode a variable that is distributed according to a log-normal distribution.
     """
 
-    def forward(self, hidden: torch.Tensor, reconstruction_mode: str = "mode"):
-        return torch.log(super().forward(hidden, reconstruction_mode))
+    def forward(
+        self, hidden: torch.Tensor, dim: int, reconstruction_mode: str = "mode"
+    ):
+        return torch.log(super().forward(hidden, dim, reconstruction_mode))
+
+    def reconstruction_error(
+        self, input_tensor: torch.Tensor, hidden: torch.Tensor, dim: int
+    ) -> torch.Tensor:
+
+        return super().reconstruction_error(torch.log(input_tensor + 1e-8), hidden, dim)
 
 
 class PoissonDecoder(VarDecoder):
@@ -327,18 +337,23 @@ class PoissonDecoder(VarDecoder):
     """
 
     def __init__(
-        self, hidden_size: int, feat_type: Tuple[str, Optional[int], Optional[int]],
+        self,
+        hidden_size: int,
+        feat_type: Tuple[str, Optional[int], Optional[int]],
+        **unused
     ):
         super().__init__(hidden_size, feat_type)
 
         self.log_lambda = nn.Linear(hidden_size, 1)
 
-    def forward(self, hidden: torch.Tensor, reconstruction_mode: str = "mode"):
+    def forward(
+        self, hidden: torch.Tensor, dim: int, reconstruction_mode: str = "mode"
+    ):
         # There is no reparameterization trick for poisson, so sadly just return the mode
         return torch.exp(self.log_lambda(hidden)).int().float()
 
     def reconstruction_error(
-        self, input_tensor: torch.Tensor, hidden: torch.Tensor
+        self, input_tensor: torch.Tensor, hidden: torch.Tensor, dim: int
     ) -> torch.Tensor:
         lambda_ = torch.exp(self.log_lambda(hidden)).int().squeeze()
         input_tensor = torch.exp(input_tensor).int()
@@ -359,13 +374,18 @@ class CategoricalDecoder(VarDecoder):
     """
 
     def __init__(
-        self, hidden_size: int, feat_type: Tuple[str, Optional[int], Optional[int]],
+        self,
+        hidden_size: int,
+        feat_type: Tuple[str, Optional[int], Optional[int]],
+        **unused
     ):
         super().__init__(hidden_size, feat_type)
 
         self.linear = nn.Linear(hidden_size, int(self.feat_type[2]) + 1)
 
-    def forward(self, hidden: torch.Tensor, reconstruction_mode: str = "mode"):
+    def forward(
+        self, hidden: torch.Tensor, dim: int, reconstruction_mode: str = "mode"
+    ):
         dist = self.linear(hidden)
 
         if reconstruction_mode == "mode":
@@ -375,7 +395,7 @@ class CategoricalDecoder(VarDecoder):
             return torch.argmax(F.gumbel_softmax(dist, dim=1), dim=1)
 
     def reconstruction_error(
-        self, input_tensor: torch.Tensor, hidden: torch.Tensor
+        self, input_tensor: torch.Tensor, hidden: torch.Tensor, dim: int
     ) -> torch.Tensor:
 
         dists = self.linear(hidden)
@@ -393,7 +413,10 @@ class OrdinalDecoder(VarDecoder):
     """
 
     def __init__(
-        self, hidden_size: int, feat_type: Tuple[str, Optional[int], Optional[int]],
+        self,
+        hidden_size: int,
+        feat_type: Tuple[str, Optional[int], Optional[int]],
+        **unused
     ):
         super().__init__(hidden_size, feat_type)
 
@@ -422,7 +445,9 @@ class OrdinalDecoder(VarDecoder):
 
         return ordinal_probs
 
-    def forward(self, hidden: torch.Tensor, reconstruction_mode: str = "mode"):
+    def forward(
+        self, hidden: torch.Tensor, dim: int, reconstruction_mode: str = "mode"
+    ):
         ordinal_probs = self.get_ordinal_probs(hidden)
 
         if reconstruction_mode == "mode":
@@ -431,7 +456,9 @@ class OrdinalDecoder(VarDecoder):
         else:
             return torch.argmax(F.gumbel_softmax(ordinal_probs, dim=1), dim=1)
 
-    def reconstruction_error(self, input_tensor: torch.Tensor, hidden: torch.Tensor):
+    def reconstruction_error(
+        self, input_tensor: torch.Tensor, hidden: torch.Tensor, dim: int
+    ):
         # Sometimes the lowest ordinal will be > 0, but the input dropout replaces missing with 0. Because this messes
         # up the indexing this value is replaced here. Because components of the reconstruction loss corresponding to
         # non-observed feature will be ignored later, this doesn't matter.
@@ -464,8 +491,6 @@ class HIDecoder(nn.Module):
     latent_dim: int
         The size of the latent space.
     """
-
-    # TODO: Add shift and scale parameters during de-normalization
 
     def __init__(
         self,
@@ -501,7 +526,9 @@ class HIDecoder(nn.Module):
         # Initialize all the output networks
         # TODO: CHange input size for decoders
         self.decoding_models = [
-            self.decoding_models[feat_type[0]](latent_dim, feat_type)
+            self.decoding_models[feat_type[0]](
+                latent_dim, feat_type, encoder_batch_norm=encoder_batch_norm
+            )
             for feat_type in feat_types
         ]
 
@@ -539,7 +566,7 @@ class HIDecoder(nn.Module):
 
         for feat_num, decoding_model in enumerate(self.decoding_models):
             reconstruction_loss[:, feat_num] = decoding_model.reconstruction_error(
-                input_tensor[:, feat_num], h
+                input_tensor[:, feat_num], h, dim=feat_num
             )
 
         reconstruction_loss[
