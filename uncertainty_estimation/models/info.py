@@ -74,6 +74,7 @@ AVAILABLE_MODELS = NEURAL_MODELS | BASELINES  # All available models in this pro
 AVAILABLE_SCORING_FUNCS = {
     "PPCA": ("default",),  # Default: log-prob
     "AE": ("default",),  # Default: Reconstruction error
+    "HI-VAE": ("default",),  # Default: Reconstruction error
     "VAE": ("default",),  # Default: Reconstruction error
     "SVM": ("default",),  # Default: Distance to decision boundary
     "NN": ("entropy", "max_prob"),  # Default: entropy
