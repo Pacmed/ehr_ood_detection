@@ -11,6 +11,7 @@ import torch
 import torch.nn as nn
 import torch.distributions as dist
 import torch.utils.data
+from tqdm import tqdm
 
 # PROJECT
 from uncertainty_estimation.models.info import (
@@ -365,23 +366,23 @@ class VAE:
 
         average_epoch_elbo, i = 0, 0
 
-        for i, batch in enumerate(data):
+        for i, batch in enumerate(tqdm(data)):
             _, _, average_negative_elbo = self.model(
                 batch, reconstr_error_weight=self.reconstr_error_weight,
             )
             average_epoch_elbo += average_negative_elbo
 
-            with torch.autograd.detect_anomaly():
-                if self.model.training:
-                    self.optimizer.zero_grad()
+            if self.model.training:
+                self.optimizer.zero_grad()
 
-                    print(average_epoch_elbo)  # TODO: Debug
+                print(average_negative_elbo)  # TODO: Debug
 
-                    average_negative_elbo.backward()
-                    nn.utils.clip_grad_norm_(self.model.parameters(), 1)
-                    self.optimizer.step()
+                average_negative_elbo.backward()
+                nn.utils.clip_grad_norm_(self.model.parameters(), 1)
+                self.optimizer.step()
 
         average_epoch_elbo = average_epoch_elbo / (i + 1)
+        print(average_epoch_elbo)  # TODO: Debug
 
         return average_epoch_elbo
 

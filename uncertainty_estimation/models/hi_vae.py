@@ -263,7 +263,7 @@ class NormalDecoder(VarDecoder):
         super().__init__(hidden_size, feat_type)
 
         self.mean = nn.Linear(hidden_size, 1)
-        self.log_var = nn.Linear(hidden_size, 1)
+        self.var = nn.Linear(hidden_size, 1)
         self.encoder_sb = encoder_batch_norm
 
     def forward(
@@ -275,8 +275,8 @@ class NormalDecoder(VarDecoder):
             return mean
 
         else:
-            log_var = self.log_var(hidden)
-            std = torch.sqrt(torch.exp(log_var))
+            var = F.softplus(self.var(hidden))
+            std = torch.sqrt(var)
             eps = torch.randn(mean.shape)
             return mean + eps * std
 
@@ -298,16 +298,17 @@ class NormalDecoder(VarDecoder):
         reconstr_error: torch.Tensor
             Log probability of the input under the decoder's distribution.
         """
+        running_std = torch.sqrt(self.encoder_sb.running_var[dim])
+        running_mean = self.encoder_sb.running_mean[dim]
         mean = self.mean(hidden)
-        mean = (
-            mean * self.encoder_sb.running_var[dim] + self.encoder_sb.running_mean[dim]
-        )  # Batch de-normalization
-        log_var = self.log_var(hidden)
-        std = torch.sqrt(torch.exp(log_var)) * self.encoder_sb.running_var[dim]
+        mean = mean * running_std + running_mean  # Batch de-normalization
+        var = F.softplus(self.var(hidden))
+        std = torch.sqrt(var) * running_std
 
         # calculating losses
         distribution = dist.independent.Independent(dist.normal.Normal(mean, std), 1)
 
+        input_tensor = input_tensor * running_std + running_mean
         reconstr_error = -distribution.log_prob(input_tensor)
 
         return reconstr_error
@@ -323,41 +324,6 @@ class LogNormalDecoder(NormalDecoder):
     ):
         return torch.exp(super().forward(hidden, dim, reconstruction_mode))
 
-    def reconstruction_error(
-        self, input_tensor: torch.Tensor, hidden: torch.Tensor, dim: int
-    ) -> torch.Tensor:
-        """
-        Compute the log probability of the original data sample under p(x|z).
-
-        Parameters
-        ----------
-        input_tensor: torch.Tensor
-            Original feature.
-        latent_tensor: torch.Tensor
-            A sample from the latent space, which has to be decoded.
-
-        Returns
-        -------
-        reconstr_error: torch.Tensor
-            Log probability of the input under the decoder's distribution.
-        """
-        running_mean = self.encoder_sb.running_mean[dim]
-        running_var = self.encoder_sb.running_var[dim]
-        mean = self.mean(hidden)
-        mean = mean * torch.exp(running_var) + torch.exp(
-            running_mean
-        )  # Batch de-normalization
-        log_var = self.log_var(hidden)
-        std = torch.sqrt(torch.exp(log_var)) * torch.exp(running_var)
-
-        # calculating losses
-        distribution = dist.independent.Independent(dist.normal.Normal(mean, std), 1)
-
-        input_tensor = torch.exp(input_tensor * running_var + running_mean)
-        reconstr_error = -distribution.log_prob(input_tensor)
-
-        return reconstr_error
-
 
 class PoissonDecoder(VarDecoder):
     """
@@ -372,28 +338,27 @@ class PoissonDecoder(VarDecoder):
     ):
         super().__init__(hidden_size, feat_type)
 
-        self.log_lambda = nn.Linear(hidden_size, 1)
+        self.lambda_ = nn.Linear(hidden_size, 1)
 
     def forward(
         self, hidden: torch.Tensor, dim: int, reconstruction_mode: str = "mode"
     ):
-        # There is no reparameterization trick for poisson, so sadly just return the mode
-        return torch.exp(self.log_lambda(hidden)).int().float()
+        lambda_ = F.softplus(self.lambda_(hidden)).float()
+
+        if reconstruction_mode == "mode":
+            return lambda_.int()
+
+        else:
+            distribution = dist.poisson.Poisson(lambda_)
+            return distribution.sample()
 
     def reconstruction_error(
         self, input_tensor: torch.Tensor, hidden: torch.Tensor, dim: int
     ) -> torch.Tensor:
-        lambda_ = torch.exp(self.log_lambda(hidden)).int().squeeze()
-        input_tensor = torch.exp(input_tensor).int()
-        fac = self.factorial(input_tensor.float())
-        pow_ = lambda_.pow(input_tensor).float()
-        target_probs = -torch.log(pow_ * torch.exp(-lambda_.float()) / fac + 1e-8)
+        lambda_ = F.softplus(self.lambda_(hidden)).int().squeeze()
+        err = F.poisson_nll_loss(input_tensor, lambda_)
 
-        return target_probs
-
-    @staticmethod
-    def factorial(tensor: torch.Tensor) -> torch.Tensor:
-        return torch.exp(torch.lgamma(tensor + 1))
+        return err
 
 
 class CategoricalDecoder(VarDecoder):
@@ -428,11 +393,9 @@ class CategoricalDecoder(VarDecoder):
 
         dists = self.linear(hidden)
         dists = F.softmax(dists, dim=1)
+        err = -F.cross_entropy(dists, target=input_tensor.long())
 
-        target_probs = torch.index_select(dists, dim=1, index=input_tensor.long())
-        target_probs = -torch.log(torch.diag(target_probs) + 1e-8)
-
-        return target_probs
+        return err
 
 
 class OrdinalDecoder(VarDecoder):
@@ -497,12 +460,9 @@ class OrdinalDecoder(VarDecoder):
             )  # Shift labels so indexing matches up with tensor
 
         ordinal_probs = self.get_ordinal_probs(hidden)
-        target_probs = torch.index_select(
-            ordinal_probs, dim=1, index=input_tensor.long()
-        )
-        target_probs = -torch.log(torch.diag(target_probs) + 1e-8)
+        err = -F.cross_entropy(ordinal_probs, target=input_tensor.long())
 
-        return target_probs
+        return err
 
 
 class HIDecoder(nn.Module):
