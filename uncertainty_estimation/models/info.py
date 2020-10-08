@@ -110,6 +110,7 @@ MODEL_PARAMS = {
     },
     "HI-VAE": {
         "MIMIC": {
+            "n_mix_components": 3,
             "hidden_sizes": [75, 75],
             "latent_dim": 10,
             "lr": 0.05316,
@@ -117,6 +118,7 @@ MODEL_PARAMS = {
             "feat_types": feat_types_mimic,
         },
         "eICU": {
+            "n_mix_components": 3,
             "hidden_sizes": [100],
             "latent_dim": 10,
             "lr": 0.001633,
@@ -317,6 +319,7 @@ PARAM_SEARCH = {
     ],
     "latent_dim": [5, 10, 15, 20],
     "batch_size": [64, 128, 256],
+    "n_mix_components": range(1, 11),
     "lr": loguniform(1e-5, 0.1),
     # Intervals become [loc, loc + scale] for uniform
     "dropout_rate": uniform(loc=0, scale=0.5),  # [0, 0.5]

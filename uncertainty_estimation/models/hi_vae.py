@@ -6,6 +6,7 @@ Module providing an implementation of a Heterogenous-Incomplete Variational Auto
 import abc
 from collections import Counter
 from typing import Tuple, List, Optional, Set
+import math
 
 # EXT
 import numpy as np
@@ -51,7 +52,11 @@ class HIEncoder(nn.Module):
     """
 
     def __init__(
-        self, hidden_sizes: List[int], latent_dim: int, feat_types: FeatTypes,
+        self,
+        hidden_sizes: List[int],
+        latent_dim: int,
+        n_mix_components: int,
+        feat_types: FeatTypes,
     ):
         super().__init__()
 
@@ -63,6 +68,7 @@ class HIEncoder(nn.Module):
             "'count', 'categorical', 'ordinal']."
         )
 
+        self.n_mix_components = n_mix_components
         self.feat_types = feat_types
         self.encoded_input_size = self.get_encoded_input_size(feat_types)
 
@@ -74,13 +80,19 @@ class HIEncoder(nn.Module):
         )
         self.real_batch_norm.register_forward_pre_hook(self.batch_norm_reset_hook)
 
+        self.mixture_model = nn.Linear(self.encoded_input_size, self.n_mix_components)
+
         for l, (in_dim, out_dim) in enumerate(zip(architecture[:-1], architecture[1:])):
             self.layers.append(nn.Linear(in_dim, out_dim))
             self.layers.append(nn.LeakyReLU())
 
         self.hidden = nn.Sequential(*self.layers)
-        self.mean = nn.Linear(architecture[-1], latent_dim)
-        self.log_var = nn.Linear(architecture[-1], latent_dim)
+        self.mean = nn.Linear(architecture[-1] + self.n_mix_components, latent_dim)
+        self.var = nn.Linear(architecture[-1] + self.n_mix_components, latent_dim)
+
+        # Separate networks predicting the moments of the latent space prior
+        self.p_mean = nn.Linear(self.n_mix_components, latent_dim)
+        self.p_var = nn.Linear(self.n_mix_components, latent_dim)
 
     @staticmethod
     def batch_norm_reset_hook(module, *args):
@@ -109,7 +121,7 @@ class HIEncoder(nn.Module):
         return input_size
 
     def categorical_encode(
-        self, input_tensor: torch.Tensor, observed_mask: torch.Tensor
+        self, input_tensor: torch.Tensor
     ) -> Tuple[torch.Tensor, List[str]]:
         """
         Create one-hot / thermometer encodings for categorical / ordinal variables.
@@ -187,7 +199,7 @@ class HIEncoder(nn.Module):
 
     def forward(
         self, input_tensor: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """Perform forward pass of encoder. Returns mean and standard deviation corresponding to
         an independent Normal distribution.
 
@@ -198,14 +210,25 @@ class HIEncoder(nn.Module):
         """
         input_tensor, observed_mask = self.normalize(input_tensor)
 
-        input_tensor = self.categorical_encode(input_tensor, observed_mask)
+        input_tensor = self.categorical_encode(input_tensor)
+        mix_component_dists = self.sample_mix_components(input_tensor)
+        mix_components = F.one_hot(torch.argmax(mix_component_dists, dim=1)).float()
 
         h = self.hidden(input_tensor)
-        mean = self.mean(h)
-        log_var = self.log_var(h)
-        std = torch.sqrt(torch.exp(log_var))
+        h = torch.cat([h, mix_components], dim=1)
 
-        return mean, std, observed_mask
+        mean = self.mean(h)
+        var = F.softplus(self.var(h))
+        std = torch.sqrt(var)
+
+        return mean, std, mix_component_dists, observed_mask
+
+    def sample_mix_components(self, input_tensor: torch.Tensor) -> torch.Tensor:
+        # Create a categorical distribution with equal probabilities
+        pi = self.mixture_model(input_tensor)
+        mix_components_dists = F.gumbel_softmax(pi, dim=1)
+
+        return mix_components_dists
 
 
 # -------------------------------------------------- Decoder -----------------------------------------------------------
@@ -481,6 +504,7 @@ class HIDecoder(nn.Module):
         self,
         hidden_sizes: List[int],
         latent_dim: int,
+        n_mix_components: int,
         feat_types: FeatTypes,
         encoder_batch_norm: torch.nn.BatchNorm1d,
     ):
@@ -495,7 +519,7 @@ class HIDecoder(nn.Module):
         }
 
         self.feat_types = feat_types
-
+        self.n_mix_components = n_mix_components
         self.encoder_bn = encoder_batch_norm
 
         architecture = [latent_dim] + hidden_sizes
@@ -510,15 +534,21 @@ class HIDecoder(nn.Module):
         # Initialize all the output networks
         self.decoding_models = [
             self.decoding_models[feat_type[0]](
-                architecture[-1], feat_type, encoder_batch_norm=encoder_batch_norm
+                architecture[-1] + n_mix_components,
+                feat_type,
+                encoder_batch_norm=encoder_batch_norm,
             )
             for feat_type in feat_types
         ]
 
     def forward(
-        self, latent_tensor: torch.Tensor, reconstruction_mode: str = "mode"
+        self,
+        latent_tensor: torch.Tensor,
+        mix_components: torch.Tensor,
+        reconstruction_mode: str = "mode",
     ) -> torch.Tensor:
         h = self.hidden(latent_tensor)
+        h = torch.cat([h, mix_components], dim=1)
         reconstruction = torch.zeros(
             (latent_tensor.shape[0], len(self.decoding_models))
         )
@@ -534,9 +564,11 @@ class HIDecoder(nn.Module):
         self,
         input_tensor: torch.Tensor,
         latent_tensor: torch.Tensor,
+        mix_components: torch.Tensor,
         observed_mask: torch.Tensor,
     ) -> torch.Tensor:
         h = self.hidden(latent_tensor)
+        h = torch.cat([h, mix_components], dim=1)
         reconstruction_loss = torch.zeros(input_tensor.shape)
 
         for feat_num, decoding_model in enumerate(self.decoding_models):
@@ -561,15 +593,21 @@ class HIVAEModule(nn.Module):
     """
 
     def __init__(
-        self, hidden_sizes: List[int], latent_dim: int, feat_types: FeatTypes,
+        self,
+        hidden_sizes: List[int],
+        latent_dim: int,
+        n_mix_components: int,
+        feat_types: FeatTypes,
     ):
         super().__init__()
         self.latent_dim = latent_dim
+        self.n_mix_components = n_mix_components
 
-        self.encoder = HIEncoder(hidden_sizes, latent_dim, feat_types)
+        self.encoder = HIEncoder(hidden_sizes, latent_dim, n_mix_components, feat_types)
         self.decoder = HIDecoder(
             hidden_sizes,
             latent_dim,
+            n_mix_components,
             feat_types,
             encoder_batch_norm=self.encoder.real_batch_norm,
         )
@@ -580,6 +618,7 @@ class HIVAEModule(nn.Module):
         reconstr_error_weight: float,
         reconstruction_mode: bool = "sample",
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+
         assert reconstruction_mode in ("mode", "sample"), (
             f"reconstruction_mode has to be either 'mode' or 'sample', "
             f"{reconstruction_mode} found."
@@ -588,24 +627,40 @@ class HIVAEModule(nn.Module):
         input_tensor = input_tensor.float()
 
         # Encoding
-        mean, std, observed_mask = self.encoder(input_tensor)
+        mean, std, mix_components_dists, observed_mask = self.encoder(input_tensor)
         eps = torch.randn(mean.shape)
         latent_tensor = mean + eps * std
 
         # Decoding
+        mix_components = F.one_hot(torch.argmax(mix_components_dists, dim=1)).float()
         input_tensor, _ = self.encoder.normalize(
             input_tensor
         )  # Make sure necessary variables are normalized
         reconstr_error = self.decoder.reconstruction_error(
-            input_tensor, latent_tensor, observed_mask
+            input_tensor, latent_tensor, mix_components, observed_mask
         )
-        d = mean.shape[1]
 
         # Calculating the KL divergence of the two independent Gaussians (closed-form solution)
-        kl = 0.5 * torch.sum(
-            std - torch.ones(d) - torch.log(std + 1e-8) + mean * mean, dim=1
+        p_mean = self.encoder.p_mean(mix_components)
+        p_var = F.softplus(self.encoder.p_var(mix_components))
+        log_p_var = torch.log(p_var)
+        log_var = torch.log(std.pow(2))
+        kl = 0.5 * self.latent_dim + 0.5 * torch.sum(
+            torch.exp(log_var - log_p_var)
+            + (p_mean - mean).pow(2) / p_var
+            - log_var
+            + log_p_var,
+            dim=1,
         )
-        average_negative_elbo = torch.mean(reconstr_error_weight * reconstr_error + kl)
+
+        # KL(q(s_n|x_n^o)||p(s_n)
+        kl_s = F.cross_entropy(
+            mix_components_dists, target=torch.argmax(mix_components_dists, dim=1)
+        ) + math.log(self.n_mix_components)
+
+        average_negative_elbo = torch.mean(
+            reconstr_error_weight * reconstr_error + kl + kl_s
+        )
 
         return reconstr_error, kl, average_negative_elbo
 
@@ -632,6 +687,7 @@ class HIVAE(VAE):
         hidden_sizes: List[int],
         input_size: int,
         latent_dim: int,
+        n_mix_components: int,
         feat_types: FeatTypes,
         lr: float = DEFAULT_LEARNING_RATE,
         reconstr_error_weight: float = DEFAULT_RECONSTR_ERROR_WEIGHT,
@@ -639,8 +695,9 @@ class HIVAE(VAE):
         super().__init__(
             hidden_sizes, input_size, latent_dim, lr, reconstr_error_weight
         )
+        self.n_mix_components = n_mix_components
 
-        self.model = HIVAEModule(hidden_sizes, latent_dim, feat_types)
+        self.model = HIVAEModule(hidden_sizes, latent_dim, n_mix_components, feat_types)
 
     def reconstruct(
         self, input_tensor: torch.Tensor, reconstruction_mode: bool = "sample"
