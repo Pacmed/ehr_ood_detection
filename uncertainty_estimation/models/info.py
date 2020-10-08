@@ -112,8 +112,8 @@ MODEL_PARAMS = {
         "MIMIC": {
             "hidden_sizes": [75, 75],
             "latent_dim": 10,
-            "lr": 0.001316,
-            "reconstr_error_weight": 0.40318,
+            "lr": 0.05316,
+            "reconstr_error_weight": 0.000040318,
             "feat_types": feat_types_mimic,
         },
         "eICU": {
