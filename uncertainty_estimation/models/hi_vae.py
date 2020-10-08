@@ -32,7 +32,6 @@ FeatTypes = List[Tuple[str, int, int]]
 
 
 # TODO: Group variables of the same type together to make computations more efficient
-# TODO: Debug reconstruction
 
 # -------------------------------------------------- Encoder -----------------------------------------------------------
 
@@ -266,19 +265,19 @@ class NormalDecoder(VarDecoder):
         self.var = nn.Linear(hidden_size, 1)
         self.encoder_sb = encoder_batch_norm
 
-    def forward(
-        self, hidden: torch.Tensor, dim: int, reconstruction_mode: str = "mode"
-    ):
-        mean = self.mean(hidden)
+    def forward(self, hidden: torch.Tensor, dim: int, reconstruction_mode: str):
+        mean = self.mean(hidden).squeeze(1)
 
         if reconstruction_mode == "mode":
-            return mean
+            return mean.squeeze(1)
 
         else:
             var = F.softplus(self.var(hidden))
-            std = torch.sqrt(var)
+            std = torch.sqrt(var).squeeze(1)
             eps = torch.randn(mean.shape)
-            return mean + eps * std
+            sample = mean + eps * std
+
+            return sample
 
     def reconstruction_error(
         self, input_tensor: torch.Tensor, hidden: torch.Tensor, dim: int
@@ -319,9 +318,7 @@ class LogNormalDecoder(NormalDecoder):
     Decode a variable that is distributed according to a log-normal distribution.
     """
 
-    def forward(
-        self, hidden: torch.Tensor, dim: int, reconstruction_mode: str = "mode"
-    ):
+    def forward(self, hidden: torch.Tensor, dim: int, reconstruction_mode: str):
         return torch.exp(super().forward(hidden, dim, reconstruction_mode))
 
 
@@ -334,23 +331,23 @@ class PoissonDecoder(VarDecoder):
         self,
         hidden_size: int,
         feat_type: Tuple[str, Optional[int], Optional[int]],
-        **unused
+        **unused,
     ):
         super().__init__(hidden_size, feat_type)
 
         self.lambda_ = nn.Linear(hidden_size, 1)
 
-    def forward(
-        self, hidden: torch.Tensor, dim: int, reconstruction_mode: str = "mode"
-    ):
+    def forward(self, hidden: torch.Tensor, dim: int, reconstruction_mode: str):
         lambda_ = F.softplus(self.lambda_(hidden)).float()
 
         if reconstruction_mode == "mode":
-            return lambda_.int()
+            return lambda_.int().squeeze(1)
 
         else:
             distribution = dist.poisson.Poisson(lambda_)
-            return distribution.sample()
+            sample = distribution.sample().squeeze(1)
+
+            return sample
 
     def reconstruction_error(
         self, input_tensor: torch.Tensor, hidden: torch.Tensor, dim: int
@@ -370,22 +367,22 @@ class CategoricalDecoder(VarDecoder):
         self,
         hidden_size: int,
         feat_type: Tuple[str, Optional[int], Optional[int]],
-        **unused
+        **unused,
     ):
         super().__init__(hidden_size, feat_type)
 
         self.linear = nn.Linear(hidden_size, int(self.feat_type[2]) + 1)
 
-    def forward(
-        self, hidden: torch.Tensor, dim: int, reconstruction_mode: str = "mode"
-    ):
+    def forward(self, hidden: torch.Tensor, dim: int, reconstruction_mode: str):
         dist = self.linear(hidden)
 
         if reconstruction_mode == "mode":
             return torch.argmax(dist, dim=1)
 
         else:
-            return torch.argmax(F.gumbel_softmax(dist, dim=1), dim=1)
+            sample = torch.argmax(F.gumbel_softmax(dist, dim=1), dim=1)
+
+            return sample
 
     def reconstruction_error(
         self, input_tensor: torch.Tensor, hidden: torch.Tensor, dim: int
@@ -407,7 +404,7 @@ class OrdinalDecoder(VarDecoder):
         self,
         hidden_size: int,
         feat_type: Tuple[str, Optional[int], Optional[int]],
-        **unused
+        **unused,
     ):
         super().__init__(hidden_size, feat_type)
 
@@ -436,16 +433,16 @@ class OrdinalDecoder(VarDecoder):
 
         return ordinal_probs
 
-    def forward(
-        self, hidden: torch.Tensor, dim: int, reconstruction_mode: str = "mode"
-    ):
+    def forward(self, hidden: torch.Tensor, dim: int, reconstruction_mode: str):
         ordinal_probs = self.get_ordinal_probs(hidden)
 
         if reconstruction_mode == "mode":
             return torch.argmax(ordinal_probs, dim=1)
 
         else:
-            return torch.argmax(F.gumbel_softmax(ordinal_probs, dim=1), dim=1)
+            sample = torch.argmax(F.gumbel_softmax(ordinal_probs, dim=1), dim=1)
+
+            return sample
 
     def reconstruction_error(
         self, input_tensor: torch.Tensor, hidden: torch.Tensor, dim: int
@@ -525,22 +522,16 @@ class HIDecoder(nn.Module):
     ) -> torch.Tensor:
         # h = self.hidden(latent_tensor)   # TODO: Re-add this in the more complex model
         h = latent_tensor
-        dim = 0
-        reconstructions = []
+        reconstruction = torch.zeros(
+            (latent_tensor.shape[0], len(self.decoding_models))
+        )
 
-        for feat_type, decoding_func in zip(self.feat_types, self.decoding_models):
-            offset = (
-                int(feat_type[2] - feat_type[1] + 1)
-                if feat_type in ("categorical", "ordinal")
-                else 1
-            )
-            reconstructions.append(decoding_func(h[:, dim:offset], reconstruction_mode))
-            dim += offset
+        for dim, (feat_type, decoding_func) in enumerate(
+            zip(self.feat_types, self.decoding_models)
+        ):
+            reconstruction[:, dim] = decoding_func(h, dim, reconstruction_mode)
 
-        reconstructed = torch.cat(reconstructions)
-        reconstructed = self.denormalize_batch(reconstructed)
-
-        return reconstructed
+        return reconstruction
 
     def reconstruction_error(
         self,
@@ -563,30 +554,6 @@ class HIDecoder(nn.Module):
         reconstruction_loss = reconstruction_loss.sum(dim=1)
 
         return reconstruction_loss
-
-    def denormalize_batch(self, input_tensor: torch.Tensor) -> torch.Tensor:
-        real_mask = self.construct_real_mask(self.feat_types)
-
-        denormalized_input = (
-            input_tensor * torch.sqrt(self.encoder_bn.running_var)
-            + self.encoder_bn.running_mean
-        )
-
-        input_tensor[:, real_mask] = denormalized_input
-
-        return input_tensor
-
-    @staticmethod
-    def construct_real_mask(feat_types: FeatTypes) -> torch.Tensor:
-        mask = []
-
-        for feat_type, feat_min, feat_max in feat_types:
-            mask.extend(
-                [int(feat_type in ("real", "positive_real"))]
-                * int(feat_max - feat_min + 1)
-            )
-
-        return torch.from_numpy(mask)
 
 
 # ------------------------------------------------- Full model ---------------------------------------------------------
@@ -612,21 +579,29 @@ class HIVAEModule(nn.Module):
         )
 
     def forward(
-        self, input_tensor: torch.Tensor, reconstr_error_weight: float,
+        self,
+        input_tensor: torch.Tensor,
+        reconstr_error_weight: float,
+        reconstruction_mode: bool = "sample",
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        assert reconstruction_mode in ("mode", "sample"), (
+            f"reconstruction_mode has to be either 'mode' or 'sample', "
+            f"{reconstruction_mode} found."
+        )
+
         input_tensor = input_tensor.float()
 
         # Encoding
         mean, std, observed_mask = self.encoder(input_tensor)
         eps = torch.randn(mean.shape)
-        z = mean + eps * std
+        latent_tensor = mean + eps * std
 
         # Decoding
         input_tensor, _ = self.encoder.normalize(
             input_tensor
         )  # Make sure necessary variables are normalized
         reconstr_error = self.decoder.reconstruction_error(
-            input_tensor, z, observed_mask
+            input_tensor, latent_tensor, observed_mask
         )
         d = mean.shape[1]
 
@@ -637,6 +612,22 @@ class HIVAEModule(nn.Module):
         average_negative_elbo = torch.mean(reconstr_error_weight * reconstr_error + kl)
 
         return reconstr_error, kl, average_negative_elbo
+
+    def reconstruct(
+        self, input_tensor: torch.Tensor, reconstruction_mode: bool = "sample"
+    ) -> torch.Tensor:
+
+        input_tensor = input_tensor.float()
+
+        # Encoding
+        mean, std, observed_mask = self.encoder(input_tensor)
+        eps = torch.randn(mean.shape)
+        latent_tensor = mean + eps * std
+
+        # Reconstruction
+        reconstruction = self.decoder(latent_tensor, reconstruction_mode)
+
+        return reconstruction
 
 
 class HIVAE(VAE):
@@ -654,6 +645,11 @@ class HIVAE(VAE):
         )
 
         self.model = HIVAEModule(hidden_sizes, latent_dim, feat_types)
+
+    def reconstruct(
+        self, input_tensor: torch.Tensor, reconstruction_mode: bool = "sample"
+    ) -> torch.Tensor:
+        return self.model.reconstruct(input_tensor, reconstruction_mode)
 
 
 # ---------------------------------------------- Helper functions ------------------------------------------------------
