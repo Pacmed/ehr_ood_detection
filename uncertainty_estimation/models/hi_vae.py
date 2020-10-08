@@ -498,21 +498,19 @@ class HIDecoder(nn.Module):
 
         self.encoder_bn = encoder_batch_norm
 
-        # architecture = [latent_dim] + hidden_sizes
+        architecture = [latent_dim] + hidden_sizes
         self.layers = []
 
-        # TODO: Re-add this in the more complex model
-        # for l, (in_dim, out_dim) in enumerate(zip(architecture[:-1], architecture[1:])):
-        #    self.layers.append(nn.Linear(in_dim, out_dim))
-        #    self.layers.append(nn.LeakyReLU())
+        for l, (in_dim, out_dim) in enumerate(zip(architecture[:-1], architecture[1:])):
+            self.layers.append(nn.Linear(in_dim, out_dim))
+            self.layers.append(nn.LeakyReLU())
 
-        # self.hidden = nn.Sequential(*self.layers)
+        self.hidden = nn.Sequential(*self.layers)
 
         # Initialize all the output networks
-        # TODO: CHange input size for decoders
         self.decoding_models = [
             self.decoding_models[feat_type[0]](
-                latent_dim, feat_type, encoder_batch_norm=encoder_batch_norm
+                architecture[-1], feat_type, encoder_batch_norm=encoder_batch_norm
             )
             for feat_type in feat_types
         ]
@@ -520,8 +518,7 @@ class HIDecoder(nn.Module):
     def forward(
         self, latent_tensor: torch.Tensor, reconstruction_mode: str = "mode"
     ) -> torch.Tensor:
-        # h = self.hidden(latent_tensor)   # TODO: Re-add this in the more complex model
-        h = latent_tensor
+        h = self.hidden(latent_tensor)
         reconstruction = torch.zeros(
             (latent_tensor.shape[0], len(self.decoding_models))
         )
@@ -539,8 +536,7 @@ class HIDecoder(nn.Module):
         latent_tensor: torch.Tensor,
         observed_mask: torch.Tensor,
     ) -> torch.Tensor:
-        # h = self.hidden(latent_tensor)   # TODO: Re-add this in the more complex model
-        h = latent_tensor
+        h = self.hidden(latent_tensor)
         reconstruction_loss = torch.zeros(input_tensor.shape)
 
         for feat_num, decoding_model in enumerate(self.decoding_models):
