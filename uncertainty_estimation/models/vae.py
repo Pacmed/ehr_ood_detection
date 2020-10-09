@@ -182,7 +182,10 @@ class VAEModule(nn.Module):
         self.decoder = Decoder(hidden_sizes, input_size, latent_dim)
 
     def forward(
-        self, input_tensor: torch.Tensor, reconstr_error_weight: float,
+        self,
+        input_tensor: torch.Tensor,
+        reconstr_error_weight: float,
+        beta: float = 1.0,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Perform an encoding and decoding step and return the
         reconstruction error, KL-divergence and negative average elbo for the given batch.
@@ -194,6 +197,8 @@ class VAEModule(nn.Module):
         reconstr_error_weight: float
             A factor which is multiplied with the reconstruction error, to weigh this term in
             the overall loss function.
+        beta: float
+            Weighting term for the KL divergence.
 
         Returns
         -------
@@ -219,7 +224,9 @@ class VAEModule(nn.Module):
         kl = 0.5 * torch.sum(
             std - torch.ones(d) - torch.log(std + 1e-8) + mean * mean, dim=1
         )
-        average_negative_elbo = torch.mean(reconstr_error_weight * reconstr_error + kl)
+        average_negative_elbo = torch.mean(
+            reconstr_error_weight * reconstr_error + kl * beta
+        )
 
         return reconstr_error, kl, average_negative_elbo
 
@@ -236,6 +243,10 @@ class VAE:
         A list with the sizes of the hidden layers.
     latent_dim: int
         The size of the latent space.
+    beta: float
+        Weighting term for the KL-divergence.
+    anneal: bool
+        Option to indicate whether KL-divergence should be annealed.
     """
 
     def __init__(
@@ -243,6 +254,8 @@ class VAE:
         hidden_sizes: List[int],
         input_size: int,
         latent_dim: int,
+        beta: float = 1.0,
+        anneal: bool = True,
         lr: float = DEFAULT_LEARNING_RATE,
         reconstr_error_weight: float = DEFAULT_RECONSTR_ERROR_WEIGHT,
     ):
@@ -251,7 +264,10 @@ class VAE:
         )
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
         self.reconstr_error_weight = reconstr_error_weight
+        self.beta = beta
+        self.anneal = anneal
         self.batch_size = None
+        self.current_epoch = 0
 
     def train(
         self,
@@ -280,17 +296,18 @@ class VAE:
         n_epochs: int
             The number of epochs to train.
         """
+        self.current_epoch = 0
         self.batch_size = batch_size
         self._initialize_dataloaders(X_train, X_val, batch_size)
         val_elbo = None
 
         for epoch in range(n_epochs):
             self.model.train()
-            train_elbo = self._epoch_iter(self.train_data)
+            train_elbo = self._epoch_iter(self.train_data, epoch, n_epochs)
 
             if self.val_data is not None:
                 self.model.eval()
-                val_elbo = self._epoch_iter(self.val_data)
+                val_elbo = self._epoch_iter(self.val_data, epoch, n_epochs)
 
         return train_elbo, val_elbo
 
@@ -348,7 +365,9 @@ class VAE:
         else:
             self.val_data = None
 
-    def _epoch_iter(self, data: torch.utils.data.DataLoader) -> float:
+    def _epoch_iter(
+        self, data: torch.utils.data.DataLoader, current_epoch: int, n_epochs: int
+    ) -> float:
         """Iterate through the data once and return the average negative ELBO. If the train data
         is fed,the model parameters are updated. If the validation data is fed, only the average
         elbo is calculated and no parameter update is performed.
@@ -357,6 +376,10 @@ class VAE:
         ----------
         data: torch.utils.data.DataLoader
             The dataloader of the train or validation set.
+        current_epoch: int
+            Number of current epoch.
+        n_epochs: int
+            Total number of epochs.
 
         Returns
         -------
@@ -367,8 +390,21 @@ class VAE:
         average_epoch_elbo, i = 0, 0
 
         for i, batch in enumerate(tqdm(data)):
+
+            if self.anneal and self.model.training:
+                beta = self.get_beta(
+                    target_beta=self.beta,
+                    current_epoch=self.current_epoch,
+                    current_iter=i,
+                    n_epochs=n_epochs,
+                    n_iters=len(data),
+                )
+
+            else:
+                beta = self.beta
+
             _, _, average_negative_elbo = self.model(
-                batch, reconstr_error_weight=self.reconstr_error_weight,
+                batch, reconstr_error_weight=self.reconstr_error_weight, beta=beta
             )
             average_epoch_elbo += average_negative_elbo
 
@@ -383,8 +419,50 @@ class VAE:
 
         average_epoch_elbo = average_epoch_elbo / (i + 1)
         print(average_epoch_elbo)  # TODO: Debug
+        self.current_epoch += 1
 
         return average_epoch_elbo
+
+    def get_beta(
+        self,
+        target_beta: float,
+        current_epoch: int,
+        current_iter: int,
+        n_epochs: int,
+        n_iters: int,
+        saturation_percentage: float = 0.3,
+    ) -> float:
+        """
+        Get the current beta term.
+
+        Parameters
+        ----------
+        target_beta: float
+            Target value for beta.
+        current_epoch: int
+            Current epoch number.
+        current_iter: int
+            Number of interations in current epoch.
+        n_epochs: int
+            Total number of epochs.
+        n_iters:
+            Number of iterations per epoch.
+        saturation_percentage: float
+            Percentage of total iterations after which the target_beta value should be reached.
+
+        Returns
+        -------
+        float
+            Annealed beta value.
+        """
+        total_iters = n_epochs * n_iters
+        current_total_iter = current_epoch * n_iters + current_iter
+        annealed_beta = (
+            min(current_total_iter / (saturation_percentage * total_iters), 1)
+            * target_beta
+        )
+
+        return annealed_beta
 
     def get_reconstr_error(
         self, data: np.ndarray, n_samples: int = DEFAULT_N_VAE_SAMPLES
