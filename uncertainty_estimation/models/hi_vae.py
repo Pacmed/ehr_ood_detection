@@ -1,10 +1,14 @@
 """
-Module providing an implementation of a Heterogenous-Incomplete Variational Auto-Encoder (HI-VAE).
+Module providing an implementation of a Heterogenous-Incomplete Variational Auto-Encoder (HI-VAE). This variant of the
+VAE is able to accommodate different types of variables as well as missing values.
+
+The model assumes all categorical variables to display values in a range from 0 to N without any gaps. The same is true
+for ordinal variables, however the can start and any positive integer. Data fed into the HI-VAE should be unnormalized
+and can include nan values.
 """
 
 # STD
 import abc
-from collections import Counter
 from typing import Tuple, List, Optional, Set
 import math
 
@@ -27,12 +31,10 @@ AVAILABLE_TYPES = {"real", "positive_real", "count", "categorical", "ordinal"}
 
 # TYPES
 # A list of tuples specifying the types of input features
-# Just name of the distribution and optionally the min and max value for ordinal / categorical features
-# e.g. [("real", None, None), ("categorical", None, 5), ("ordinal", 1, 3)]
+# Just name of the distribution and  the min and max value (this is used for ordinal and categorical features)
+# e.g. [("categorical", 0, 5), ("ordinal", 1, 3), ...]
 FeatTypes = List[Tuple[str, int, int]]
 
-
-# TODO: Group variables of the same type together to make computations more efficient
 
 # -------------------------------------------------- Encoder -----------------------------------------------------------
 
@@ -45,10 +47,12 @@ class HIEncoder(nn.Module):
     ----------
     hidden_sizes: List[int]
         A list with the sizes of the hidden layers.
-    input_size: int
-        The input dimensionality.
     latent_dim: int
         The size of the latent space.
+    n_mix_components: int
+        Number of mixture components for the latent space prior.
+    feat_types: FeatTypes
+        List of feature types and their value ranges.
     """
 
     def __init__(
@@ -75,11 +79,16 @@ class HIEncoder(nn.Module):
         architecture = [self.encoded_input_size] + hidden_sizes
         self.layers = []
 
+        # Batch norm to normalize real-valued features
         self.real_batch_norm = torch.nn.BatchNorm1d(
             num_features=len(feat_types), affine=False,
         )
+        # Register a batch norm hook that resets the normalization statistics after every batch
+        # BatchNorm1d has the "track_running_stats" argument, but turning it off doesn't allow to access the current
+        # batch statistics in the decoder for de-normalization
         self.real_batch_norm.register_forward_pre_hook(self.batch_norm_reset_hook)
 
+        # Model predicting which mixture component a data point comes from
         self.mixture_model = nn.Linear(self.encoded_input_size, self.n_mix_components)
 
         for l, (in_dim, out_dim) in enumerate(zip(architecture[:-1], architecture[1:])):
@@ -90,12 +99,20 @@ class HIEncoder(nn.Module):
         self.mean = nn.Linear(architecture[-1] + self.n_mix_components, latent_dim)
         self.var = nn.Linear(architecture[-1] + self.n_mix_components, latent_dim)
 
-        # Separate networks predicting the moments of the latent space prior
+        # Separate networks predicting the moments of the latent space prior, used to compute KL
         self.p_mean = nn.Linear(self.n_mix_components, latent_dim)
         self.p_var = nn.Linear(self.n_mix_components, latent_dim)
 
     @staticmethod
-    def batch_norm_reset_hook(module, *args):
+    def batch_norm_reset_hook(module: torch.nn.BatchNorm1d, *args) -> None:
+        """
+        Reset all the batch statistics for a batch norm module.
+
+        Parameters
+        ----------
+        module: torch.nn.BatchNorm1d
+            Batch norm module the hook is being added to
+        """
         module.num_batches_tracked = torch.zeros(1)
         module.running_mean = torch.zeros(module.running_mean.shape)
         module.running_var = torch.ones(module.running_var.shape)
@@ -103,7 +120,12 @@ class HIEncoder(nn.Module):
     @staticmethod
     def get_encoded_input_size(feat_types: FeatTypes) -> int:
         """
-        Get the number of features after encoding categorical and ordinal features.
+        Get the total number of features after encoding categorical and ordinal features.
+
+        Parameters
+        ----------
+        feat_types: FeatTypes
+            List of feature types and their value ranges.
         """
         input_size = 0
 
@@ -124,7 +146,12 @@ class HIEncoder(nn.Module):
         self, input_tensor: torch.Tensor
     ) -> Tuple[torch.Tensor, List[str]]:
         """
-        Create one-hot / thermometer encodings for categorical / ordinal variables.
+        Encode the input tensor by creating one-hot / thermometer encodings for categorical / ordinal variables.
+
+        Parameters
+        ----------
+        input_tensor: torch.Tensor
+            The input to the encoder.
         """
         encoded_input_tensor = torch.empty(input_tensor.shape[0], 0)
         batch_size = input_tensor.shape[0]
@@ -142,6 +169,8 @@ class HIEncoder(nn.Module):
                 )
 
             # Use thermometer encoding
+            # E.g. when there are 4 possible ordinal values from 0 to 3 and the current reading is 2, this would create
+            # the following encoding: [1, 1, 0, 0]
             elif feat_type == "ordinal":
                 num_values = int(feat_max - feat_min + 1)
                 thermometer_encoding = torch.cat(
@@ -164,6 +193,24 @@ class HIEncoder(nn.Module):
     def normalize(
         self, input_tensor: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Prepare the input for processing by
+
+        1. Set all missing values to 0 and create a mask to remember which values where observed.
+        2. Log-transform all positive-real-valued and count variables.
+        3. Apply batch norm to all real-valued variables (including positive-real ones).
+
+        Parameters
+        ----------
+        input_tensor: torch.Tensor
+            The input to the encoder.
+
+        Returns
+        -------
+        normed_inout, observed_mask: Tuple[torch.Tensor, torch.Tensor]
+            Normed output tensor and mask indicating which values where observed (unobserved values will be masked out
+            during the loss computation.
+        """
         only_types = list(zip(*self.feat_types))[0]
 
         observed_mask = ~torch.isnan(
@@ -200,17 +247,24 @@ class HIEncoder(nn.Module):
     def forward(
         self, input_tensor: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
-        """Perform forward pass of encoder. Returns mean and standard deviation corresponding to
-        an independent Normal distribution.
+        """
+        Perform forward pass of encoder.
 
         Parameters
         ----------
         input_tensor: torch.Tensor
             The input to the encoder.
+
+        Returns
+        -------
+        Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]
+            Return predicted mean and standard deviation of posterior as well as the mixture prior distributions and a
+            mask indicating which values were initially observed.
         """
         input_tensor, observed_mask = self.normalize(input_tensor)
-
         input_tensor = self.categorical_encode(input_tensor)
+
+        # Determine mixture component data point came from
         mix_component_dists = self.sample_mix_components(input_tensor)
         mix_components = F.one_hot(torch.argmax(mix_component_dists, dim=1)).float()
 
@@ -224,6 +278,19 @@ class HIEncoder(nn.Module):
         return mean, std, mix_component_dists, observed_mask
 
     def sample_mix_components(self, input_tensor: torch.Tensor) -> torch.Tensor:
+        """
+        Predict which component of the latent prior mixture an input came from.
+
+        Parameters
+        ----------
+        input_tensor: torch.Tensor
+            The input to the encoder.
+
+        Returns
+        -------
+        torch.Tensor
+            Distributions over mixture components for every data point.
+        """
         # Create a categorical distribution with equal probabilities
         pi = self.mixture_model(input_tensor)
         mix_components_dists = F.gumbel_softmax(pi, dim=1)
@@ -237,9 +304,14 @@ class HIEncoder(nn.Module):
 class VarDecoder(nn.Module, abc.ABC):
     """
     Abstract variable decoder class that forces subclasses to implement some common methods.
-    """
 
-    # TODO: Add forward() here
+    Parameters
+    ----------
+    hidden_size: int
+        Output size of last hidden layer.
+    feat_type: Tuple[str, Optional[int], Optional[int]]
+        Information about current featre.
+    """
 
     def __init__(
         self, hidden_size: int, feat_type: Tuple[str, Optional[int], Optional[int]],
@@ -248,6 +320,30 @@ class VarDecoder(nn.Module, abc.ABC):
 
         self.hidden_size = hidden_size
         self.feat_type = feat_type
+
+    @abc.abstractmethod
+    def forward(
+        self, hidden: torch.Tensor, dim: int, reconstruction_mode: str
+    ) -> torch.Tensor:
+        """
+        Reconstruct a sample from the latent space.
+
+        Parameters
+        ----------
+        hidden: torch.Tensor
+            Latest decoder hidden state.
+        dim: int
+            Current feature dimension.
+        reconstruction_mode: str
+            Mode of reconstruction. "mode" returns the mode of the distribution, "sample" samples from the predicted
+            distribution. Default is "sample".
+
+        Returns
+        -------
+        torch.Tensor
+            Reconstructed feature value.
+        """
+        ...
 
     @abc.abstractmethod
     def reconstruction_error(
@@ -260,12 +356,14 @@ class VarDecoder(nn.Module, abc.ABC):
         ----------
         input_tensor: torch.Tensor
             Original data sample.
-        latent_tensor: torch.Tensor
-            A sample from the latent space, which has to be decoded.
+        hidden: torch.Tensor
+            Latest decoder hidden state.
+        dim: int
+            Current feature dimension.
 
         Returns
         -------
-        reconstr_error: torch.Tensor
+        torch.Tensor
             Log probability of the input under the decoder's distribution.
         """
         ...
@@ -274,6 +372,13 @@ class VarDecoder(nn.Module, abc.ABC):
 class NormalDecoder(VarDecoder):
     """
     Decode a variable that is normally distributed.
+
+    Parameters
+    ----------
+    hidden_size: int
+        Output size of last hidden layer.
+    feat_type: Tuple[str, Optional[int], Optional[int]]
+        Information about current feature.
     """
 
     def __init__(
@@ -289,6 +394,24 @@ class NormalDecoder(VarDecoder):
         self.encoder_sb = encoder_batch_norm
 
     def forward(self, hidden: torch.Tensor, dim: int, reconstruction_mode: str):
+        """
+         Reconstruct a feature value from the latent space.
+
+        Parameters
+        ----------
+        hidden: torch.Tensor
+            Latest decoder hidden state.
+        dim: int
+            Current feature dimension.
+        reconstruction_mode: str
+            Mode of reconstruction. "mode" returns the mode of the distribution, "sample" samples from the predicted
+            distribution. Default is "sample".
+
+        Returns
+        -------
+        torch.Tensor
+            Reconstructed feature value.
+        """
         mean = self.mean(hidden).squeeze(1)
 
         if reconstruction_mode == "mode":
@@ -306,19 +429,21 @@ class NormalDecoder(VarDecoder):
         self, input_tensor: torch.Tensor, hidden: torch.Tensor, dim: int
     ) -> torch.Tensor:
         """
-        Compute the log probability of the original data sample under p(x|z).
+        Compute the log probability of the original feature under p(x|z).
 
         Parameters
         ----------
         input_tensor: torch.Tensor
             Original feature.
-        latent_tensor: torch.Tensor
-            A sample from the latent space, which has to be decoded.
+        hidden: torch.Tensor
+           Latest decoder hidden state.
+        dim: int
+            Current feature dimension.
 
         Returns
         -------
         reconstr_error: torch.Tensor
-            Log probability of the input under the decoder's distribution.
+            Log probability of the input feature under the decoder's distribution.
         """
         running_std = torch.sqrt(self.encoder_sb.running_var[dim])
         running_mean = self.encoder_sb.running_mean[dim]
@@ -329,7 +454,6 @@ class NormalDecoder(VarDecoder):
 
         # calculating losses
         distribution = dist.independent.Independent(dist.normal.Normal(mean, std), 1)
-
         input_tensor = input_tensor * running_std + running_mean
         reconstr_error = -distribution.log_prob(input_tensor)
 
@@ -339,15 +463,47 @@ class NormalDecoder(VarDecoder):
 class LogNormalDecoder(NormalDecoder):
     """
     Decode a variable that is distributed according to a log-normal distribution.
+
+    Parameters
+    ----------
+    hidden_size: int
+        Output size of last hidden layer.
+    feat_type: Tuple[str, Optional[int], Optional[int]]
+        Information about current feature.
     """
 
     def forward(self, hidden: torch.Tensor, dim: int, reconstruction_mode: str):
+        """
+         Reconstruct a feature value from the latent space.
+
+        Parameters
+        ----------
+        hidden: torch.Tensor
+            Latest decoder hidden state.
+        dim: int
+            Current feature dimension.
+        reconstruction_mode: str
+            Mode of reconstruction. "mode" returns the mode of the distribution, "sample" samples from the predicted
+            distribution. Default is "sample".
+
+        Returns
+        -------
+        torch.Tensor
+            Reconstructed feature value.
+        """
         return torch.exp(super().forward(hidden, dim, reconstruction_mode))
 
 
 class PoissonDecoder(VarDecoder):
     """
     Decode a variable that is distributed according to a Poisson distribution.
+
+    Parameters
+    ----------
+    hidden_size: int
+        Output size of last hidden layer.
+    feat_type: Tuple[str, Optional[int], Optional[int]]
+        Information about current feature.
     """
 
     def __init__(
@@ -361,6 +517,24 @@ class PoissonDecoder(VarDecoder):
         self.lambda_ = nn.Linear(hidden_size, 1)
 
     def forward(self, hidden: torch.Tensor, dim: int, reconstruction_mode: str):
+        """
+         Reconstruct a feature value from the latent space.
+
+        Parameters
+        ----------
+        hidden: torch.Tensor
+            Latest decoder hidden state.
+        dim: int
+            Current feature dimension.
+        reconstruction_mode: str
+            Mode of reconstruction. "mode" returns the mode of the distribution, "sample" samples from the predicted
+            distribution. Default is "sample".
+
+        Returns
+        -------
+        torch.Tensor
+            Reconstructed feature value.
+        """
         lambda_ = F.softplus(self.lambda_(hidden)).float()
 
         if reconstruction_mode == "mode":
@@ -375,6 +549,23 @@ class PoissonDecoder(VarDecoder):
     def reconstruction_error(
         self, input_tensor: torch.Tensor, hidden: torch.Tensor, dim: int
     ) -> torch.Tensor:
+        """
+        Compute the log probability of the original feature under p(x|z).
+
+        Parameters
+        ----------
+        input_tensor: torch.Tensor
+            Original feature.
+        hidden: torch.Tensor
+           Latest decoder hidden state.
+        dim: int
+            Current feature dimension.
+
+        Returns
+        -------
+        reconstr_error: torch.Tensor
+            Log probability of the input feature under the decoder's distribution.
+        """
         lambda_ = F.softplus(self.lambda_(hidden)).int().squeeze()
         err = F.poisson_nll_loss(input_tensor, lambda_)
 
@@ -384,6 +575,13 @@ class PoissonDecoder(VarDecoder):
 class CategoricalDecoder(VarDecoder):
     """
     Decode a categorical variable.
+
+    Parameters
+    ----------
+    hidden_size: int
+        Output size of last hidden layer.
+    feat_type: Tuple[str, Optional[int], Optional[int]]
+        Information about current feature.
     """
 
     def __init__(
@@ -397,6 +595,24 @@ class CategoricalDecoder(VarDecoder):
         self.linear = nn.Linear(hidden_size, int(self.feat_type[2]) + 1)
 
     def forward(self, hidden: torch.Tensor, dim: int, reconstruction_mode: str):
+        """
+        Reconstruct a feature value from the latent space.
+
+        Parameters
+        ----------
+        hidden: torch.Tensor
+            Latest decoder hidden state.
+        dim: int
+            Current feature dimension.
+        reconstruction_mode: str
+            Mode of reconstruction. "mode" returns the mode of the distribution, "sample" samples from the predicted
+            distribution. Default is "sample".
+
+        Returns
+        -------
+        torch.Tensor
+            Reconstructed feature value.
+        """
         dist = self.linear(hidden)
 
         if reconstruction_mode == "mode":
@@ -410,7 +626,23 @@ class CategoricalDecoder(VarDecoder):
     def reconstruction_error(
         self, input_tensor: torch.Tensor, hidden: torch.Tensor, dim: int
     ) -> torch.Tensor:
+        """
+        Compute the log probability of the original feature under p(x|z).
 
+        Parameters
+        ----------
+        input_tensor: torch.Tensor
+            Original feature.
+        hidden: torch.Tensor
+           Latest decoder hidden state.
+        dim: int
+            Current feature dimension.
+
+        Returns
+        -------
+        reconstr_error: torch.Tensor
+            Log probability of the input feature under the decoder's distribution.
+        """
         dists = self.linear(hidden)
         dists = F.softmax(dists, dim=1)
         err = -F.cross_entropy(dists, target=input_tensor.long())
@@ -421,6 +653,13 @@ class CategoricalDecoder(VarDecoder):
 class OrdinalDecoder(VarDecoder):
     """
     Decode an ordinal variable.
+
+    Parameters
+    ----------
+    hidden_size: int
+        Output size of last hidden layer.
+    feat_type: Tuple[str, Optional[int], Optional[int]]
+        Information about current feature.
     """
 
     def __init__(
@@ -436,7 +675,18 @@ class OrdinalDecoder(VarDecoder):
         )
         self.region = nn.Linear(hidden_size, 1)
 
-    def get_ordinal_probs(self, hidden: torch.Tensor):
+    def get_ordinal_probs(self, hidden: torch.Tensor) -> torch.Tensor:
+        """
+        Get a probability distribution over ordinal values.
+
+        hidden: torch.Tensor
+            Latest decoder hidden state.
+
+        Returns
+        -------
+        torch.Tensor
+            Probability distribution over ordinal values.
+        """
         region = F.softplus(self.region(hidden))
 
         # Thresholds might not be ordered, use a cumulative sum
@@ -457,6 +707,24 @@ class OrdinalDecoder(VarDecoder):
         return ordinal_probs
 
     def forward(self, hidden: torch.Tensor, dim: int, reconstruction_mode: str):
+        """
+        Reconstruct a feature value from the latent space.
+
+        Parameters
+        ----------
+        hidden: torch.Tensor
+            Latest decoder hidden state.
+        dim: int
+            Current feature dimension.
+        reconstruction_mode: str
+            Mode of reconstruction. "mode" returns the mode of the distribution, "sample" samples from the predicted
+            distribution. Default is "sample".
+
+        Returns
+        -------
+        torch.Tensor
+            Reconstructed feature value.
+        """
         ordinal_probs = self.get_ordinal_probs(hidden)
 
         if reconstruction_mode == "mode":
@@ -470,6 +738,23 @@ class OrdinalDecoder(VarDecoder):
     def reconstruction_error(
         self, input_tensor: torch.Tensor, hidden: torch.Tensor, dim: int
     ):
+        """
+        Compute the log probability of the original feature under p(x|z).
+
+        Parameters
+        ----------
+        input_tensor: torch.Tensor
+            Original feature.
+        hidden: torch.Tensor
+           Latest decoder hidden state.
+        dim: int
+            Current feature dimension.
+
+        Returns
+        -------
+        reconstr_error: torch.Tensor
+            Log probability of the input feature under the decoder's distribution.
+        """
         # Sometimes the lowest ordinal will be > 0, but the input dropout replaces missing with 0. Because this messes
         # up the indexing this value is replaced here. Because components of the reconstruction loss corresponding to
         # non-observed feature will be ignored later, this doesn't matter.
@@ -493,11 +778,15 @@ class HIDecoder(nn.Module):
     Parameters
     ----------
     hidden_sizes: List[int]
-        A list with the sizes of the hidden layers.
-    input_size: int
-        The dimensionality of the input
+        Size of decoder hidden layers.
     latent_dim: int
-        The size of the latent space.
+        Dimensionality of latent space.
+    n_mix_components: int
+        Number of mixture components.
+    feat_types: FeatTypes
+        List of feature types and their value ranges.
+    encoder_batch_norm: torch.nn.BatchNorm1d
+        Batch norm module of the encoder. Used for de-normalization.
     """
 
     def __init__(
@@ -547,6 +836,24 @@ class HIDecoder(nn.Module):
         mix_components: torch.Tensor,
         reconstruction_mode: str = "mode",
     ) -> torch.Tensor:
+        """
+        Reconstruct a sample from the latent space.
+
+        Parameters
+        ----------
+        latent_tensor: torch.Tensor
+            Latent representation z.
+        mix_components: torch.Tensor
+            One-hot representations of mixture components.
+        reconstruction_mode: str
+            Mode of reconstruction. "mode" returns the mode of the distribution, "sample" samples from the predicted
+            distribution. Default is "sample".
+
+        Returns
+        -------
+        torch.Tensor
+            Reconstructed feature value.
+        """
         h = self.hidden(latent_tensor)
         h = torch.cat([h, mix_components], dim=1)
         reconstruction = torch.zeros(
@@ -567,6 +874,25 @@ class HIDecoder(nn.Module):
         mix_components: torch.Tensor,
         observed_mask: torch.Tensor,
     ) -> torch.Tensor:
+        """
+        Compute the log probability of the original sample under p(x|z).
+
+        Parameters
+        ----------
+        input_tensor: torch.Tensor
+            Original feature.
+        latent_tensor: torch.Tensor
+            Latent representation z.
+        mix_components: torch.Tensor
+            One-hot representations of mixture components.
+        observed_mask: torch.Tensor
+            Mask indicating the initially observed values.
+
+        Returns
+        -------
+        reconstr_error: torch.Tensor
+            Log probability of the sample under the decoder's distribution.
+        """
         h = self.hidden(latent_tensor)
         h = torch.cat([h, mix_components], dim=1)
         reconstruction_loss = torch.zeros(input_tensor.shape)
@@ -590,6 +916,17 @@ class HIDecoder(nn.Module):
 class HIVAEModule(nn.Module):
     """
     Module for the Heterogenous-Incomplete Variational Autoencoder.
+
+    Parameters
+    ----------
+    hidden_sizes: List[int]
+        Size of decoder hidden layers.
+    latent_dim: int
+        Dimensionality of latent space.
+    n_mix_components: int
+        Number of mixture components.
+    feat_types: FeatTypes
+        List of feature types and their value ranges.
     """
 
     def __init__(
@@ -613,17 +950,27 @@ class HIVAEModule(nn.Module):
         )
 
     def forward(
-        self,
-        input_tensor: torch.Tensor,
-        reconstr_error_weight: float,
-        reconstruction_mode: bool = "sample",
+        self, input_tensor: torch.Tensor, reconstr_error_weight: float,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """
+        Compute the loss for the current batch. The loss contains three parts:
 
-        assert reconstruction_mode in ("mode", "sample"), (
-            f"reconstruction_mode has to be either 'mode' or 'sample', "
-            f"{reconstruction_mode} found."
-        )
+        1. Reconstruction loss p(x|z)
+        2. KL-divergence of latent space prior
+        3. KL-divergence of mixture distributions
 
+        Parameters
+        ----------
+        input_tensor: torch.Tensor
+            Original feature.
+        reconstr_error_weight: float
+            Weight for reconstruction error.
+
+        Returns
+        -------
+        Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+            Returns reconstruction error, sum of KL-divergences and the average negative ELBO.
+        """
         input_tensor = input_tensor.float()
 
         # Encoding
@@ -662,11 +1009,31 @@ class HIVAEModule(nn.Module):
             reconstr_error_weight * reconstr_error + kl + kl_s
         )
 
-        return reconstr_error, kl, average_negative_elbo
+        return reconstr_error, kl + kl_s, average_negative_elbo
 
     def reconstruct(
         self, input_tensor: torch.Tensor, reconstruction_mode: bool = "sample"
     ) -> torch.Tensor:
+        """
+        Reconstruct an input from the latent space.
+
+        Parameters
+        ----------
+        input_tensor: torch.Tensor
+            Original feature.
+        reconstruction_mode: str
+            Mode of reconstruction. "mode" returns the mode of the distribution, "sample" samples from the predicted
+            distribution. Default is "sample".
+
+        Returns
+        -------
+        torch.Tensor
+            Reconstructed sample.
+        """
+        assert reconstruction_mode in ("mode", "sample"), (
+            f"reconstruction_mode has to be either 'mode' or 'sample', "
+            f"{reconstruction_mode} found."
+        )
 
         input_tensor = input_tensor.float()
 
@@ -682,6 +1049,25 @@ class HIVAEModule(nn.Module):
 
 
 class HIVAE(VAE):
+    """
+    Model for the Heterogenous-Incomplete Variational Autoencoder by @TODO.
+
+    Parameters
+    ----------
+    hidden_sizes: List[int]
+        Size of decoder hidden layers.
+    input_size: int
+        Number of input features.
+    latent_dim: int
+        Dimensionality of latent space.
+    n_mix_components: int
+        Number of mixture components.
+    feat_types: FeatTypes
+        List of feature types and their value ranges.
+    reconstr_error_weight: float
+        Weight for reconstruction error.
+    """
+
     def __init__(
         self,
         hidden_sizes: List[int],
@@ -696,12 +1082,27 @@ class HIVAE(VAE):
             hidden_sizes, input_size, latent_dim, lr, reconstr_error_weight
         )
         self.n_mix_components = n_mix_components
-
         self.model = HIVAEModule(hidden_sizes, latent_dim, n_mix_components, feat_types)
 
     def reconstruct(
         self, input_tensor: torch.Tensor, reconstruction_mode: bool = "sample"
     ) -> torch.Tensor:
+        """
+        Reconstruct an input from the latent space.
+
+        Parameters
+        ----------
+        input_tensor: torch.Tensor
+            Original feature.
+        reconstruction_mode: str
+            Mode of reconstruction. "mode" returns the mode of the distribution, "sample" samples from the predicted
+            distribution. Default is "sample".
+
+        Returns
+        -------
+        torch.Tensor
+            Reconstructed sample.
+        """
         return self.model.reconstruct(input_tensor, reconstruction_mode)
 
 
@@ -717,6 +1118,25 @@ def infer_types(
 ) -> FeatTypes:
     """
     A basic function to infer the types from a data set automatically.
+
+    Parameters
+    ----------
+    X: np.array
+        Training data.
+    feat_names: List[str]
+        List of feature names.
+    unique_thresh: int
+        If feature only contains natural numbers and contains more unique values than unique_thresh, it will be
+        inferred as real-valued instead of categorical. Default value is 20.
+    count_kws: Set[str]
+        Set of key words that will have the function infer a variables as count if they appear in the feature name.
+    ordinal_kws: Set[str]
+        Set of key words that will have the function infer a variables as ordinal if they appear in the feature name.
+
+    Returns
+    -------
+    FeatTypes
+        Inferred feature types.
     """
     feat_types = []
 
