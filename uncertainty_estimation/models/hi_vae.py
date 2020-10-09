@@ -950,7 +950,10 @@ class HIVAEModule(nn.Module):
         )
 
     def forward(
-        self, input_tensor: torch.Tensor, reconstr_error_weight: float,
+        self,
+        input_tensor: torch.Tensor,
+        reconstr_error_weight: float,
+        beta: float = 1.0,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Compute the loss for the current batch. The loss contains three parts:
@@ -965,6 +968,8 @@ class HIVAEModule(nn.Module):
             Original feature.
         reconstr_error_weight: float
             Weight for reconstruction error.
+        beta: float
+            Weighting term for the KL divergence.
 
         Returns
         -------
@@ -1006,7 +1011,7 @@ class HIVAEModule(nn.Module):
         ) + math.log(self.n_mix_components)
 
         average_negative_elbo = torch.mean(
-            reconstr_error_weight * reconstr_error + kl + kl_s
+            reconstr_error_weight * reconstr_error + beta * kl + kl_s
         )
 
         return reconstr_error, kl + kl_s, average_negative_elbo
@@ -1066,6 +1071,10 @@ class HIVAE(VAE):
         List of feature types and their value ranges.
     reconstr_error_weight: float
         Weight for reconstruction error.
+    beta: float
+        Weighting term for the KL-divergence.
+    anneal: bool
+        Option to indicate whether KL-divergence should be annealed.
     """
 
     def __init__(
@@ -1075,11 +1084,19 @@ class HIVAE(VAE):
         latent_dim: int,
         n_mix_components: int,
         feat_types: FeatTypes,
+        beta: float = 1.0,
+        anneal: bool = True,
         lr: float = DEFAULT_LEARNING_RATE,
         reconstr_error_weight: float = DEFAULT_RECONSTR_ERROR_WEIGHT,
     ):
         super().__init__(
-            hidden_sizes, input_size, latent_dim, lr, reconstr_error_weight
+            hidden_sizes,
+            input_size,
+            latent_dim,
+            beta,
+            anneal,
+            lr,
+            reconstr_error_weight,
         )
         self.n_mix_components = n_mix_components
         self.model = HIVAEModule(hidden_sizes, latent_dim, n_mix_components, feat_types)
