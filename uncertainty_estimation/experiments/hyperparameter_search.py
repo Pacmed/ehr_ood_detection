@@ -129,21 +129,24 @@ def perform_hyperparameter_search(
                 scores[run] = {"score": score, "hyperparameters": param_set}
                 progress_bar.update(1)
 
-            # Rank and save results
-            scores = dict(
-                list(
-                    sorted(
-                        scores.items(), key=lambda run: run[1]["score"], reverse=True
-                    )
-                )[:save_top_n]
-            )
-            model_result_dir = f"{result_dir}/{data_origin}/"
+                # Rank and save results
+                # Do after every experiment in case anything goes wrong
+                sorted_scores = dict(
+                    list(
+                        sorted(
+                            scores.items(),
+                            key=lambda run: run[1]["score"],
+                            reverse=True,
+                        )
+                    )[:save_top_n]
+                )
+                model_result_dir = f"{result_dir}/{data_origin}/"
 
-            if not os.path.exists(model_result_dir):
-                os.makedirs(model_result_dir)
+                if not os.path.exists(model_result_dir):
+                    os.makedirs(model_result_dir)
 
-            with open(f"{model_result_dir}/{model_name}.json", "w") as result_file:
-                result_file.write(json.dumps(scores, indent=4))
+                with open(f"{model_result_dir}/{model_name}.json", "w") as result_file:
+                    result_file.write(json.dumps(sorted_scores, indent=4))
 
 
 def get_num_runs(models: List[str]) -> int:
