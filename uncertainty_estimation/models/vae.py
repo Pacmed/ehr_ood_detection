@@ -389,7 +389,7 @@ class VAE:
 
         average_epoch_elbo, i = 0, 0
 
-        for i, batch in enumerate(tqdm(data)):
+        for i, batch in enumerate(data):
 
             if self.anneal and self.model.training:
                 beta = self.get_beta(
