@@ -120,7 +120,7 @@ def perform_hyperparameter_search(
                         score = preds.mean()
 
                 # In case of nans due bad training parameters
-                except ValueError:
+                except (ValueError, RuntimeError):
                     score = -np.inf
 
                 if np.isnan(score):

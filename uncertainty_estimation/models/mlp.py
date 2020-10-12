@@ -23,6 +23,9 @@ from uncertainty_estimation.models.info import (
 from uncertainty_estimation.utils.metrics import entropy
 
 
+# TODO: Add annealing to BNN
+
+
 class MLPModule(nn.Module):
     """
     Base class for a multilayer perceptron.

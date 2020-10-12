@@ -114,14 +114,14 @@ MODEL_PARAMS = {
     },
     "HI-VAE": {
         "MIMIC": {
-            "n_mix_components": 3,
+            "n_mix_components": 5,
             "hidden_sizes": [75, 75],
-            "latent_dim": 10,
-            "lr": 0.5316,
-            "reconstr_error_weight": 0.00040318,
+            "latent_dim": 30,
+            "lr": 0.0040316,
+            "reconstr_error_weight": 0.40318,
             "feat_types": feat_types_mimic,
-            "beta": 1.0,
-            "anneal": True,
+            "beta": 1,
+            "anneal": False,
         },
         "eICU": {
             "n_mix_components": 3,
@@ -271,7 +271,7 @@ TRAIN_PARAMS = {
     "PPCA": {},
     "AE": {"n_epochs": 10, "batch_size": 64},
     "VAE": {"n_epochs": 10, "batch_size": 64},
-    "HI-VAE": {"n_epochs": 10, "batch_size": 64},
+    "HI-VAE": {"n_epochs": 4, "batch_size": 128},
     "SVM": {},
     "NN": {
         "batch_size": 256,
@@ -336,12 +336,14 @@ PARAM_SEARCH = {
     "prior_pi": uniform(loc=0.1, scale=0.8),  # [0.1, 0.9]
     "prior_sigma_1": [np.exp(d) for d in np.arange(-0.8, 0, 0.1)],
     "prior_sigma_2": [np.exp(d) for d in np.arange(-0.8, 0, 0.1)],
-    "reconstr_error_weight": loguniform(0.001, 0.9),
+    "reconstr_error_weight": loguniform(0.01, 0.9),
+    "anneal": [True, False],
+    "beta": uniform(loc=0.1, scale=2.4),  # [0.1, 2.5]
 }
 NUM_EVALS = {
     "AE": 40,
-    "VAE": 100,
-    "HI-VAE": 100,
+    "VAE": 200,
+    "HI-VAE": 200,
     "NN": 40,
     "MCDropout": 40,
     "BNN": 100,

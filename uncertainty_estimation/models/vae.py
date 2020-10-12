@@ -394,7 +394,7 @@ class VAE:
             if self.anneal and self.model.training:
                 beta = self.get_beta(
                     target_beta=self.beta,
-                    current_epoch=self.current_epoch,
+                    current_epoch=current_epoch,
                     current_iter=i,
                     n_epochs=n_epochs,
                     n_iters=len(data),
@@ -409,17 +409,16 @@ class VAE:
             average_epoch_elbo += average_negative_elbo
 
             if self.model.training:
-                self.optimizer.zero_grad()
 
-                print(average_negative_elbo)  # TODO: Debug
+                if torch.isnan(average_negative_elbo):
+                    raise ValueError("ELBO is nan.")
 
                 average_negative_elbo.backward()
-                nn.utils.clip_grad_norm_(self.model.parameters(), 1)
+                nn.utils.clip_grad_norm_(self.model.parameters(), 4)
                 self.optimizer.step()
+                self.optimizer.zero_grad()
 
         average_epoch_elbo = average_epoch_elbo / (i + 1)
-        print(average_epoch_elbo)  # TODO: Debug
-        self.current_epoch += 1
 
         return average_epoch_elbo
 
@@ -430,7 +429,7 @@ class VAE:
         current_iter: int,
         n_epochs: int,
         n_iters: int,
-        saturation_percentage: float = 0.3,
+        saturation_percentage: float = 0.4,
     ) -> float:
         """
         Get the current beta term.
