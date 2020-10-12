@@ -457,9 +457,9 @@ class NormalDecoder(VarDecoder):
         """
         running_std = torch.sqrt(self.encoder_sb.running_var[dim])
         running_mean = self.encoder_sb.running_mean[dim]
-        mean = self.mean(hidden)
+        mean = self.mean(hidden).squeeze(1)
         mean = mean * running_std + running_mean  # Batch de-normalization
-        var = torch.clamp(F.softplus(self.var(hidden)), 1e-3, 1e6)
+        var = torch.clamp(F.softplus(self.var(hidden)).squeeze(1), 1e-3, 1e6)
         std = torch.sqrt(var) * running_std + 1e-8  # Avoid division by 0
 
         # calculating losses
