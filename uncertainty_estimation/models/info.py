@@ -50,7 +50,8 @@ SINGLE_INST_MULTIPLE_PRED_NN_MODELS = {
     "BNN",  # Bayesian Neural Network
 }
 
-AUTOENCODERS = {"AE", "VAE", "HI-VAE"}
+VARIATIONAL_AUTOENCODERS = {"VAE", "HI-VAE"}
+AUTOENCODERS = {"AE"} | VARIATIONAL_AUTOENCODERS
 
 NO_ENSEMBLE_NN_MODELS = (
     SINGLE_PRED_NN_MODELS | AUTOENCODERS | SINGLE_INST_MULTIPLE_PRED_NN_MODELS
@@ -74,8 +75,16 @@ AVAILABLE_MODELS = NEURAL_MODELS | BASELINES  # All available models in this pro
 AVAILABLE_SCORING_FUNCS = {
     "PPCA": ("default",),  # Default: log-prob
     "AE": ("default",),  # Default: Reconstruction error
-    "HI-VAE": ("default",),  # Default: Reconstruction error
-    "VAE": ("default",),  # Default: Reconstruction error
+    "HI-VAE": (
+        "default",
+        "latent_prob",
+        "latent_prior_prob",
+    ),  # Default: Reconstruction error
+    "VAE": (
+        "default",
+        "latent_prob",
+        "latent_prior_prob",
+    ),  # Default: Reconstruction error
     "SVM": ("default",),  # Default: Distance to decision boundary
     "NN": ("entropy", "max_prob"),  # Default: entropy
     "PlattScalingNN": ("entropy", "max_prob"),

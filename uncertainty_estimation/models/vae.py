@@ -11,7 +11,6 @@ import torch
 import torch.nn as nn
 import torch.distributions as dist
 import torch.utils.data
-from tqdm import tqdm
 
 # PROJECT
 from uncertainty_estimation.models.info import (
@@ -521,3 +520,53 @@ class VAE:
         z = mean + eps * std
 
         return z
+
+    def get_latent_prior_prob(self, data: np.ndarray) -> np.ndarray:
+        """
+        Get the probability of the latent representation corresponding to an input according
+        to the latent space prior p(z).
+
+        Parameters
+        ----------
+        data: np.ndarray
+            The data for which we want to get the latent probabilities.
+
+        Returns
+        -------
+        np.ndarray
+            Log probabilities of latent representations.
+        """
+        # TODO: Debug
+        self.model.eval()
+        mean, _ = self.model.encoder(torch.from_numpy(data).unsqueeze(0).float())
+
+        # For VAE, the latent space is an isotropic gaussian
+        distribution = dist.independent.Independent(dist.normal.Normal(0, 1), 0)
+        latent_prob = distribution.log_prob(mean).detach().numpy()
+
+        return latent_prob
+
+    def get_latent_prob(self, data: np.ndarray) -> np.ndarray:
+        """
+        Get the probability of the latent representation corresponding to an input according
+        to q(z|x).
+
+        Parameters
+        ----------
+        data: np.ndarray
+            The data for which we want to get the latent probabilities.
+
+        Returns
+        -------
+        np.ndarray
+            Log probabilities of latent representations.
+        """
+        # TODO: Debug
+        self.model.eval()
+        mean, std = self.model.encoder(torch.from_numpy(data).unsqueeze(0).float())
+
+        # For VAE, the latent space is an isotropic gaussian
+        distribution = dist.independent.Independent(dist.normal.Normal(mean, std), 0)
+        latent_prob = distribution.log_prob(mean).detach().numpy()
+
+        return latent_prob
