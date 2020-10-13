@@ -695,6 +695,74 @@ class HIVAEModule(nn.Module):
 
         return imputed_input
 
+    def get_reconstruction_error_grad(self, input_tensor: torch.Tensor) -> torch.Tensor:
+        """
+        Return the gradient of log p(x|z).
+
+        Parameters
+        ----------
+        input_tensor: torch.Tensor
+            Input for which the gradient of the reconstruction error should be computed.
+
+        Returns
+        -------
+        torch.Tensor
+            Gradient of reconstruction error w.r.t. the input.
+        """
+        model_state = self.encoder.training
+        self.encoder.train()
+        self.decoder.train()
+
+        input_tensor = input_tensor.float()
+
+        # Encoding
+        normed_input_tensor, observed_mask = self.encoder.normalize(input_tensor)
+        # requires_grad can only be set to 0 after normalization because normalize() contains inplace operations
+        normed_input_tensor.requires_grad = True
+        encoded_input_tensor = self.encoder.categorical_encode(normed_input_tensor)
+
+        # Determine mixture component data point came from
+        _, mix_components = self.encoder.sample_mix_components(encoded_input_tensor)
+
+        h = self.encoder.hidden(encoded_input_tensor)
+        h = torch.cat([h, mix_components], dim=1)
+
+        mean = self.encoder.mean(h)
+
+        # Decoding
+        reconstr_error = self.decoder.reconstruction_error(
+            input_tensor, mean, mix_components, observed_mask
+        )
+        # Compute separate grad for each bach instance
+        reconstr_error.backward(gradient=torch.ones(reconstr_error.shape))
+        grad = normed_input_tensor.grad
+
+        # Reset model state to what is was before
+        self.encoder.training = model_state
+        self.decoder.training = model_state
+
+        return grad
+
+    def get_reconstruction_grad_magnitude(
+        self, input_tensor: torch.Tensor
+    ) -> torch.Tensor:
+        """
+        Retrieve the l2-norm of the gradient of log(x|z) w.r.t to the input.
+
+        Parameters
+        ----------
+        input_tensor: torch.Tensor
+            Input for which the magnitude of the gradient w.r.t. the reconstruction error should be computed.
+
+        Returns
+        -------
+        torch.Tensor
+            Magnitude of gradient of reconstruction error wr.t. the input.
+        """
+        norm = torch.norm(self.get_reconstruction_error_grad(input_tensor), dim=1)
+
+        return norm
+
 
 class HIVAE(VAE):
     """
@@ -799,10 +867,9 @@ class HIVAE(VAE):
         np.ndarray
             Log probabilities of latent representations.
         """
-        # TODO: Debug
         self.model.eval()
         mean, _, _, mix_components, _ = self.model.encoder(
-            torch.from_numpy(data).unsqueeze(0).float()
+            torch.from_numpy(data).float()
         )
         p_mean = self.model.encoder.p_mean(mix_components)
         log_p_var = self.model.encoder.p_log_var(mix_components)
@@ -812,9 +879,29 @@ class HIVAE(VAE):
         distribution = dist.independent.Independent(
             dist.normal.Normal(p_mean, p_std), 0
         )
-        latent_prob = distribution.log_prob(mean).detach().numpy()
+        latent_prob = distribution.log_prob(mean).sum(dim=1).detach().numpy()
 
         return latent_prob
+
+    def get_reconstruction_grad_magnitude(self, data: np.ndarray) -> np.ndarray:
+        """
+        Retrieve the l2-norm of the gradient of log(x|z) w.r.t to the input.
+
+        Parameters
+        ----------
+        data: data: np.ndarray
+            Input for which the magnitude of the gradient w.r.t. the reconstruction error should be computed.
+
+        Returns
+        -------
+        data: np.ndarray
+            Magnitude of gradient of reconstruction error wr.t. the input.
+        """
+        data = torch.from_numpy(data)
+        grad_magnitude = self.model.get_reconstruction_grad_magnitude(data)
+        grad_magnitude = grad_magnitude.detach().numpy()
+
+        return grad_magnitude
 
 
 # ---------------------------------------------- Helper functions ------------------------------------------------------

@@ -76,9 +76,10 @@ AVAILABLE_SCORING_FUNCS = {
     "PPCA": ("default",),  # Default: log-prob
     "AE": ("default",),  # Default: Reconstruction error
     "HI-VAE": (
-        "default",
-        "latent_prob",
-        "latent_prior_prob",
+        # "default", # TODO: Debug
+        # "latent_prob", # TODO: Debug
+        # "latent_prior_prob", # TODO: Debug
+        "reconstr_err_grad",
     ),  # Default: Reconstruction error
     "VAE": (
         "default",

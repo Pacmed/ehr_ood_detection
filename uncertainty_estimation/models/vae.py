@@ -536,13 +536,12 @@ class VAE:
         np.ndarray
             Log probabilities of latent representations.
         """
-        # TODO: Debug
         self.model.eval()
-        mean, _ = self.model.encoder(torch.from_numpy(data).unsqueeze(0).float())
+        mean, _ = self.model.encoder(torch.from_numpy(data).float())
 
         # For VAE, the latent space is an isotropic gaussian
         distribution = dist.independent.Independent(dist.normal.Normal(0, 1), 0)
-        latent_prob = distribution.log_prob(mean).detach().numpy()
+        latent_prob = distribution.log_prob(mean).sum(dim=1).detach().numpy()
 
         return latent_prob
 
@@ -561,12 +560,11 @@ class VAE:
         np.ndarray
             Log probabilities of latent representations.
         """
-        # TODO: Debug
         self.model.eval()
-        mean, std = self.model.encoder(torch.from_numpy(data).unsqueeze(0).float())
+        mean, std = self.model.encoder(torch.from_numpy(data).float())
 
         # For VAE, the latent space is an isotropic gaussian
         distribution = dist.independent.Independent(dist.normal.Normal(mean, std), 0)
-        latent_prob = distribution.log_prob(mean).detach().numpy()
+        latent_prob = distribution.log_prob(mean).sum(dim=1).detach().numpy()
 
         return latent_prob
