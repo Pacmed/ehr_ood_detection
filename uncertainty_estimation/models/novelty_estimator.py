@@ -18,6 +18,7 @@ from uncertainty_estimation.models.info import (
     MULTIPLE_PRED_NN_MODELS,
     SINGLE_PRED_NN_MODELS,
     AUTOENCODERS,
+    VARIATIONAL_AUTOENCODERS,
 )
 
 
@@ -100,13 +101,16 @@ class NoveltyEstimator:
         if self.name in AUTOENCODERS and scoring_func == "default":
             return self.model.get_reconstr_error(data)
 
-        elif self.name in AUTOENCODERS:
+        elif self.name in VARIATIONAL_AUTOENCODERS:
 
             if scoring_func == "latent_prob":
                 return -self.model.get_latent_prob(data)
 
             elif scoring_func == "latent_prior_prob":
                 return -self.model.get_latent_prior_prob(data)
+
+            elif scoring_func == "reconstr_err_grad" and self.name == "HI-VAE":
+                return self.model.get_reconstruction_grad_magnitude(data)
 
         elif self.name in BASELINES:
             return -self.model.score_samples(data)
