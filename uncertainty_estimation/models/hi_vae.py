@@ -19,7 +19,7 @@ import torch.nn.functional as F
 import torch.distributions as dist
 
 # PROJECT
-from models.var_decoders import (
+from uncertainty_estimation.models.var_decoders import (
     NormalDecoder,
     LogNormalDecoder,
     PoissonDecoder,
