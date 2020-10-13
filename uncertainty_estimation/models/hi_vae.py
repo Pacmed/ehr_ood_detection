@@ -16,6 +16,7 @@ import numpy as np
 import torch
 from torch import nn
 import torch.nn.functional as F
+import torch.distributions as dist
 
 # PROJECT
 from models.var_decoders import (
@@ -782,6 +783,38 @@ class HIVAE(VAE):
             Imputed input.
         """
         self.model.impute(input_tensor)
+
+    def get_latent_prior_prob(self, data: np.ndarray) -> np.ndarray:
+        """
+        Get the probability of the latent representation corresponding to an input according
+        to the latent space prior p(z).
+
+        Parameters
+        ----------
+        data: np.ndarray
+            The data for which we want to get the latent probabilities.
+
+        Returns
+        -------
+        np.ndarray
+            Log probabilities of latent representations.
+        """
+        # TODO: Debug
+        self.model.eval()
+        mean, _, _, mix_components, _ = self.model.encoder(
+            torch.from_numpy(data).unsqueeze(0).float()
+        )
+        p_mean = self.model.encoder.p_mean(mix_components)
+        log_p_var = self.model.encoder.p_log_var(mix_components)
+        p_std = torch.sqrt(torch.exp(log_p_var))
+
+        # For VAE, the latent space is an isotropic gaussian
+        distribution = dist.independent.Independent(
+            dist.normal.Normal(p_mean, p_std), 0
+        )
+        latent_prob = distribution.log_prob(mean).detach().numpy()
+
+        return latent_prob
 
 
 # ---------------------------------------------- Helper functions ------------------------------------------------------

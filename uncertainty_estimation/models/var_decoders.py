@@ -21,7 +21,7 @@ class VarDecoder(nn.Module, abc.ABC):
     hidden_size: int
         Output size of last hidden layer.
     feat_type: Tuple[str, Optional[int], Optional[int]]
-        Information about current featre.
+        Information about current feature.
     """
 
     def __init__(

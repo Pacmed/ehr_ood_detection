@@ -91,13 +91,22 @@ class NoveltyEstimator:
         np.ndarray
             The novelty estimates.
         """
+        # TODO: Refactor this as dict
         try:
             self.model.eval()
         except AttributeError:
             pass
 
-        if self.name in AUTOENCODERS:
+        if self.name in AUTOENCODERS and scoring_func == "default":
             return self.model.get_reconstr_error(data)
+
+        elif self.name in AUTOENCODERS:
+
+            if scoring_func == "latent_prob":
+                return -self.model.get_latent_prob(data)
+
+            elif scoring_func == "latent_prior_prob":
+                return -self.model.get_latent_prior_prob(data)
 
         elif self.name in BASELINES:
             return -self.model.score_samples(data)
