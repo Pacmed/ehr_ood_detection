@@ -342,7 +342,7 @@ PARAM_SEARCH = {
 }
 NUM_EVALS = {
     "AE": 40,
-    "VAE": 200,
+    "VAE": 400,
     "HI-VAE": 200,
     "NN": 40,
     "MCDropout": 40,
