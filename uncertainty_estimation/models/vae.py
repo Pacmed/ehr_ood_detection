@@ -11,6 +11,7 @@ import torch
 import torch.nn as nn
 import torch.distributions as dist
 import torch.utils.data
+from tqdm import tqdm
 
 # PROJECT
 from uncertainty_estimation.models.info import (
@@ -388,7 +389,7 @@ class VAE:
 
         average_epoch_elbo, i = 0, 0
 
-        for i, batch in enumerate(data):
+        for i, batch in enumerate(tqdm(data)):
 
             if self.anneal and self.model.training:
                 beta = self.get_beta(

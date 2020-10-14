@@ -93,14 +93,14 @@ class NoveltyAnalyzer:
         impute_and_scale: bool
             Whether to impute and scale the data before fitting the novelty estimator.
         """
-        if impute_and_scale:
+        if impute_and_scale and self.ne.name != "HI-VAE":
             self.X_ood = self.pipe.transform(new_X_ood)
         else:
             self.X_ood = new_X_ood
         self.ood = True
 
     def set_test(self, new_test_data):
-        if self.impute_and_scale:
+        if self.impute_and_scale and self.ne.name != "HI-VAE":
             self.X_test = self.pipe.transform(new_test_data)
         self.new_test = True
 

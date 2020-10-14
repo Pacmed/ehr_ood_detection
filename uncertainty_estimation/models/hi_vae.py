@@ -86,6 +86,15 @@ class HIEncoder(nn.Module):
 
         self.n_mix_components = n_mix_components
         self.feat_types = feat_types
+
+        # Create static masks
+        self.log_transform_mask = torch.BoolTensor(
+            [feat_type in ("positive_real", "count") for feat_type in only_types]
+        )
+        self.not_real_mask = torch.BoolTensor(
+            [feat_type not in ("real", "positive_real") for feat_type in only_types]
+        )
+
         self.encoded_input_size = self.get_encoded_input_size(feat_types)
 
         architecture = [self.encoded_input_size] + hidden_sizes
@@ -221,34 +230,26 @@ class HIEncoder(nn.Module):
             Normed output tensor and mask indicating which values where observed (unobserved values will be masked out
             during the loss computation.
         """
-        only_types = list(zip(*self.feat_types))[0]
-
         observed_mask = ~torch.isnan(
             input_tensor
         )  # Remember which values where observed
         input_tensor[~observed_mask] = 0  # Replace missing values with 0
 
         # Transform log-normal and count features
-        log_transform_mask = torch.BoolTensor(
-            [feat_type in ("positive_real", "count") for feat_type in only_types]
-        )
         log_transform_indices = torch.arange(0, input_tensor.shape[1])[
-            log_transform_mask
+            self.log_transform_mask
         ]
-        input_tensor[:, log_transform_mask] = torch.log(
+        input_tensor[:, self.log_transform_mask] = torch.log(
             F.relu(torch.index_select(input_tensor, dim=1, index=log_transform_indices))
             + 1e-8
         )
 
         # Normalize real features
-        not_real_mask = torch.BoolTensor(
-            [feat_type not in ("real", "positive_real") for feat_type in only_types]
-        )
-        real_indices = torch.arange(0, input_tensor.shape[1])[not_real_mask]
+        real_indices = torch.arange(0, input_tensor.shape[1])[self.not_real_mask]
 
         normed_input = self.real_batch_norm(input_tensor)
         # Recover values for non-real variables
-        normed_input[:, not_real_mask] = torch.index_select(
+        normed_input[:, self.not_real_mask] = torch.index_select(
             input_tensor, dim=1, index=real_indices
         )
 

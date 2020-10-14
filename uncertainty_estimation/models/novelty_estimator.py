@@ -77,6 +77,9 @@ class NoveltyEstimator:
             self.model = self.model_type(**self.model_params)
             self.model.train(X_train, y_train, X_val, y_val, **self.train_params)
 
+        else:
+            raise ValueError("No training function found for model.")
+
     def get_novelty_score(self, data, scoring_func: Callable = None):
         """Apply the novelty estimator to obtain a novelty score for the data.
 

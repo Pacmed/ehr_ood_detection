@@ -25,6 +25,9 @@ from uncertainty_estimation.models.info import AVAILABLE_MODELS
 N_SEEDS = 5
 RESULT_DIR = "../../data/results"
 
+
+# TODO: Avoid nan errors when testing VAE
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
