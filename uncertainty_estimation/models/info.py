@@ -82,9 +82,10 @@ AVAILABLE_SCORING_FUNCS = {
         "reconstr_err_grad",
     ),  # Default: Reconstruction error
     "VAE": (
-        "default",
-        "latent_prob",
-        "latent_prior_prob",
+        # "default",  # TODO: Re-add after additional experiments
+        # "latent_prob",
+        # "latent_prior_prob",
+        "reconstr_err_grad",
     ),  # Default: Reconstruction error
     "SVM": ("default",),  # Default: Distance to decision boundary
     "NN": ("entropy", "max_prob"),  # Default: entropy
@@ -189,25 +190,29 @@ MODEL_PARAMS = {
     },
     "BNN": {
         "MIMIC": {
-            "dropout_rate": 0.177533,
-            "hidden_sizes": [25, 25, 25],
-            "lr": 0.002418,
-            "posterior_mu_init": 0.22187,
-            "posterior_rho_init": -5.982621,
-            "prior_pi": 0.896689,
+            "anneal": False,
+            "beta": 0.986299,
+            "dropout_rate": 0.12111,
+            "hidden_sizes": [75],
+            "lr": 0.000731,
+            "posterior_mu_init": 0.177685,
+            "posterior_rho_init": -6.213837,
+            "prior_pi": 0.813872,
             "prior_sigma_1": 0.740818,
-            "prior_sigma_2": 0.606531,
+            "prior_sigma_2": 0.548812,
             "class_weight": False,
         },
         "eICU": {
-            "dropout_rate": 0.038759,
-            "hidden_sizes": [30, 30],
-            "lr": 0.002287,
-            "posterior_mu_init": 0.518821,
-            "posterior_rho_init": -4.475038,
-            "prior_pi": 0.858602,
-            "prior_sigma_1": 0.904837,
-            "prior_sigma_2": 0.67032,
+            "anneal": True,
+            "beta": 1.437923,
+            "dropout_rate": 0.082861,
+            "hidden_sizes": [100],
+            "lr": 0.000578,
+            "posterior_mu_init": 0.412893,
+            "posterior_rho_init": -7.542776,
+            "prior_pi": 0.484903,
+            "prior_sigma_1": 0.449329,
+            "prior_sigma_2": 0.740818,
             "class_weight": False,
         },
     },

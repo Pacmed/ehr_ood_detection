@@ -150,10 +150,10 @@ class Decoder(nn.Module):
         log_var = self.log_var(h)
         std = torch.sqrt(torch.exp(log_var))
 
-        distribution = dist.independent.Independent(dist.normal.Normal(mean, std), 1)
+        distribution = dist.independent.Independent(dist.normal.Normal(mean, std), 0)
 
         # calculating losses
-        reconstr_error = -distribution.log_prob(input_tensor)
+        reconstr_error = -distribution.log_prob(input_tensor).sum(dim=1)
 
         return reconstr_error
 
@@ -229,6 +229,63 @@ class VAEModule(nn.Module):
         )
 
         return reconstr_error, kl, average_negative_elbo
+
+    def get_reconstruction_error_grad(self, input_tensor: torch.Tensor) -> torch.Tensor:
+        """
+        Return the gradient of log p(x|z).
+
+        Parameters
+        ----------
+        input_tensor: torch.Tensor
+            Input for which the gradient of the reconstruction error should be computed.
+
+        Returns
+        -------
+        torch.Tensor
+            Gradient of reconstruction error w.r.t. the input.
+        """
+        model_state = self.encoder.training
+        self.encoder.train()
+        self.decoder.train()
+
+        input_tensor = input_tensor.float()
+        input_tensor.requires_grad = True
+
+        # Encoding
+        h = self.encoder.hidden(input_tensor)
+        mean = self.encoder.mean(h)
+
+        # Decoding
+        reconstr_error = self.decoder.reconstruction_error(input_tensor, mean)
+        # Compute separate grad for each bach instance
+        reconstr_error.backward(gradient=torch.ones(reconstr_error.shape))
+        grad = input_tensor.grad
+
+        # Reset model state to what is was before
+        self.encoder.training = model_state
+        self.decoder.training = model_state
+
+        return grad
+
+    def get_reconstruction_grad_magnitude(
+        self, input_tensor: torch.Tensor
+    ) -> torch.Tensor:
+        """
+        Retrieve the l2-norm of the gradient of log(x|z) w.r.t to the input.
+
+        Parameters
+        ----------
+        input_tensor: torch.Tensor
+            Input for which the magnitude of the gradient w.r.t. the reconstruction error should be computed.
+
+        Returns
+        -------
+        torch.Tensor
+            Magnitude of gradient of reconstruction error wr.t. the input.
+        """
+        norm = torch.norm(self.get_reconstruction_error_grad(input_tensor), dim=1)
+
+        return norm
 
 
 class VAE:
@@ -422,8 +479,8 @@ class VAE:
 
         return average_epoch_elbo
 
+    @staticmethod
     def get_beta(
-        self,
         target_beta: float,
         current_epoch: int,
         current_iter: int,
@@ -569,3 +626,23 @@ class VAE:
         latent_prob = distribution.log_prob(mean).sum(dim=1).detach().numpy()
 
         return latent_prob
+
+    def get_reconstruction_grad_magnitude(self, data: np.ndarray) -> np.ndarray:
+        """
+        Retrieve the l2-norm of the gradient of log(x|z) w.r.t to the input.
+
+        Parameters
+        ----------
+        data: data: np.ndarray
+            Input for which the magnitude of the gradient w.r.t. the reconstruction error should be computed.
+
+        Returns
+        -------
+        data: np.ndarray
+            Magnitude of gradient of reconstruction error wr.t. the input.
+        """
+        data = torch.from_numpy(data)
+        grad_magnitude = self.model.get_reconstruction_grad_magnitude(data)
+        grad_magnitude = grad_magnitude.detach().numpy()
+
+        return grad_magnitude
