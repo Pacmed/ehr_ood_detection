@@ -72,6 +72,7 @@ AVAILABLE_MODELS = NEURAL_MODELS | BASELINES  # All available models in this pro
 
 # Available novelty scoring functions for models
 
+# TODO: Default is not a good way to name some of the methods which are different by model
 AVAILABLE_SCORING_FUNCS = {
     "PPCA": ("default",),  # Default: log-prob
     "AE": ("default",),  # Default: Reconstruction error
@@ -82,9 +83,9 @@ AVAILABLE_SCORING_FUNCS = {
         "reconstr_err_grad",
     ),  # Default: Reconstruction error
     "VAE": (
-        # "default",  # TODO: Re-add after additional experiments
-        # "latent_prob",
-        # "latent_prior_prob",
+        "default",
+        "latent_prob",
+        "latent_prior_prob",
         "reconstr_err_grad",
     ),  # Default: Reconstruction error
     "SVM": ("default",),  # Default: Distance to decision boundary
