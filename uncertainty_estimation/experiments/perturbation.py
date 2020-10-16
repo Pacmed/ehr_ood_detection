@@ -23,7 +23,7 @@ from uncertainty_estimation.utils.novelty_analyzer import NoveltyAnalyzer
 
 # CONST
 SCALES = [10, 100, 1000, 10000]
-N_FEATURES = 100
+N_FEATURES = 40  # TODO: Revert after HI-VAE experiments
 RESULT_DIR = "../../data/results"
 
 
@@ -55,18 +55,20 @@ def run_perturbation_experiment(
     aucs_dict = defaultdict(list)
     recall_dict = defaultdict(list)
 
-    for scale_adjustment in tqdm(SCALES):
-        random_sample = np.random.choice(
-            np.arange(0, X_test.shape[1]), N_FEATURES, replace=False
-        )
+    with tqdm(total=len(SCALES) * N_FEATURES) as pbar:
+        for scale_adjustment in SCALES:
+            random_sample = np.random.choice(
+                np.arange(0, X_test.shape[1]), N_FEATURES, replace=False
+            )
 
-        for r in random_sample:
-            X_test_adjusted = deepcopy(nov_an.X_test)
-            X_test_adjusted[:, r] = X_test_adjusted[:, r] * scale_adjustment
-            nov_an.set_ood(X_test_adjusted, impute_and_scale=False)
-            nov_an.calculate_novelty(scoring_func=scoring_func)
-            aucs_dict[scale_adjustment] += [nov_an.get_ood_detection_auc()]
-            recall_dict[scale_adjustment] += [nov_an.get_ood_recall()]
+            for r in random_sample:
+                X_test_adjusted = np.copy(nov_an.X_test)
+                X_test_adjusted[:, r] = X_test_adjusted[:, r] * scale_adjustment
+                nov_an.set_ood(X_test_adjusted, impute_and_scale=False)
+                nov_an.calculate_novelty(scoring_func=scoring_func)
+                aucs_dict[scale_adjustment] += [nov_an.get_ood_detection_auc()]
+                recall_dict[scale_adjustment] += [nov_an.get_ood_recall()]
+                pbar.update(1)
 
     return aucs_dict, recall_dict
 

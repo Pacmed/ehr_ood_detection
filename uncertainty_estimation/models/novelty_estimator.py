@@ -95,7 +95,7 @@ class NoveltyEstimator:
         np.ndarray
             The novelty estimates.
         """
-        # TODO: Refactor this as dict
+        # TODO: Refactor this as dict, it's very spaghetti
         try:
             self.model.eval()
         except AttributeError:
@@ -112,7 +112,7 @@ class NoveltyEstimator:
             elif scoring_func == "latent_prior_prob":
                 return -self.model.get_latent_prior_prob(data)
 
-            elif scoring_func == "reconstr_err_grad" and self.name == "HI-VAE":
+            elif scoring_func == "reconstr_err_grad":
                 return self.model.get_reconstruction_grad_magnitude(data)
 
         elif self.name in BASELINES:

@@ -744,26 +744,6 @@ class HIVAEModule(nn.Module):
 
         return grad
 
-    def get_reconstruction_grad_magnitude(
-        self, input_tensor: torch.Tensor
-    ) -> torch.Tensor:
-        """
-        Retrieve the l2-norm of the gradient of log(x|z) w.r.t to the input.
-
-        Parameters
-        ----------
-        input_tensor: torch.Tensor
-            Input for which the magnitude of the gradient w.r.t. the reconstruction error should be computed.
-
-        Returns
-        -------
-        torch.Tensor
-            Magnitude of gradient of reconstruction error wr.t. the input.
-        """
-        norm = torch.norm(self.get_reconstruction_error_grad(input_tensor), dim=1)
-
-        return norm
-
 
 class HIVAE(VAE):
     """
@@ -884,25 +864,29 @@ class HIVAE(VAE):
 
         return latent_prob
 
-    def get_reconstruction_grad_magnitude(self, data: np.ndarray) -> np.ndarray:
+    def get_latent_prob(self, data: np.ndarray) -> np.ndarray:
         """
-        Retrieve the l2-norm of the gradient of log(x|z) w.r.t to the input.
+        Get the probability of the latent representation corresponding to an input according
+        to q(z|x).
 
         Parameters
         ----------
-        data: data: np.ndarray
-            Input for which the magnitude of the gradient w.r.t. the reconstruction error should be computed.
+        data: np.ndarray
+            The data for which we want to get the latent probabilities.
 
         Returns
         -------
-        data: np.ndarray
-            Magnitude of gradient of reconstruction error wr.t. the input.
+        np.ndarray
+            Log probabilities of latent representations.
         """
-        data = torch.from_numpy(data)
-        grad_magnitude = self.model.get_reconstruction_grad_magnitude(data)
-        grad_magnitude = grad_magnitude.detach().numpy()
+        self.model.eval()
+        mean, std, _, _, _ = self.model.encoder(torch.from_numpy(data).float())
 
-        return grad_magnitude
+        # For VAE, the latent space is an isotropic gaussian
+        distribution = dist.independent.Independent(dist.normal.Normal(mean, std), 0)
+        latent_prob = distribution.log_prob(mean).sum(dim=1).detach().numpy()
+
+        return latent_prob
 
 
 # ---------------------------------------------- Helper functions ------------------------------------------------------

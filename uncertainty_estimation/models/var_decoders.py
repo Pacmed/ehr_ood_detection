@@ -358,7 +358,13 @@ class CategoricalDecoder(VarDecoder):
         """
         dists = self.linear(hidden)
         dists = F.softmax(dists, dim=1)
-        err = -F.cross_entropy(dists, target=input_tensor.long())
+
+        # This ugly block is just relevant for the perturbation experiments - if ordinal features are scaled,
+        # they might be scaled outside of the range that was allocated for their encoding, creating an index error here.
+        try:
+            err = F.cross_entropy(dists, target=input_tensor.long())
+        except IndexError:
+            err = float("inf")
 
         return err
 
@@ -478,6 +484,12 @@ class OrdinalDecoder(VarDecoder):
             )  # Shift labels so indexing matches up with tensor
 
         ordinal_probs = self.get_ordinal_probs(hidden)
-        err = F.cross_entropy(ordinal_probs, target=input_tensor.long())
+
+        # This ugly block is just relevant for the perturbation experiments - if ordinal features are scaled,
+        # they might be scaled outside of the range that was allocated for their encoding, creating an index error here.
+        try:
+            err = F.cross_entropy(ordinal_probs, target=input_tensor.long())
+        except IndexError:
+            err = float("inf")
 
         return err
