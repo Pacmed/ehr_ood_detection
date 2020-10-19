@@ -81,6 +81,26 @@ The availability by model is given in the following table:
 | Latent prop. | :x: | :x: | :x: | :x: | :x: | :x: | :x: | :x: | :x: | :x:  | :white_check_mark: | :white_check_mark: |
 | Latent prior prob. | :x: | :x: | :x: | :x: | :x: | :x: | :x: | :x: | :x: | :x:  | :white_check_mark: | :white_check_mark: |
 
+### Experiments
+
+The following scripts are included to prepare experiments:
+
+* Hyperparameter search (`experiments.hyperparameter_search.py`) using random sampling (hyperparameter options and ranges are defined in 
+`models.info.py`)
+* Validation of OOD-ness (`experiments.validate_ood.py`): Validate that OOD groups defined for a datasets differ significantly
+from the remaining training population using statistical significance tests. The OOD groups are defined in `utils.datahandler.py`.
+* Inferring the variable types automatically for the HI-VAE (`experiments.infer_types.py`)
+* Extracting some statistics about OOD groups with `experiments.ood_statistics.py`
+
+Furthermore, the following experiments are currently included:
+
+* Domain adaptation, where a model is trained on one and tested on a completely different data set (`experiments.domain_adaptation.py`)
+* A series of experiments which tests models on pre-defined OOD groups, invoked by `out_of_domain.py`
+* A perturbation experiment simulating data corruption / human error by scaling random feature by an increasing amount 
+(`perturbation.py`)
+
+Lastly, `plot_results.py` can be used to generate tables and plots from the results of these experiments. More information 
+about the correct usage is given in the section "Examples" below.
 
 ## Usage
 
@@ -148,13 +168,13 @@ Bishop, Christopher M. Bayesian pca. In Advances in neural information processin
 
 Blundell, C., Cornebise, J., Kavukcuoglu, K., & Wierstra, D. (2015). Weight uncertainty in neural networks. arXiv preprint arXiv:1505.05424.
 
-Gal, Yarin. Uncertainty in deep learning.Uni-versity of Cambridge, 1(3), 2016.
+Gal, Yarin. Uncertainty in deep learning. University of Cambridge, 1(3), 2016.
 
 Gal, Yarin, and Zoubin Ghahramani. "Dropout as a bayesian approximation: Representing model uncertainty in deep learning." international conference on machine learning. 2016.
 
-Chuan Guo, Geoff Pleiss, Yu Sun, and Kilian Q. Weinberger. On calibration ofmodern neural networks. In Proceedingsof the 34th International Conference on MachineLearning, ICML2017, Sydney, NSW, Australia, 6-11 August 2017, pages 1321–1330, 2017.
+Chuan Guo, Geoff Pleiss, Yu Sun, and Kilian Q. Weinberger. On calibration of modern neural networks. In Proceedingsof the 34th International Conference on MachineLearning, ICML2017, Sydney, NSW, Australia, 6-11 August 2017, pages 1321–1330, 2017.
 
-Grathwohl, Will,  Kuan-Chieh  Wang,  J ̈orn-Henrik  Jacobsen,  David  Duvenaud,  Mohammad Norouzi, and Kevin Swersky. Your classifier is secretly an energy based model and you should treat it like one. In 8th International Conference on Learning Representations, ICLR 2020, Addis Ababa, Ethiopia, April 26-30, 2020.
+Grathwohl, Will, Kuan-Chieh Wang, Jörn-Henrik Jacobsen, David Duvenaud, Mohammad Norouzi, and Kevin Swersky. Your classifier is secretly an energy based model and you should treat it like one. In 8th International Conference on Learning Representations, ICLR 2020, Addis Ababa, Ethiopia, April 26-30, 2020.
 
 Dan Hendrycks and Kevin Gimpel. A base-line for detecting misclassified and out-of-distribution examples in neural networks. In 5th International Conference on Learning Representations, ICLR 2017, Toulon, France, April 24-26, 2017, Conference Track Proceedings, 2017.
 
