@@ -96,6 +96,7 @@ class NoveltyEstimator:
             The novelty estimates.
         """
         # TODO: Refactor this as dict, it's very spaghetti
+        # TODO: Name it SCORING_FUNCS / otherwise rename in README
         try:
             self.model.eval()
         except AttributeError:
