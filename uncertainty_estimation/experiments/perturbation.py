@@ -5,7 +5,6 @@ Test the OOD-detection capabilities of models by scaling a random feature for al
 # STD
 import os
 import pickle
-from copy import deepcopy
 from collections import defaultdict
 import argparse
 from typing import Tuple, Dict, List
