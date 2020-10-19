@@ -287,7 +287,7 @@ TRAIN_PARAMS = {
     "PPCA": {},
     "AE": {"n_epochs": 10, "batch_size": 64},
     "VAE": {"n_epochs": 6, "batch_size": 64},
-    "HI-VAE": {"n_epochs": 4, "batch_size": 64},
+    "HI-VAE": {"n_epochs": 6, "batch_size": 64},
     "SVM": {},
     "NN": {
         "batch_size": 256,

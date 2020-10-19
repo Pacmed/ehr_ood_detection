@@ -744,6 +744,26 @@ class HIVAEModule(nn.Module):
 
         return grad
 
+    def get_reconstruction_grad_magnitude(
+        self, input_tensor: torch.Tensor
+    ) -> torch.Tensor:
+        """
+        Retrieve the l2-norm of the gradient of log(x|z) w.r.t to the input.
+
+        Parameters
+        ----------
+        input_tensor: torch.Tensor
+            Input for which the magnitude of the gradient w.r.t. the reconstruction error should be computed.
+
+        Returns
+        -------
+        torch.Tensor
+            Magnitude of gradient of reconstruction error wr.t. the input.
+        """
+        norm = torch.norm(self.get_reconstruction_error_grad(input_tensor), dim=1)
+
+        return norm
+
 
 class HIVAE(VAE):
     """
