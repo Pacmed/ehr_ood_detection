@@ -5,6 +5,9 @@ Define how models for experiments are initialized.
 # STD
 from typing import Optional, Iterable, Dict, Tuple, List, Type
 
+# EXT
+from sklearn.linear_model import LogisticRegression
+
 # from sklearn.svm import OneClassSVM
 
 # PROJECT
@@ -19,8 +22,6 @@ from uncertainty_estimation.models.mlp import (
     PlattScalingMLP,
 )
 from uncertainty_estimation.models.ppca import PPCA
-
-# PROJECT
 from uncertainty_estimation.models.novelty_estimator import NoveltyEstimator
 from uncertainty_estimation.models.info import (
     AVAILABLE_MODELS,
@@ -35,6 +36,7 @@ from uncertainty_estimation.utils.types import ModelInfo
 # Model classes
 MODEL_CLASSES = {
     "PPCA": PPCA,
+    "LogReg": LogisticRegression,
     # "SVM": OneClassSVM,
     "AE": AE,
     "VAE": VAE,

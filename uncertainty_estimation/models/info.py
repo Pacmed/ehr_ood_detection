@@ -30,7 +30,6 @@ with open(f"{FEAT_TYPES_DIR}/feat_types_MIMIC.json", "rb") as ft_mimic_file:
 
 DENSITY_BASELINES = {
     "PPCA",  # Probabilistic PCA for density estimation
-    "AE",  # Auto-Encoder for implicit density estimation
 }
 
 DISCRIMINATOR_BASELINES = {
@@ -38,6 +37,7 @@ DISCRIMINATOR_BASELINES = {
     # "SVM",  # One-class SVM for outlier detection
 }
 
+BASELINES = DENSITY_BASELINES | DISCRIMINATOR_BASELINES
 
 SINGLE_PRED_NN_MODELS = {
     "NN",  # Single neural discriminator
@@ -73,9 +73,7 @@ NEURAL_PREDICTORS = (
 )  # All neural network-based discriminators
 
 NEURAL_MODELS = NEURAL_PREDICTORS | AUTOENCODERS  # All neural models
-AVAILABLE_MODELS = (
-    NEURAL_MODELS | DENSITY_BASELINES | DISCRIMINATOR_BASELINES
-)  # All available models in this project
+AVAILABLE_MODELS = NEURAL_MODELS | BASELINES  # All available models in this project
 
 # Available novelty scoring functions for models
 
