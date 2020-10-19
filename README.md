@@ -11,7 +11,7 @@ is used in the following publications:
 In the following sections the contents of the repository are explained in detail, along with how to use it and some 
 examples.
 
-## Repository contents
+## :open_file_folder: Contents
 
 The repo contains the following directories:
 
@@ -24,7 +24,7 @@ The repo contains the following directories:
     * `preprocessing`: Preprocessing script for the eICU data set
     * `utils`: Helper functions
 
-### Models
+### :robot: Included Models
 
 @TODO: Add corresponding modules after refactoring
 
@@ -53,7 +53,7 @@ Miscellaneous notes:
 model's logic, the latter one defines interfaces to train and test it and compute certain metrics.
 
 
-### Metrics
+### :triangular_ruler: Included Metrics
 
 The following metrics are available for uncertainty estimation / OOD detection:
 
@@ -81,7 +81,7 @@ The availability by model is given in the following table:
 | Latent prop. | :x: | :x: | :x: | :x: | :x: | :x: | :x: | :x: | :x: | :x:  | :white_check_mark: | :white_check_mark: |
 | Latent prior prob. | :x: | :x: | :x: | :x: | :x: | :x: | :x: | :x: | :x: | :x:  | :white_check_mark: | :white_check_mark: |
 
-### Experiments
+### :microscope: Included Experiments
 
 The following scripts are included to prepare experiments:
 
@@ -106,18 +106,18 @@ about the correct usage is given in the section "Examples" below.
 
 The following sections walk you through the setup for the repo and give some examples for commands.
 
-### Setup 
+###  Setup 
 
 The setup consists of installing all the necessary packages, as well as optional but recommended steps to stratify the 
 work flow.
 
-#### Installation
+#### :inbox_tray: Installation
 
 The necessary packages can be installed with the commonly used `pip` command
 
     pip install -r requirements.txt
 
-#### Automatic Code Formatting (recommended)
+#### :hammer_and_wrench: Automatic Code Formatting (recommended)
 
 To ensure that code style guidelines are not being violated in commits, you can set up an automatic pre-commit hook 
 using the [Black](https://github.com/psf/black) code formatter, so you never have to worry about your code style ever 
@@ -143,7 +143,7 @@ terminal. In the case of black, simply try your `git add` and `git commit` again
 the case of flake8, check which piece of your code triggered the failure in the terminal message and correct it (if you 
 are _really_ sure that flake8 should ignore this kind of violation, add it to the `.flake8` file).
 
-#### Commit Message Template (recommended)
+#### :memo: Commit Message Template (recommended)
 
 Lastly, a commit message template using emojis is used in this project, which makes it easier to categorize commits and 
 quicker for others to understand the changes made in previous commits. The template along with the rationale and 
@@ -152,13 +152,13 @@ involves downloading the `.gitmessage` file, and then, from the repository root,
 
     git config commit.template .gitmessage
 
-### Examples
+### :point_up: Examples
 
-#### Experiments
+#### :microscope: Experiments
 
 @TODO: Describe experiments and give examples
  
-#### Plotting
+#### :bar_chart: Plotting
 
 Plotting is done using the `experiments.plot_results.py` script. For a comprehensive overview over the options, type
 
@@ -176,12 +176,12 @@ examples for usage:
     python3 plot_results.py --data_origin eICU -p ood --plot-type heatmap --show-percentage-sig --show-rel-sizes --print-latex
     python3 plot_results.py -p da --plot-type heatmap --show-percentage-sigs --show-rel-sizes --print-latex
     
-*Tip*: PyCharm allows you to save presets for these kind of commands, so switching between them often becomes much easier.
+**Tip**: PyCharm allows you to save presets for these kind of commands, so switching between them often becomes much easier.
 
-*Note*: The script will only plot results which are saved in the path specified via `--result_dir`, which is set to 
+**Note**: The script will only plot results which are saved in the path specified via `--result_dir`, which is set to 
 `../../data/results/` by default (expecting that run this script from the module it's located in).
 
-### Bibliography
+### :mortar_board: Bibliography
 
 Bishop, Christopher M. Bayesian pca. In Advances in neural information processing systems, pages 382–388, 1999.
 
