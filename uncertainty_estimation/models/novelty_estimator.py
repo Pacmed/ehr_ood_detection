@@ -13,7 +13,8 @@ import numpy as np
 from uncertainty_estimation.utils.metrics import entropy, max_prob
 from uncertainty_estimation.models.info import (
     ENSEMBLE_MODELS,
-    BASELINES,
+    DENSITY_BASELINES,
+    DISCRIMINATOR_BASELINES,
     NEURAL_PREDICTORS,
     MULTIPLE_PRED_NN_MODELS,
     SINGLE_PRED_NN_MODELS,
@@ -63,9 +64,13 @@ class NoveltyEstimator:
             self.model = self.model_type(**self.model_params)
             self.model.train(X_train, **self.train_params)
 
-        elif self.name in BASELINES:
+        elif self.name in DENSITY_BASELINES:
             self.model = self.model_type(**self.model_params)
             self.model.fit(X_train)
+
+        elif self.name in DISCRIMINATOR_BASELINES:
+            self.model = self.model_type(**self.model_params)
+            self.model.fit(X_train, y_train)
 
         elif self.name in ENSEMBLE_MODELS:
             self.model = self.model_type(**self.model_params)
@@ -78,7 +83,7 @@ class NoveltyEstimator:
             self.model.train(X_train, y_train, X_val, y_val, **self.train_params)
 
         else:
-            raise ValueError("No training function found for model.")
+            raise ValueError(f"No training function found for model {self.name}.")
 
     def get_novelty_score(self, data, scoring_func: Callable = None):
         """Apply the novelty estimator to obtain a novelty score for the data.
@@ -116,7 +121,7 @@ class NoveltyEstimator:
             elif scoring_func == "reconstr_err_grad":
                 return self.model.get_reconstruction_grad_magnitude(data)
 
-        elif self.name in BASELINES:
+        elif self.name in DENSITY_BASELINES:
             return -self.model.score_samples(data)
 
         elif self.name in MULTIPLE_PRED_NN_MODELS:
@@ -132,7 +137,7 @@ class NoveltyEstimator:
             else:
                 raise ValueError(f"Unknown type of scoring function: {scoring_func}")
 
-        elif self.name in SINGLE_PRED_NN_MODELS:
+        elif self.name in SINGLE_PRED_NN_MODELS | DISCRIMINATOR_BASELINES:
 
             if scoring_func == "entropy":
                 return entropy(self.model.predict_proba(data), axis=1)
