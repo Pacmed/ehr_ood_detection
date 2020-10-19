@@ -39,7 +39,7 @@ The following discriminators are included in the repository:
 * Anchored Neural Network Ensemble  (Pearce et al., 2020, `AnchoredNNEnsemble`, @TODO)
 
 The repo also contains the following density-estimation models:
-* Probabilistic PCA baseline  (`PPCA`, `models.ppca.py`)
+* Probabilistic PCA baseline  (Bishop 1999; `PPCA`, `models.ppca.py`)
 * Autoencoder (`AE`, `models.autoencoder.py`)
 * Variational Autoencoder (Kingma & Welling, 2014; `VAE`, `models.vae.py`)
 * Heterogenous-Incomplete Variational Autoencoder (Nazabal et al., 2020; `HI-VAE`, `models.hi_vae.py`)
@@ -84,19 +84,53 @@ The availability by model is given in the following table:
 
 ## Usage
 
+The following sections walk you through the setup for the repo and give some examples for commands.
+
 ### Setup 
+
+The setup consists of installing all the necessary packages, as well as optional but recommended steps to stratify the 
+work flow.
 
 #### Installation
 
-@TODO: Installation
+The necessary packages can be installed with the commonly used `pip` command
+
+    pip install -r requirements.txt
 
 #### Automatic Code Formatting (recommended)
 
-@TODO: Black code hook
+To ensure that code style guidelines are not being violated in commits, you can set up an automatic pre-commit hook 
+using the [Black](https://github.com/psf/black) code formatter, so you never have to worry about your code style ever 
+again!
+
+This involves the following steps, which are taken from the following [blog post](https://ljvmiranda921.github.io/notebook/2018/06/21/precommits-using-black-and-flake8/):
+
+1. Install the pre-commit package via
+
+        pip install pre-commit
+    
+2. Execute the following command in the `.git/` directory:
+
+        pre-commit install
+        
+The necessary other files are already contained in the repo, namely `.pre-commit-config.yaml` which defines two hooks 
+(Black for formatting and flake8 for style-checking) as well as `.flake8`, which defines the line length as well as types 
+of violations that should be ignored. 
+
+*What* *if* *a* *commit* *was* *rejected*: If your commit was rejected by Black or flake8, this is indicated with a e.g.
+`black...........Failed` after you try `git commit` in your 
+terminal. In the case of black, simply try your `git add` and `git commit` again (the code should now be formatted). In 
+the case of flake8, check which piece of your code triggered the failure in the terminal message and correct it (if you 
+are _really_ sure that flake8 should ignore this kind of violation, add it to the `.flake8` file).
 
 #### Commit Message Template (recommended)
 
-@TODO: gitmessage template
+Lastly, a commit message template using emojis is used in this project, which makes it easier to categorize commits and 
+quicker for others to understand the changes made in previous commits. The template along with the rationale and 
+installation instructions is given in [this repo](https://github.com/Kaleidophon/commit-template-for-humans). It simply 
+involves downloading the `.gitmessage` file, and then, from the repository root, executing the following command:
+
+    git config commit.template .gitmessage
 
 ### Examples
 
@@ -109,6 +143,8 @@ The availability by model is given in the following table:
 @TODO
 
 ### Bibliography
+
+Bishop, Christopher M. Bayesian pca. In Advances in neural information processing systems, pages 382–388, 1999.
 
 Blundell, C., Cornebise, J., Kavukcuoglu, K., & Wierstra, D. (2015). Weight uncertainty in neural networks. arXiv preprint arXiv:1505.05424.
 
