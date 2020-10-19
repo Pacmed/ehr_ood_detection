@@ -160,7 +160,26 @@ involves downloading the `.gitmessage` file, and then, from the repository root,
  
 #### Plotting
 
-@TODO
+Plotting is done using the `experiments.plot_results.py` script. For a comprehensive overview over the options, type
+
+    python3 plot_results.py -h
+    
+Generally, the most important options here are `--data-origin`, which specifies the data set, as well as `--plots` / `-p` 
+to define the experiments that should be plotted (current options are `da`, `ood`, `perturb`) corresponding to the experiments
+described above. `--plot-type heatmap` is recommended when plotting a lot of results at once to avoid clutter.
+For the OOD group / domain adaptation experiments, `--show-percentage-sig` adds the percentage of features that were distributed
+in a statistically significantly different way compared to the reference data, and `--show-rel-sizes` the relative size
+of the group. `--print-latex` can be added in order to print all results as latex tables on screen. Below are a few
+examples for usage:
+
+    python3 plot_results.py --data_origin MIMIC -p perturb --plot-type heatmap
+    python3 plot_results.py --data_origin eICU -p ood --plot-type heatmap --show-percentage-sig --show-rel-sizes --print-latex
+    python3 plot_results.py -p da --plot-type heatmap --show-percentage-sigs --show-rel-sizes --print-latex
+    
+*Tip*: PyCharm allows you to save presets for these kind of commands, so switching between them often becomes much easier.
+
+*Note*: The script will only plot results which are saved in the path specified via `--result_dir`, which is set to 
+`../../data/results/` by default (expecting that run this script from the module it's located in).
 
 ### Bibliography
 
