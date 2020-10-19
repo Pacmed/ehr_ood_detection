@@ -11,6 +11,22 @@ is used in the following publications:
 In the following sections the contents of the repository are explained in detail, along with how to use it and some 
 examples.
 
+## :books: Table of contents
+
+* [Contents](https://github.com/Pacmed/uncertainty_estimation/tree/hi-vae#open_file_folder-contents)
+    * [Included Models](https://github.com/Pacmed/uncertainty_estimation/tree/hi-vae#robot-included-models)
+    * [Included Metrics](https://github.com/Pacmed/uncertainty_estimation/tree/hi-vae#triangular_ruler-included-metrics)
+    * [Included Experiments](https://github.com/Pacmed/uncertainty_estimation/tree/hi-vae#microscope-included-experiments)
+* [Usage](https://github.com/Pacmed/uncertainty_estimation/tree/hi-vae#usage)
+    * [Setup](https://github.com/Pacmed/uncertainty_estimation/tree/hi-vae#setup) 
+        * [Installation](https://github.com/Pacmed/uncertainty_estimation/tree/hi-vae#inbox_tray-installation)
+        * [Automatic Code Formatting](https://github.com/Pacmed/uncertainty_estimation/tree/hi-vae#hammer_and_wrench-automatic-code-formatting-recommended)
+        * [Commit Message Template](https://github.com/Pacmed/uncertainty_estimation/tree/hi-vae#memo-commit-message-template-recommended)
+    * [Examples](https://github.com/Pacmed/uncertainty_estimation/tree/hi-vae#point_up-examples)
+        * [Experiments](https://github.com/Pacmed/uncertainty_estimation/tree/hi-vae#microscope-experiments)
+        * [Plotting](https://github.com/Pacmed/uncertainty_estimation/tree/hi-vae#bar_chart-plotting)
+* [Bibliography](https://github.com/Pacmed/uncertainty_estimation/tree/hi-vae#mortar_board-bibliography)
+
 ## :open_file_folder: Contents
 
 The repo contains the following directories:
@@ -102,11 +118,11 @@ Furthermore, the following experiments are currently included:
 Lastly, `plot_results.py` can be used to generate tables and plots from the results of these experiments. More information 
 about the correct usage is given in the section "Examples" below.
 
-## Usage
+## :interrobang: Usage
 
 The following sections walk you through the setup for the repo and give some examples for commands.
 
-###  Setup 
+### :rocket: Setup 
 
 The setup consists of installing all the necessary packages, as well as optional but recommended steps to stratify the 
 work flow.
