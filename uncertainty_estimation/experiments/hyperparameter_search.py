@@ -28,6 +28,7 @@ from uncertainty_estimation.models.info import (
     NEURAL_PREDICTORS,
     NEURAL_MODELS,
     TRAIN_PARAMS,
+    AUTOENCODERS,
 )
 from uncertainty_estimation.utils.model_init import MODEL_CLASSES
 
@@ -59,23 +60,32 @@ def perform_hyperparameter_search(
     feat_names = dh.load_feature_names()
     target_name = dh.load_target_name()
 
-    # Scale and impute
-    pipe = pipeline.Pipeline(
-        [("scaler", StandardScaler()), ("imputer", SimpleImputer())]
-    )
-    X_train = pipe.fit_transform(train_data[feat_names].values)
-    X_val = pipe.transform(val_data[feat_names].values)
-    y_train, y_val = train_data[target_name].values, val_data[target_name].values
-
     with tqdm(total=get_num_runs(models)) as progress_bar:
 
         for model_name in models:
+
+            X_train = train_data[feat_names].values
+            X_val = val_data[feat_names].values
+
+            # Scale and impute
+            if model_name != "HI-VAE":
+                pipe = pipeline.Pipeline(
+                    [("scaler", StandardScaler()), ("imputer", SimpleImputer())]
+                )
+                X_train = pipe.fit_transform(X_train)
+                X_val = pipe.transform(X_val)
+
+            y_train, y_val = (
+                train_data[target_name].values,
+                val_data[target_name].values,
+            )
+
             progress_bar.postfix = f"(model: {model_name})"
             progress_bar.update()
             scores = {}
             model_type = MODEL_CLASSES[model_name]
 
-            sampled_params = sample_hyperparameters(model_name)
+            sampled_params = sample_hyperparameters(model_name, data_origin)
 
             for run, param_set in enumerate(sampled_params):
 
@@ -83,48 +93,61 @@ def perform_hyperparameter_search(
                     param_set.update(input_size=len(feat_names))
 
                 model = model_type(**param_set)
-                model.fit(X_train, y_train, **TRAIN_PARAMS[model_name])
-                preds = model.predict(X_val)
 
-                # Neural predictors: Use the AUC-ROC score
-                if model_name in NEURAL_PREDICTORS:
-                    # When model training goes completely awry
-                    if np.isnan(preds).all():
-                        score = 0
+                try:
+                    model.fit(X_train, y_train, **TRAIN_PARAMS[model_name])
+                    preds = model.predict(X_val)
 
+                    # Neural predictors: Use the AUC-ROC score
+                    if model_name in NEURAL_PREDICTORS:
+                        # When model training goes completely awry
+                        if np.isnan(preds).all():
+                            score = 0
+
+                        else:
+                            preds = preds[:, 1]
+                            score = roc_auc_score(
+                                y_true=y_val[~np.isnan(preds)],
+                                y_score=preds[~np.isnan(preds)],
+                            )
+
+                    # Auto-encoders: Use mean negative reconstruction error (because score are sorted descendingly)
+                    elif model_name in AUTOENCODERS:
+                        score = -float(preds.mean())
+
+                    # PPCA: Just use the (mean) log-likelihood
                     else:
-                        preds = preds[:, 1]
-                        score = roc_auc_score(
-                            y_true=y_val[~np.isnan(preds)],
-                            y_score=preds[~np.isnan(preds)],
-                        )
+                        score = preds.mean()
 
-                # Auto-encoders: Use mean negative reconstruction error (because score are sorted descendingly)
-                elif model_name == "AE":
-                    score = -float(preds.mean())
+                # In case of nans due bad training parameters
+                except (ValueError, RuntimeError) as e:
+                    print(f"There was an error: '{str(e)}', run aborted.")
+                    score = -np.inf
 
-                # PPCA: Just use the (mean) log-likelihood
-                else:
-                    score = preds.mean()
+                if np.isnan(score):
+                    score = -np.inf
 
                 scores[run] = {"score": score, "hyperparameters": param_set}
                 progress_bar.update(1)
 
-            # Rank and save results
-            scores = dict(
-                list(
-                    sorted(
-                        scores.items(), key=lambda run: run[1]["score"], reverse=True
-                    )
-                )[:save_top_n]
-            )
-            model_result_dir = f"{result_dir}/{data_origin}/"
+                # Rank and save results
+                # Do after every experiment in case anything goes wrong
+                sorted_scores = dict(
+                    list(
+                        sorted(
+                            scores.items(),
+                            key=lambda run: run[1]["score"],
+                            reverse=True,
+                        )
+                    )[:save_top_n]
+                )
+                model_result_dir = f"{result_dir}/{data_origin}/"
 
-            if not os.path.exists(model_result_dir):
-                os.makedirs(model_result_dir)
+                if not os.path.exists(model_result_dir):
+                    os.makedirs(model_result_dir)
 
-            with open(f"{model_result_dir}/{model_name}.json", "w") as result_file:
-                result_file.write(json.dumps(scores, indent=4))
+                with open(f"{model_result_dir}/{model_name}.json", "w") as result_file:
+                    result_file.write(json.dumps(sorted_scores, indent=4))
 
 
 def get_num_runs(models: List[str]) -> int:
@@ -135,7 +158,7 @@ def get_num_runs(models: List[str]) -> int:
 
 
 def sample_hyperparameters(
-    model_name: str, round_to: int = 6
+    model_name: str, data_origin: str, round_to: int = 6
 ) -> List[Dict[str, Union[int, float]]]:
     """
     Sample the hyperparameters for different runs of the same model. The distributions parameters are sampled from are
@@ -146,6 +169,8 @@ def sample_hyperparameters(
     ----------
     model_name: str
         Name of the model.
+    data_origin: str
+        Specify the data set which should be used to specify the hyperparameters to be sampled / default values.
     round_to: int
         Decimal that floats should be rounded to.
 
@@ -159,7 +184,7 @@ def sample_hyperparameters(
             param_distributions={
                 hyperparam: PARAM_SEARCH[hyperparam]
                 for hyperparam, val in MODEL_PARAMS[model_name][
-                    "MIMIC"
+                    data_origin
                 ].items()  # MIMIC is just a default here
                 if hyperparam in PARAM_SEARCH
             },
@@ -178,7 +203,7 @@ def sample_hyperparameters(
                 # Add hyperparameters that stay fixed
                 hyperparam: val
                 for hyperparam, val in MODEL_PARAMS[model_name][
-                    "MIMIC"
+                    data_origin
                 ].items()  # MIMIC is just a default here
                 if hyperparam not in PARAM_SEARCH
             },

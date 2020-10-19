@@ -4,12 +4,27 @@ hyperparameters, etc.
 """
 
 # STD
-import math
+from collections import OrderedDict
+import json
 
 # EXT
 import numpy as np
 from sklearn.utils.fixes import loguniform
 from scipy.stats import uniform
+
+# CONST
+FEAT_TYPES_DIR = "../../data/feature_types"
+
+# Load feat types for HI-VAE
+with open(f"{FEAT_TYPES_DIR}/feat_types_eICU.json", "rb") as ft_eicu_file:
+    feat_types_eicu = list(
+        json.load(ft_eicu_file, object_pairs_hook=OrderedDict).values()
+    )
+
+with open(f"{FEAT_TYPES_DIR}/feat_types_MIMIC.json", "rb") as ft_mimic_file:
+    feat_types_mimic = list(
+        json.load(ft_mimic_file, object_pairs_hook=OrderedDict).values()
+    )
 
 # ### Models and novelty scoring functions ###
 
@@ -40,8 +55,11 @@ SINGLE_INST_MULTIPLE_PRED_NN_MODELS = {
     "BNN",  # Bayesian Neural Network
 }
 
+VARIATIONAL_AUTOENCODERS = {"VAE", "HI-VAE"}
+AUTOENCODERS = {"AE"} | VARIATIONAL_AUTOENCODERS
+
 NO_ENSEMBLE_NN_MODELS = (
-    SINGLE_PRED_NN_MODELS | {"AE"} | SINGLE_INST_MULTIPLE_PRED_NN_MODELS
+    SINGLE_PRED_NN_MODELS | AUTOENCODERS | SINGLE_INST_MULTIPLE_PRED_NN_MODELS
 )
 
 MULTIPLE_PRED_NN_MODELS = SINGLE_INST_MULTIPLE_PRED_NN_MODELS | ENSEMBLE_MODELS
@@ -54,16 +72,29 @@ NEURAL_PREDICTORS = (
     SINGLE_PRED_NN_MODELS | MULTIPLE_PRED_NN_MODELS
 )  # All neural network-based discriminators
 
-NEURAL_MODELS = NEURAL_PREDICTORS | {"AE"}  # All neural models
+NEURAL_MODELS = NEURAL_PREDICTORS | AUTOENCODERS  # All neural models
 AVAILABLE_MODELS = (
     NEURAL_MODELS | DENSITY_BASELINES | DISCRIMINATOR_BASELINES
 )  # All available models in this project
 
 # Available novelty scoring functions for models
 
+# TODO: Default is not a good way to name some of the methods which are different by model
 AVAILABLE_SCORING_FUNCS = {
     "PPCA": ("default",),  # Default: log-prob
     "AE": ("default",),  # Default: Reconstruction error
+    "HI-VAE": (
+        "default",
+        "latent_prob",  #
+        "latent_prior_prob",
+        "reconstr_err_grad",
+    ),  # Default: Reconstruction error
+    "VAE": (
+        "default",
+        "latent_prob",
+        "latent_prior_prob",
+        "reconstr_err_grad",
+    ),  # Default: Reconstruction error
     "SVM": ("default",),  # Default: Distance to decision boundary
     "LogReg": ("entropy", "max_prob"),
     "NN": ("entropy", "max_prob"),
@@ -82,6 +113,46 @@ MODEL_PARAMS = {
     "AE": {
         "MIMIC": {"hidden_sizes": [75], "latent_dim": 15, "lr": 0.006897},
         "eICU": {"hidden_sizes": [100], "latent_dim": 15, "lr": 0.005216},
+    },
+    "VAE": {
+        "MIMIC": {
+            "anneal": False,
+            "beta": 0.631629,
+            "hidden_sizes": [50, 50],
+            "latent_dim": 10,
+            "lr": 0.000568,
+            "reconstr_error_weight": 0.238141,
+        },
+        "eICU": {
+            "anneal": True,
+            "beta": 1.776192,
+            "hidden_sizes": [75],
+            "latent_dim": 20,
+            "lr": 0.003047,
+            "reconstr_error_weight": 0.183444,
+        },
+    },
+    "HI-VAE": {
+        "MIMIC": {
+            "anneal": False,
+            "beta": 2.138636,
+            "hidden_sizes": [75],
+            "latent_dim": 20,
+            "lr": 0.00278,
+            "n_mix_components": 5,
+            "reconstr_error_weight": 0.065363,
+            "feat_types": feat_types_mimic,
+        },
+        "eICU": {
+            "anneal": False,
+            "beta": 1.457541,
+            "hidden_sizes": [30],
+            "latent_dim": 10,
+            "lr": 0.002141,
+            "n_mix_components": 7,
+            "reconstr_error_weight": 0.045573,
+            "feat_types": feat_types_eicu,
+        },
     },
     "SVM": {},
     "LogReg": {"MIMIC": {"C": 10}, "eICU": {"C": 1000}},
@@ -129,25 +200,29 @@ MODEL_PARAMS = {
     },
     "BNN": {
         "MIMIC": {
-            "dropout_rate": 0.177533,
-            "hidden_sizes": [25, 25, 25],
-            "lr": 0.002418,
-            "posterior_mu_init": 0.22187,
-            "posterior_rho_init": -5.982621,
-            "prior_pi": 0.896689,
+            "anneal": False,
+            "beta": 0.986299,
+            "dropout_rate": 0.12111,
+            "hidden_sizes": [75],
+            "lr": 0.000731,
+            "posterior_mu_init": 0.177685,
+            "posterior_rho_init": -6.213837,
+            "prior_pi": 0.813872,
             "prior_sigma_1": 0.740818,
-            "prior_sigma_2": 0.606531,
+            "prior_sigma_2": 0.548812,
             "class_weight": False,
         },
         "eICU": {
-            "dropout_rate": 0.038759,
-            "hidden_sizes": [30, 30],
-            "lr": 0.002287,
-            "posterior_mu_init": 0.518821,
-            "posterior_rho_init": -4.475038,
-            "prior_pi": 0.858602,
-            "prior_sigma_1": 0.904837,
-            "prior_sigma_2": 0.67032,
+            "anneal": True,
+            "beta": 1.437923,
+            "dropout_rate": 0.082861,
+            "hidden_sizes": [100],
+            "lr": 0.000578,
+            "posterior_mu_init": 0.412893,
+            "posterior_rho_init": -7.542776,
+            "prior_pi": 0.484903,
+            "prior_sigma_1": 0.449329,
+            "prior_sigma_2": 0.740818,
             "class_weight": False,
         },
     },
@@ -220,6 +295,8 @@ MODEL_PARAMS = {
 TRAIN_PARAMS = {
     "PPCA": {},
     "AE": {"n_epochs": 10, "batch_size": 64},
+    "VAE": {"n_epochs": 6, "batch_size": 64},
+    "HI-VAE": {"n_epochs": 6, "batch_size": 64},
     "SVM": {},
     "LogReg": {},
     "NN": {
@@ -280,15 +357,22 @@ PARAM_SEARCH = {
     # Intervals become [loc, loc + scale] for uniform
     "C": [10 ** i for i in range(0, 5)],
     #  Regularization for logistic regression baseline
+    "n_mix_components": range(1, 11),
+    # Intervals become [loc, loc + scale] for uniform
     "dropout_rate": uniform(loc=0, scale=0.5),  # [0, 0.5]
     "posterior_rho_init": uniform(loc=-8, scale=6),  # [-8, -2]
     "posterior_mu_init": uniform(loc=-0.6, scale=1.2),  # [-0.6, 0.6]
     "prior_pi": uniform(loc=0.1, scale=0.8),  # [0.1, 0.9]
     "prior_sigma_1": [np.exp(d) for d in np.arange(-0.8, 0, 0.1)],
     "prior_sigma_2": [np.exp(d) for d in np.arange(-0.8, 0, 0.1)],
+    "reconstr_error_weight": loguniform(0.01, 0.9),
+    "anneal": [True, False],
+    "beta": uniform(loc=0.1, scale=2.4),  # [0.1, 2.5]
 }
 NUM_EVALS = {
     "AE": 40,
+    "VAE": 400,
+    "HI-VAE": 200,
     "NN": 40,
     "MCDropout": 40,
     "BNN": 100,

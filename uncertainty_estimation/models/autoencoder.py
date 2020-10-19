@@ -181,6 +181,7 @@ class AE:
         )
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
         self.verbose = verbose
+        self.batch_size = None
 
     def train(
         self,
@@ -192,7 +193,7 @@ class AE:
         n_epochs: int = DEFAULT_N_EPOCHS,
     ):
         """
-        Train a VAE for a number of epochs.
+        Train an AE for a number of epochs.
 
         Parameters
         ----------

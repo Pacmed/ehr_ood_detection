@@ -22,7 +22,8 @@ from uncertainty_estimation.utils.datahandler import DataHandler, MIMIC_ORIGINS
 from uncertainty_estimation.models.info import AVAILABLE_MODELS
 
 # CONST
-N_SEEDS = 5
+N_SEEDS = 3
+# N_SEEDS = 5  # TODO: Revert after HI-VAE experiments
 RESULT_DIR = "../../data/results"
 
 if __name__ == "__main__":
