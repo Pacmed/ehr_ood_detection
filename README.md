@@ -17,6 +17,7 @@ examples.
     * [Included Models](https://github.com/Pacmed/uncertainty_estimation/tree/hi-vae#robot-included-models)
     * [Included Metrics](https://github.com/Pacmed/uncertainty_estimation/tree/hi-vae#triangular_ruler-included-metrics)
     * [Included Experiments](https://github.com/Pacmed/uncertainty_estimation/tree/hi-vae#microscope-included-experiments)
+    * [Included Datasets](https://github.com/Pacmed/uncertainty_estimation/tree/hi-vae#scroll-included-datasets)
 * [Usage](https://github.com/Pacmed/uncertainty_estimation/tree/hi-vae#usage)
     * [Setup](https://github.com/Pacmed/uncertainty_estimation/tree/hi-vae#setup) 
         * [Installation](https://github.com/Pacmed/uncertainty_estimation/tree/hi-vae#inbox_tray-installation)
@@ -68,6 +69,13 @@ Miscellaneous notes:
 * For models, we usually distinguish the module and the model, i.e. `VAEModule` and `VAE`. The former implements the 
 model's logic, the latter one defines interfaces to train and test it and compute certain metrics.
 
+* :bulb: To add new models, first add the following things in `models.info.py`:
+    * Add it somewhere in the model hierarchy so that it is included in `AVAILABLE_MODELS`
+    * Add the names of corresponding scoring functions in `AVAILABLE_SCORING_FUNCS`
+    * Add model and training parameters to `MODEL_PARAMS` and `TRAIN_PARAMS` respectively (if you haven't done hyperparameter search yet, add some placeholders here)
+    * For the hyperparameter search, add the search ranges to `PARAM_RANGES` and the number of trials to `NUM_EVALS`
+    * Finally import the class in `utils.model_init.py` and add it to the `MODEL_CLASSES` dictionary
+
 
 ### :triangular_ruler: Included Metrics
 
@@ -97,6 +105,10 @@ The availability by model is given in the following table:
 | Latent prop. | :x: | :x: | :x: | :x: | :x: | :x: | :x: | :x: | :x: | :x:  | :white_check_mark: | :white_check_mark: |
 | Latent prior prob. | :x: | :x: | :x: | :x: | :x: | :x: | :x: | :x: | :x: | :x:  | :white_check_mark: | :white_check_mark: |
 
+:bulb: **Note** To add a new metrics, perform the following steps:
+    * Add it to corresponding model in `AVAILABLE_SCORING_FUNCS` in `models.info.py` 
+    * Add the exact function to `SCORING_FUNCS` in `models.novelty_estimator.py`
+
 ### :microscope: Included Experiments
 
 The following scripts are included to prepare experiments:
@@ -116,7 +128,16 @@ Furthermore, the following experiments are currently included:
 (`perturbation.py`)
 
 Lastly, `plot_results.py` can be used to generate tables and plots from the results of these experiments. More information 
-about the correct usage is given in the section "Examples" below.
+about the correct usage is given in the section [Examples](https://github.com/Pacmed/uncertainty_estimation/tree/hi-vae#point_up-examples) below.
+
+### :scroll: Included Datasets
+
+Currently, the repository is tailored towards the [eICU](https://eicu-crd.mit.edu/) and [MIMIC-III](https://mimic.physionet.org/) 
+datasets, which are publicly available on request and therefore not included in the repo. The dataset to use - if applicable - 
+are usually specified using the `--data-origin` argument when invoking the script, using either `MIMIC` or `eICU` as arguments.
+
+:bulb: **Note**: To add new data sets would unfortunately require some additional refactoring. First, add some logic
+to `utils.datahandler.py`. After that, one would probably have to adjust all experimental script to accomdate the new data.
 
 ## :interrobang: Usage
 
@@ -170,9 +191,23 @@ involves downloading the `.gitmessage` file, and then, from the repository root,
 
 ### :point_up: Examples
 
+The following sections gives some examples on how to run experiments and plotting the results.
+
 #### :microscope: Experiments
 
-@TODO: Describe experiments and give examples
+The experiments can be run invoking the corresponding scripts in the `experiments` module. The two most important arguments
+for all scripts are `--data-origin`, which defines the data set experiments are run on (except for domain adaptation), and
+`--models`, which defines the models that the experiments are performed with. With omitted, all available models defined in 
+`AVAILABLE_MODELS` in `models.info.py`. Below are given some example commands for the different experiments:
+
+    python3 hyperparameter_search.py --data_origin MIMIC --models BNN
+    python3 perturbation.py --data_origin eICU --models HI-VAE VAE
+    python3 out_of_domain.py --data_origin MIMIC
+    python3 domain_adaptation.py --models LogReg AnchoredNNEnsemble
+    
+**Note**: The script will write results to the path specified via `--result_dir`, which is set to 
+`../../data/results/` by default (expecting that run this script from the module it's located in) in the form 
+of pickle files, using a folder hierarchy to distinguish between different data sets, experiments and models.
  
 #### :bar_chart: Plotting
 
@@ -195,7 +230,9 @@ examples for usage:
 **Tip**: PyCharm allows you to save presets for these kind of commands, so switching between them often becomes much easier.
 
 **Note**: The script will only plot results which are saved in the path specified via `--result_dir`, which is set to 
-`../../data/results/` by default (expecting that run this script from the module it's located in).
+`../../data/results/` by default (expecting that run this script from the module it's located in) in the form 
+of pickle files, using a folder hierarchy to distinguish between different data sets, experiments and models. 
+Images will by default be saved to `../../data/img/experiments`.
 
 ### :mortar_board: Bibliography
 
