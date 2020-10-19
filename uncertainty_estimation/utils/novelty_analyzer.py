@@ -7,13 +7,13 @@ from typing import Optional
 
 # EXT
 import numpy as np
-import seaborn as sns
-from matplotlib import pyplot as plt
+import pandas as pd
 from sklearn import pipeline
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler
 
 # PROJECT
+from uncertainty_estimation.models.info import VARIATIONAL_AUTOENCODERS
 from uncertainty_estimation.models.novelty_estimator import NoveltyEstimator
 import uncertainty_estimation.utils.metrics as metrics
 
@@ -66,7 +66,7 @@ class NoveltyAnalyzer:
         self.id_novelty = None
         self.ood_novelty = None
 
-        if self.impute_and_scale:
+        if self.impute_and_scale and novelty_estimator.name != "HI-VAE":
             self._impute_and_scale()
 
     def _impute_and_scale(self):
@@ -93,15 +93,22 @@ class NoveltyAnalyzer:
         impute_and_scale: bool
             Whether to impute and scale the data before fitting the novelty estimator.
         """
-        if impute_and_scale:
+        if impute_and_scale and self.ne.name != "HI-VAE":
             self.X_ood = self.pipe.transform(new_X_ood)
         else:
+            if type(new_X_ood) == pd.DataFrame:
+                new_X_ood = new_X_ood.to_numpy()
+
             self.X_ood = new_X_ood
+
         self.ood = True
 
     def set_test(self, new_test_data):
-        if self.impute_and_scale:
+        if self.impute_and_scale and self.ne.name != "HI-VAE":
             self.X_test = self.pipe.transform(new_test_data)
+
+        else:
+            self.X_test = new_test_data
         self.new_test = True
 
     def train(self):
@@ -129,6 +136,25 @@ class NoveltyAnalyzer:
         float:
             The OOD detection AUC.
         """
+        # Sometimes large feature values will create reconstruction errors that are too large and become NaN for
+        # variational autoencoders - in these cases, just replace NaNs with the largest possible value. This behavior is
+        # restricted to VAEs to not accidentally also catch errors in other models
+        if (
+            np.any(np.isnan(self.ood_novelty))
+            and self.ne.name in VARIATIONAL_AUTOENCODERS
+        ):
+            self.ood_novelty[np.isnan(self.ood_novelty)] = np.finfo(
+                self.ood_novelty.dtype
+            ).max
+
+        if (
+            np.any(self.ood_novelty == np.inf)
+            and self.ne.name in VARIATIONAL_AUTOENCODERS
+        ):
+            self.ood_novelty[self.ood_novelty == np.inf] = np.finfo(
+                self.ood_novelty.dtype
+            ).max
+
         return metrics.ood_detection_auc(self.ood_novelty, self.id_novelty)
 
     def get_ood_recall(self, threshold_fraction=0.95):
@@ -150,30 +176,3 @@ class NoveltyAnalyzer:
         reconstr_lim = np.quantile(self.id_novelty, threshold_fraction)
 
         return (self.ood_novelty > reconstr_lim).mean()
-
-    def plot_dists(self, ood_name="OOD", save_dir=None):
-        """Making a plot of the distributions of novelty scores for the i.d. test data and OOD
-        data.
-
-        Parameters
-        ----------
-        ood_name: str
-            The name of the OOD group.
-        save_dir: str (optional)
-            The directory to save the plots.
-        """
-        plt.figure(figsize=(6, 6))
-        min_quantile = min(self.ood_novelty.min(), self.id_novelty.min())
-        max_quantile = np.quantile(self.ood_novelty, 0.98)
-        sns.distplot(self.ood_novelty.clip(min_quantile, max_quantile), label=ood_name)
-        sns.distplot(
-            self.id_novelty.clip(min_quantile, max_quantile), label="Regular test data"
-        )
-        plt.legend()
-        plt.xlabel("Novelty score")
-        plt.xlim(min_quantile, max_quantile)
-
-        if save_dir:
-            plt.savefig(save_dir, dpi=100)
-
-        plt.close()

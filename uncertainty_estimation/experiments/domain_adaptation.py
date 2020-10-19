@@ -1,5 +1,5 @@
 """
-Perform domain adaption experiment where models trained on eICU are test on MIMIC and vice versa.
+Perform domain adaptation experiment where models trained on eICU are test on MIMIC and vice versa.
 """
 
 # STD
@@ -18,7 +18,8 @@ from uncertainty_estimation.utils.datahandler import DataHandler
 from uncertainty_estimation.models.info import AVAILABLE_MODELS
 
 # CONST
-N_SEEDS = 5
+N_SEEDS = 3
+# N_SEEDS = 5  # TODO: Revert after HI-VAE experiments
 RESULT_DIR = "../../data/results"
 STATS_DIR = "../../data/stats"
 
@@ -142,6 +143,7 @@ if __name__ == "__main__":
         )
 
         # Doing tests on identically distributed data (mostly a check)
+        """
         ood_detect_aucs_id, ood_recall_id = (
             defaultdict(lambda: defaultdict(list)),
             defaultdict(lambda: defaultdict(list)),
@@ -177,7 +179,7 @@ if __name__ == "__main__":
             n_seeds=N_SEEDS,
             impute_and_scale=True,
         )
-
+        """
         ne, scoring_funcs, method_name = mimic_model_info
         # Save everything for this model
         dir_name = os.path.join(args.result_dir, "DA", method_name)
@@ -216,6 +218,6 @@ if __name__ == "__main__":
         if not os.path.exists(metric_dir_name_id):
             os.mkdir(metric_dir_name_id)
 
-        for metric in metrics_id.keys():
-            with open(os.path.join(metric_dir_name_id, metric + ".pkl"), "wb") as f:
-                pickle.dump(metrics_id[metric], f)
+        # for metric in metrics_id.keys():
+        #    with open(os.path.join(metric_dir_name_id, metric + ".pkl"), "wb") as f:
+        #        pickle.dump(metrics_id[metric], f)
