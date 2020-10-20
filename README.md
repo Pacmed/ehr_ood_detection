@@ -43,17 +43,15 @@ The repo contains the following directories:
 
 ### :robot: Included Models
 
-@TODO: Add corresponding modules after refactoring
-
 The following discriminators are included in the repository:
 * Logistic Regression baseline (`LogReg`, `models.logreg.py`)
 * Vanilla neural network (`NN`, `models.mlp.py`)
-* MC Dropout (Gal & Ghahramani, 2016; `MCDropoutNN`, @TODO)
-* Neural network with Platt scaling (Guo et al., 2017; `PlattScalingNN`, @TODO)
-* Bayes-by-backprop neural network (Blundell et al., 2015; `BBB`, @TODO)
-* Neural Network Ensemble  (Lakshminarayanan et al., 2017; `NNEnsemble`, @TODO)
-* Bootstrapped Neural Network Ensemble (`BootstrappedNNEnsemble`, @TODO)
-* Anchored Neural Network Ensemble  (Pearce et al., 2020, `AnchoredNNEnsemble`, @TODO)
+* MC Dropout (Gal & Ghahramani, 2016; `MCDropoutNN`, `models.mlp.py`)
+* Neural network with Platt scaling (Guo et al., 2017; `PlattScalingNN`, `models.mlp.py`)
+* Bayes-by-backprop neural network (Blundell et al., 2015; `BBB`, `models.bbb.py`)
+* Neural Network Ensemble  (Lakshminarayanan et al., 2017; `NNEnsemble`, `models.nn_ensemble.py`)
+* Bootstrapped Neural Network Ensemble (`BootstrappedNNEnsemble`, `models.nn_ensemble.py`)
+* Anchored Neural Network Ensemble  (Pearce et al., 2020, `AnchoredNNEnsemble`, `models.anchored_ensemble.py`)
 
 The repo also contains the following density-estimation models:
 * Probabilistic PCA baseline  (Bishop 1999; `PPCA`, `models.ppca.py`)
