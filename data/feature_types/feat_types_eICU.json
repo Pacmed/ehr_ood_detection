@@ -1,0 +1,2942 @@
+{
+    "Invasive BP Diastolic_full_min": [
+        "real",
+        0.0,
+        137.0
+    ],
+    "Invasive BP Diastolic_full_max": [
+        "real",
+        30.0,
+        345.0
+    ],
+    "Invasive BP Diastolic_full_mean": [
+        "positive_real",
+        6.717391304347826,
+        137.0
+    ],
+    "Invasive BP Diastolic_full_std": [
+        "real",
+        0.0,
+        75.16204716034106
+    ],
+    "Invasive BP Diastolic_full_skew": [
+        "real",
+        -4.435462090960022,
+        11.584985815043233
+    ],
+    "Invasive BP Diastolic_full_num": [
+        "count",
+        0.0,
+        911.0
+    ],
+    "Invasive BP Diastolic_first10_min": [
+        "real",
+        0.0,
+        190.0
+    ],
+    "Invasive BP Diastolic_first10_max": [
+        "real",
+        22.0,
+        344.0
+    ],
+    "Invasive BP Diastolic_first10_mean": [
+        "positive_real",
+        18.33333333333333,
+        190.0
+    ],
+    "Invasive BP Diastolic_first10_std": [
+        "real",
+        0.0,
+        88.95950830376177
+    ],
+    "Invasive BP Diastolic_first10_skew": [
+        "real",
+        -3.309644212402239,
+        4.858933832608766
+    ],
+    "Invasive BP Diastolic_first10_num": [
+        "count",
+        0.0,
+        92.0
+    ],
+    "Invasive BP Diastolic_first25_min": [
+        "real",
+        0.0,
+        190.0
+    ],
+    "Invasive BP Diastolic_first25_max": [
+        "real",
+        24.0,
+        344.0
+    ],
+    "Invasive BP Diastolic_first25_mean": [
+        "positive_real",
+        23.0,
+        190.0
+    ],
+    "Invasive BP Diastolic_first25_std": [
+        "real",
+        0.0,
+        82.80265574231177
+    ],
+    "Invasive BP Diastolic_first25_skew": [
+        "real",
+        -4.288155912620729,
+        6.987665080928989
+    ],
+    "Invasive BP Diastolic_first25_num": [
+        "count",
+        0.0,
+        228.0
+    ],
+    "Invasive BP Diastolic_first50_min": [
+        "real",
+        0.0,
+        137.0
+    ],
+    "Invasive BP Diastolic_first50_max": [
+        "real",
+        28.0,
+        345.0
+    ],
+    "Invasive BP Diastolic_first50_mean": [
+        "positive_real",
+        12.875,
+        137.0
+    ],
+    "Invasive BP Diastolic_first50_std": [
+        "real",
+        0.0,
+        94.75230867899737
+    ],
+    "Invasive BP Diastolic_first50_skew": [
+        "real",
+        -5.297240508794012,
+        9.248436556085505
+    ],
+    "Invasive BP Diastolic_first50_num": [
+        "count",
+        0.0,
+        456.0
+    ],
+    "Invasive BP Diastolic_last10_min": [
+        "real",
+        0.0,
+        137.0
+    ],
+    "Invasive BP Diastolic_last10_max": [
+        "real",
+        0.0,
+        327.0
+    ],
+    "Invasive BP Diastolic_last10_mean": [
+        "real",
+        0.0,
+        209.8
+    ],
+    "Invasive BP Diastolic_last10_std": [
+        "real",
+        0.0,
+        123.51599086757956
+    ],
+    "Invasive BP Diastolic_last10_skew": [
+        "real",
+        -4.339302950205226,
+        4.943636561510608
+    ],
+    "Invasive BP Diastolic_last10_num": [
+        "count",
+        0.0,
+        92.0
+    ],
+    "Invasive BP Diastolic_last25_min": [
+        "real",
+        0.0,
+        137.0
+    ],
+    "Invasive BP Diastolic_last25_max": [
+        "real",
+        0.0,
+        340.0
+    ],
+    "Invasive BP Diastolic_last25_mean": [
+        "real",
+        0.0,
+        153.27272727272728
+    ],
+    "Invasive BP Diastolic_last25_std": [
+        "real",
+        0.0,
+        116.36674001542788
+    ],
+    "Invasive BP Diastolic_last25_skew": [
+        "real",
+        -6.449230802718162,
+        9.212995033780068
+    ],
+    "Invasive BP Diastolic_last25_num": [
+        "count",
+        0.0,
+        228.0
+    ],
+    "Invasive BP Diastolic_last50_min": [
+        "real",
+        0.0,
+        137.0
+    ],
+    "Invasive BP Diastolic_last50_max": [
+        "real",
+        0.0,
+        340.0
+    ],
+    "Invasive BP Diastolic_last50_mean": [
+        "real",
+        0.0,
+        137.0
+    ],
+    "Invasive BP Diastolic_last50_std": [
+        "real",
+        0.0,
+        92.6898052646568
+    ],
+    "Invasive BP Diastolic_last50_skew": [
+        "real",
+        -4.8045079814930345,
+        12.412417597121069
+    ],
+    "Invasive BP Diastolic_last50_num": [
+        "count",
+        0.0,
+        456.0
+    ],
+    "FiO2_full_min": [
+        "positive_real",
+        15.0,
+        100.0
+    ],
+    "FiO2_full_max": [
+        "positive_real",
+        15.0,
+        100.0
+    ],
+    "FiO2_full_mean": [
+        "positive_real",
+        15.0,
+        100.0
+    ],
+    "FiO2_full_std": [
+        "real",
+        0.0,
+        60.10407640085654
+    ],
+    "FiO2_full_skew": [
+        "real",
+        -3.880570000581327,
+        3.2753226471658543
+    ],
+    "FiO2_full_num": [
+        "count",
+        0.0,
+        55.0
+    ],
+    "FiO2_first10_min": [
+        "positive_real",
+        15.0,
+        100.0
+    ],
+    "FiO2_first10_max": [
+        "positive_real",
+        15.0,
+        100.0
+    ],
+    "FiO2_first10_mean": [
+        "positive_real",
+        15.0,
+        100.0
+    ],
+    "FiO2_first10_std": [
+        "real",
+        0.0,
+        60.10407640085654
+    ],
+    "FiO2_first10_skew": [
+        "real",
+        -0.84375,
+        1.1547005383792517
+    ],
+    "FiO2_first10_num": [
+        "count",
+        0.0,
+        6.0
+    ],
+    "FiO2_first25_min": [
+        "positive_real",
+        15.0,
+        100.0
+    ],
+    "FiO2_first25_max": [
+        "positive_real",
+        15.0,
+        100.0
+    ],
+    "FiO2_first25_mean": [
+        "positive_real",
+        15.0,
+        100.0
+    ],
+    "FiO2_first25_std": [
+        "real",
+        0.0,
+        60.10407640085654
+    ],
+    "FiO2_first25_skew": [
+        "real",
+        -1.7888543819998344,
+        2.0412414523193134
+    ],
+    "FiO2_first25_num": [
+        "count",
+        0.0,
+        14.0
+    ],
+    "FiO2_first50_min": [
+        "positive_real",
+        15.0,
+        100.0
+    ],
+    "FiO2_first50_max": [
+        "positive_real",
+        15.0,
+        100.0
+    ],
+    "FiO2_first50_mean": [
+        "positive_real",
+        15.0,
+        100.0
+    ],
+    "FiO2_first50_std": [
+        "real",
+        0.0,
+        60.10407640085654
+    ],
+    "FiO2_first50_skew": [
+        "real",
+        -2.666666666666667,
+        2.846049894151542
+    ],
+    "FiO2_first50_num": [
+        "count",
+        0.0,
+        28.0
+    ],
+    "FiO2_last10_min": [
+        "positive_real",
+        15.0,
+        100.0
+    ],
+    "FiO2_last10_max": [
+        "positive_real",
+        15.0,
+        100.0
+    ],
+    "FiO2_last10_mean": [
+        "positive_real",
+        15.0,
+        100.0
+    ],
+    "FiO2_last10_std": [
+        "real",
+        0.0,
+        55.86143571373726
+    ],
+    "FiO2_last10_skew": [
+        "real",
+        -0.7071067811865485,
+        0.8380403822865482
+    ],
+    "FiO2_last10_num": [
+        "count",
+        0.0,
+        6.0
+    ],
+    "FiO2_last25_min": [
+        "positive_real",
+        15.0,
+        100.0
+    ],
+    "FiO2_last25_max": [
+        "positive_real",
+        15.0,
+        100.0
+    ],
+    "FiO2_last25_mean": [
+        "positive_real",
+        15.0,
+        100.0
+    ],
+    "FiO2_last25_std": [
+        "real",
+        0.0,
+        55.86143571373726
+    ],
+    "FiO2_last25_skew": [
+        "real",
+        -1.7888543819998368,
+        2.6666666666666665
+    ],
+    "FiO2_last25_num": [
+        "count",
+        0.0,
+        14.0
+    ],
+    "FiO2_last50_min": [
+        "positive_real",
+        15.0,
+        100.0
+    ],
+    "FiO2_last50_max": [
+        "positive_real",
+        15.0,
+        100.0
+    ],
+    "FiO2_last50_mean": [
+        "positive_real",
+        15.0,
+        100.0
+    ],
+    "FiO2_last50_std": [
+        "real",
+        0.0,
+        56.56854249492381
+    ],
+    "FiO2_last50_skew": [
+        "real",
+        -3.015113445777634,
+        4.129483209670112
+    ],
+    "FiO2_last50_num": [
+        "count",
+        0.0,
+        28.0
+    ],
+    "Eyes_full_min": [
+        "ordinal",
+        1.0,
+        4.0
+    ],
+    "Eyes_full_max": [
+        "ordinal",
+        1.0,
+        4.0
+    ],
+    "Eyes_full_mean": [
+        "positive_real",
+        1.0,
+        4.0
+    ],
+    "Eyes_full_std": [
+        "real",
+        0.0,
+        2.1213203435596424
+    ],
+    "Eyes_full_skew": [
+        "real",
+        -10.998707439313057,
+        8.486077628298817
+    ],
+    "Eyes_full_num": [
+        "count",
+        0.0,
+        196.0
+    ],
+    "Eyes_first10_min": [
+        "ordinal",
+        1.0,
+        4.0
+    ],
+    "Eyes_first10_max": [
+        "ordinal",
+        1.0,
+        4.0
+    ],
+    "Eyes_first10_mean": [
+        "positive_real",
+        1.0,
+        4.0
+    ],
+    "Eyes_first10_std": [
+        "real",
+        0.0,
+        2.1213203435596424
+    ],
+    "Eyes_first10_skew": [
+        "real",
+        -3.8805700005813297,
+        2.474873734152916
+    ],
+    "Eyes_first10_num": [
+        "count",
+        0.0,
+        20.0
+    ],
+    "Eyes_first25_min": [
+        "ordinal",
+        1.0,
+        4.0
+    ],
+    "Eyes_first25_max": [
+        "ordinal",
+        1.0,
+        4.0
+    ],
+    "Eyes_first25_mean": [
+        "positive_real",
+        1.0,
+        4.0
+    ],
+    "Eyes_first25_std": [
+        "real",
+        0.0,
+        2.1213203435596424
+    ],
+    "Eyes_first25_skew": [
+        "real",
+        -6.48249390842192,
+        4.248529157249603
+    ],
+    "Eyes_first25_num": [
+        "count",
+        0.0,
+        50.0
+    ],
+    "Eyes_first50_min": [
+        "ordinal",
+        1.0,
+        4.0
+    ],
+    "Eyes_first50_max": [
+        "ordinal",
+        1.0,
+        4.0
+    ],
+    "Eyes_first50_mean": [
+        "positive_real",
+        1.0,
+        4.0
+    ],
+    "Eyes_first50_std": [
+        "real",
+        0.0,
+        2.1213203435596424
+    ],
+    "Eyes_first50_skew": [
+        "real",
+        -6.783865662978108,
+        6.2469504755442475
+    ],
+    "Eyes_first50_num": [
+        "count",
+        0.0,
+        99.0
+    ],
+    "Eyes_last10_min": [
+        "ordinal",
+        1.0,
+        4.0
+    ],
+    "Eyes_last10_max": [
+        "ordinal",
+        1.0,
+        4.0
+    ],
+    "Eyes_last10_mean": [
+        "positive_real",
+        1.0,
+        4.0
+    ],
+    "Eyes_last10_std": [
+        "real",
+        0.0,
+        2.1213203435596424
+    ],
+    "Eyes_last10_skew": [
+        "real",
+        -2.666666666666668,
+        3.175426480542938
+    ],
+    "Eyes_last10_num": [
+        "count",
+        0.0,
+        20.0
+    ],
+    "Eyes_last25_min": [
+        "ordinal",
+        1.0,
+        4.0
+    ],
+    "Eyes_last25_max": [
+        "ordinal",
+        1.0,
+        4.0
+    ],
+    "Eyes_last25_mean": [
+        "positive_real",
+        1.0,
+        4.0
+    ],
+    "Eyes_last25_std": [
+        "real",
+        0.0,
+        2.1213203435596424
+    ],
+    "Eyes_last25_skew": [
+        "real",
+        -5.302755829071928,
+        4.129483209670114
+    ],
+    "Eyes_last25_num": [
+        "count",
+        0.0,
+        49.0
+    ],
+    "Eyes_last50_min": [
+        "ordinal",
+        1.0,
+        4.0
+    ],
+    "Eyes_last50_max": [
+        "ordinal",
+        1.0,
+        4.0
+    ],
+    "Eyes_last50_mean": [
+        "positive_real",
+        1.0,
+        4.0
+    ],
+    "Eyes_last50_std": [
+        "real",
+        0.0,
+        2.1213203435596424
+    ],
+    "Eyes_last50_skew": [
+        "real",
+        -7.685029689140031,
+        5.918363542992867
+    ],
+    "Eyes_last50_num": [
+        "count",
+        0.0,
+        98.0
+    ],
+    "Motor_full_min": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Motor_full_max": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Motor_full_mean": [
+        "positive_real",
+        1.0,
+        6.0
+    ],
+    "Motor_full_std": [
+        "real",
+        0.0,
+        3.5355339059327378
+    ],
+    "Motor_full_skew": [
+        "real",
+        -13.892628556364992,
+        7.4844666730041824
+    ],
+    "Motor_full_num": [
+        "count",
+        0.0,
+        196.0
+    ],
+    "Motor_first10_min": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Motor_first10_max": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Motor_first10_mean": [
+        "positive_real",
+        1.0,
+        6.0
+    ],
+    "Motor_first10_std": [
+        "real",
+        0.0,
+        3.5355339059327378
+    ],
+    "Motor_first10_skew": [
+        "real",
+        -2.47487373415292,
+        2.2677868380553634
+    ],
+    "Motor_first10_num": [
+        "count",
+        0.0,
+        20.0
+    ],
+    "Motor_first25_min": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Motor_first25_max": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Motor_first25_mean": [
+        "positive_real",
+        1.0,
+        6.0
+    ],
+    "Motor_first25_std": [
+        "real",
+        0.0,
+        3.5355339059327378
+    ],
+    "Motor_first25_skew": [
+        "real",
+        -4.800000000000003,
+        3.8805700005813266
+    ],
+    "Motor_first25_num": [
+        "count",
+        0.0,
+        50.0
+    ],
+    "Motor_first50_min": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Motor_first50_max": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Motor_first50_mean": [
+        "positive_real",
+        1.0,
+        6.0
+    ],
+    "Motor_first50_std": [
+        "real",
+        0.0,
+        3.5355339059327378
+    ],
+    "Motor_first50_skew": [
+        "real",
+        -7.072427501871668,
+        5.918363542992865
+    ],
+    "Motor_first50_num": [
+        "count",
+        0.0,
+        99.0
+    ],
+    "Motor_last10_min": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Motor_last10_max": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Motor_last10_mean": [
+        "positive_real",
+        1.0,
+        6.0
+    ],
+    "Motor_last10_std": [
+        "real",
+        0.0,
+        3.5355339059327378
+    ],
+    "Motor_last10_skew": [
+        "real",
+        -2.6666666666666665,
+        2.2677868380553634
+    ],
+    "Motor_last10_num": [
+        "count",
+        0.0,
+        20.0
+    ],
+    "Motor_last25_min": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Motor_last25_max": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Motor_last25_mean": [
+        "positive_real",
+        1.0,
+        6.0
+    ],
+    "Motor_last25_std": [
+        "real",
+        0.0,
+        3.5355339059327378
+    ],
+    "Motor_last25_skew": [
+        "real",
+        -6.783865662978108,
+        3.328201177351378
+    ],
+    "Motor_last25_num": [
+        "count",
+        0.0,
+        49.0
+    ],
+    "Motor_last50_min": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Motor_last50_max": [
+        "ordinal",
+        1.0,
+        6.0
+    ],
+    "Motor_last50_mean": [
+        "positive_real",
+        1.0,
+        6.0
+    ],
+    "Motor_last50_std": [
+        "real",
+        0.0,
+        3.5355339059327378
+    ],
+    "Motor_last50_skew": [
+        "real",
+        -9.747323185282747,
+        5.388159060803248
+    ],
+    "Motor_last50_num": [
+        "count",
+        0.0,
+        98.0
+    ],
+    "GCS Total_full_min": [
+        "ordinal",
+        3.0,
+        15.0
+    ],
+    "GCS Total_full_max": [
+        "ordinal",
+        3.0,
+        15.0
+    ],
+    "GCS Total_full_mean": [
+        "positive_real",
+        3.0,
+        15.0
+    ],
+    "GCS Total_full_std": [
+        "real",
+        0.0,
+        8.48528137423857
+    ],
+    "GCS Total_full_skew": [
+        "real",
+        -9.24054577214298,
+        7.731881700683324
+    ],
+    "GCS Total_full_num": [
+        "count",
+        0.0,
+        253.0
+    ],
+    "GCS Total_first10_min": [
+        "ordinal",
+        3.0,
+        15.0
+    ],
+    "GCS Total_first10_max": [
+        "ordinal",
+        3.0,
+        15.0
+    ],
+    "GCS Total_first10_mean": [
+        "positive_real",
+        3.0,
+        15.0
+    ],
+    "GCS Total_first10_std": [
+        "real",
+        0.0,
+        8.48528137423857
+    ],
+    "GCS Total_first10_skew": [
+        "real",
+        -3.1754264805429457,
+        2.2677868380553634
+    ],
+    "GCS Total_first10_num": [
+        "count",
+        0.0,
+        26.0
+    ],
+    "GCS Total_first25_min": [
+        "ordinal",
+        3.0,
+        15.0
+    ],
+    "GCS Total_first25_max": [
+        "ordinal",
+        3.0,
+        15.0
+    ],
+    "GCS Total_first25_mean": [
+        "positive_real",
+        3.0,
+        15.0
+    ],
+    "GCS Total_first25_std": [
+        "real",
+        0.0,
+        8.48528137423857
+    ],
+    "GCS Total_first25_skew": [
+        "real",
+        -5.388159060803248,
+        3.8805700005813297
+    ],
+    "GCS Total_first25_num": [
+        "count",
+        0.0,
+        64.0
+    ],
+    "GCS Total_first50_min": [
+        "ordinal",
+        3.0,
+        15.0
+    ],
+    "GCS Total_first50_max": [
+        "ordinal",
+        3.0,
+        15.0
+    ],
+    "GCS Total_first50_mean": [
+        "positive_real",
+        3.0,
+        15.0
+    ],
+    "GCS Total_first50_std": [
+        "real",
+        0.0,
+        8.48528137423857
+    ],
+    "GCS Total_first50_skew": [
+        "real",
+        -6.7838656629780925,
+        5.659453309702793
+    ],
+    "GCS Total_first50_num": [
+        "count",
+        0.0,
+        127.0
+    ],
+    "GCS Total_last10_min": [
+        "ordinal",
+        3.0,
+        15.0
+    ],
+    "GCS Total_last10_max": [
+        "ordinal",
+        3.0,
+        15.0
+    ],
+    "GCS Total_last10_mean": [
+        "positive_real",
+        3.0,
+        15.0
+    ],
+    "GCS Total_last10_std": [
+        "real",
+        0.0,
+        7.7781745930520225
+    ],
+    "GCS Total_last10_skew": [
+        "real",
+        -3.1754264805429475,
+        3.1754264805429475
+    ],
+    "GCS Total_last10_num": [
+        "count",
+        0.0,
+        26.0
+    ],
+    "GCS Total_last25_min": [
+        "ordinal",
+        3.0,
+        15.0
+    ],
+    "GCS Total_last25_max": [
+        "ordinal",
+        3.0,
+        15.0
+    ],
+    "GCS Total_last25_mean": [
+        "positive_real",
+        3.0,
+        15.0
+    ],
+    "GCS Total_last25_std": [
+        "real",
+        0.0,
+        8.48528137423857
+    ],
+    "GCS Total_last25_skew": [
+        "real",
+        -4.386908904386808,
+        3.88057000058133
+    ],
+    "GCS Total_last25_num": [
+        "count",
+        0.0,
+        64.0
+    ],
+    "GCS Total_last50_min": [
+        "ordinal",
+        3.0,
+        15.0
+    ],
+    "GCS Total_last50_max": [
+        "ordinal",
+        3.0,
+        15.0
+    ],
+    "GCS Total_last50_mean": [
+        "positive_real",
+        3.0,
+        15.0
+    ],
+    "GCS Total_last50_std": [
+        "real",
+        0.0,
+        8.48528137423857
+    ],
+    "GCS Total_last50_skew": [
+        "real",
+        -6.424758420872079,
+        5.388159060803248
+    ],
+    "GCS Total_last50_num": [
+        "count",
+        0.0,
+        127.0
+    ],
+    "Verbal_full_min": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Verbal_full_max": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Verbal_full_mean": [
+        "positive_real",
+        1.0,
+        5.0
+    ],
+    "Verbal_full_std": [
+        "real",
+        0.0,
+        2.8284271247461903
+    ],
+    "Verbal_full_skew": [
+        "real",
+        -10.050358637275787,
+        8.603090020146057
+    ],
+    "Verbal_full_num": [
+        "count",
+        0.0,
+        196.0
+    ],
+    "Verbal_first10_min": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Verbal_first10_max": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Verbal_first10_mean": [
+        "positive_real",
+        1.0,
+        5.0
+    ],
+    "Verbal_first10_std": [
+        "real",
+        0.0,
+        2.8284271247461903
+    ],
+    "Verbal_first10_skew": [
+        "real",
+        -2.2677868380553634,
+        2.2677868380553634
+    ],
+    "Verbal_first10_num": [
+        "count",
+        0.0,
+        20.0
+    ],
+    "Verbal_first25_min": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Verbal_first25_max": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Verbal_first25_mean": [
+        "positive_real",
+        1.0,
+        5.0
+    ],
+    "Verbal_first25_std": [
+        "real",
+        0.0,
+        2.8284271247461903
+    ],
+    "Verbal_first25_skew": [
+        "real",
+        -4.364357804719839,
+        4.129483209670116
+    ],
+    "Verbal_first25_num": [
+        "count",
+        0.0,
+        50.0
+    ],
+    "Verbal_first50_min": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Verbal_first50_max": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Verbal_first50_mean": [
+        "positive_real",
+        1.0,
+        5.0
+    ],
+    "Verbal_first50_std": [
+        "real",
+        0.0,
+        2.8284271247461903
+    ],
+    "Verbal_first50_skew": [
+        "real",
+        -7.0724275018716725,
+        6.00219258183821
+    ],
+    "Verbal_first50_num": [
+        "count",
+        0.0,
+        99.0
+    ],
+    "Verbal_last10_min": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Verbal_last10_max": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Verbal_last10_mean": [
+        "positive_real",
+        1.0,
+        5.0
+    ],
+    "Verbal_last10_std": [
+        "real",
+        0.0,
+        2.8284271247461903
+    ],
+    "Verbal_last10_skew": [
+        "real",
+        -2.2677868380553634,
+        3.1754264805429417
+    ],
+    "Verbal_last10_num": [
+        "count",
+        0.0,
+        20.0
+    ],
+    "Verbal_last25_min": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Verbal_last25_max": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Verbal_last25_mean": [
+        "positive_real",
+        1.0,
+        5.0
+    ],
+    "Verbal_last25_std": [
+        "real",
+        0.0,
+        2.8284271247461903
+    ],
+    "Verbal_last25_skew": [
+        "real",
+        -3.750000000000003,
+        5.294651389216599
+    ],
+    "Verbal_last25_num": [
+        "count",
+        0.0,
+        49.0
+    ],
+    "Verbal_last50_min": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Verbal_last50_max": [
+        "ordinal",
+        1.0,
+        5.0
+    ],
+    "Verbal_last50_mean": [
+        "positive_real",
+        1.0,
+        5.0
+    ],
+    "Verbal_last50_std": [
+        "real",
+        0.0,
+        2.8284271247461903
+    ],
+    "Verbal_last50_skew": [
+        "real",
+        -5.480077554195742,
+        6.002192581838207
+    ],
+    "Verbal_last50_num": [
+        "count",
+        0.0,
+        98.0
+    ],
+    "glucose_full_min": [
+        "real",
+        33.0,
+        1035.0
+    ],
+    "glucose_full_max": [
+        "real",
+        49.0,
+        1196.0
+    ],
+    "glucose_full_mean": [
+        "positive_real",
+        49.0,
+        1035.0
+    ],
+    "glucose_full_std": [
+        "real",
+        0.0,
+        449.0128060534577
+    ],
+    "glucose_full_skew": [
+        "real",
+        -2.3705087172895656,
+        7.479957456753483
+    ],
+    "glucose_full_num": [
+        "count",
+        0.0,
+        225.0
+    ],
+    "glucose_first10_min": [
+        "real",
+        33.0,
+        1159.0
+    ],
+    "glucose_first10_max": [
+        "real",
+        33.0,
+        1195.0
+    ],
+    "glucose_first10_mean": [
+        "positive_real",
+        33.0,
+        1159.0
+    ],
+    "glucose_first10_std": [
+        "real",
+        0.0,
+        553.6646096690667
+    ],
+    "glucose_first10_skew": [
+        "real",
+        -1.9057459766665603,
+        2.3607540388501254
+    ],
+    "glucose_first10_num": [
+        "count",
+        0.0,
+        23.0
+    ],
+    "glucose_first25_min": [
+        "real",
+        33.0,
+        1078.0
+    ],
+    "glucose_first25_max": [
+        "real",
+        35.0,
+        1195.0
+    ],
+    "glucose_first25_mean": [
+        "positive_real",
+        35.0,
+        1107.6666666666667
+    ],
+    "glucose_first25_std": [
+        "real",
+        0.0,
+        589.8669341470159
+    ],
+    "glucose_first25_skew": [
+        "real",
+        -2.3749157376100563,
+        3.2432236872011724
+    ],
+    "glucose_first25_num": [
+        "count",
+        0.0,
+        57.0
+    ],
+    "glucose_first50_min": [
+        "real",
+        33.0,
+        1035.0
+    ],
+    "glucose_first50_max": [
+        "real",
+        49.0,
+        1196.0
+    ],
+    "glucose_first50_mean": [
+        "positive_real",
+        49.0,
+        1035.0
+    ],
+    "glucose_first50_std": [
+        "real",
+        0.0,
+        454.6518448219472
+    ],
+    "glucose_first50_skew": [
+        "real",
+        -2.6272629879538347,
+        5.548504760467795
+    ],
+    "glucose_first50_num": [
+        "count",
+        0.0,
+        113.0
+    ],
+    "glucose_last10_min": [
+        "real",
+        33.0,
+        1035.0
+    ],
+    "glucose_last10_max": [
+        "real",
+        44.0,
+        1035.0
+    ],
+    "glucose_last10_mean": [
+        "positive_real",
+        44.0,
+        1035.0
+    ],
+    "glucose_last10_std": [
+        "real",
+        0.0,
+        405.17218561989165
+    ],
+    "glucose_last10_skew": [
+        "real",
+        -2.250263454819,
+        2.2196540909080342
+    ],
+    "glucose_last10_num": [
+        "count",
+        0.0,
+        23.0
+    ],
+    "glucose_last25_min": [
+        "real",
+        33.0,
+        1035.0
+    ],
+    "glucose_last25_max": [
+        "real",
+        46.0,
+        1035.0
+    ],
+    "glucose_last25_mean": [
+        "positive_real",
+        46.0,
+        1035.0
+    ],
+    "glucose_last25_std": [
+        "real",
+        0.0,
+        328.2544744554138
+    ],
+    "glucose_last25_skew": [
+        "real",
+        -2.531358218815176,
+        3.2065643717007912
+    ],
+    "glucose_last25_num": [
+        "count",
+        0.0,
+        57.0
+    ],
+    "glucose_last50_min": [
+        "real",
+        33.0,
+        1035.0
+    ],
+    "glucose_last50_max": [
+        "real",
+        49.0,
+        1035.0
+    ],
+    "glucose_last50_mean": [
+        "positive_real",
+        49.0,
+        1035.0
+    ],
+    "glucose_last50_std": [
+        "real",
+        0.0,
+        257.62246278873533
+    ],
+    "glucose_last50_skew": [
+        "real",
+        -2.6621301630445813,
+        5.1590683896400975
+    ],
+    "glucose_last50_num": [
+        "count",
+        0.0,
+        113.0
+    ],
+    "Heart Rate_full_min": [
+        "real",
+        0.0,
+        145.0
+    ],
+    "Heart Rate_full_max": [
+        "real",
+        35.0,
+        300.0
+    ],
+    "Heart Rate_full_mean": [
+        "positive_real",
+        29.26923076923077,
+        153.79166666666666
+    ],
+    "Heart Rate_full_std": [
+        "real",
+        0.0,
+        48.5313996453475
+    ],
+    "Heart Rate_full_skew": [
+        "real",
+        -10.884640787383104,
+        12.684861794903536
+    ],
+    "Heart Rate_full_num": [
+        "count",
+        0.0,
+        1261.0
+    ],
+    "Heart Rate_first10_min": [
+        "real",
+        0.0,
+        204.0
+    ],
+    "Heart Rate_first10_max": [
+        "real",
+        30.0,
+        282.0
+    ],
+    "Heart Rate_first10_mean": [
+        "positive_real",
+        28.66666666666667,
+        207.8
+    ],
+    "Heart Rate_first10_std": [
+        "real",
+        0.0,
+        103.12263465300803
+    ],
+    "Heart Rate_first10_skew": [
+        "real",
+        -4.24852915724955,
+        4.902903378454584
+    ],
+    "Heart Rate_first10_num": [
+        "count",
+        0.0,
+        127.0
+    ],
+    "Heart Rate_first25_min": [
+        "real",
+        0.0,
+        174.0
+    ],
+    "Heart Rate_first25_max": [
+        "real",
+        32.0,
+        300.0
+    ],
+    "Heart Rate_first25_mean": [
+        "positive_real",
+        27.0,
+        179.0
+    ],
+    "Heart Rate_first25_std": [
+        "real",
+        0.0,
+        79.64187699589061
+    ],
+    "Heart Rate_first25_skew": [
+        "real",
+        -7.749977417423834,
+        6.813965518190334
+    ],
+    "Heart Rate_first25_num": [
+        "count",
+        0.0,
+        316.0
+    ],
+    "Heart Rate_first50_min": [
+        "real",
+        0.0,
+        147.0
+    ],
+    "Heart Rate_first50_max": [
+        "real",
+        34.0,
+        300.0
+    ],
+    "Heart Rate_first50_mean": [
+        "positive_real",
+        28.44444444444445,
+        157.28571428571428
+    ],
+    "Heart Rate_first50_std": [
+        "real",
+        0.0,
+        60.82856471851268
+    ],
+    "Heart Rate_first50_skew": [
+        "real",
+        -8.849699137354529,
+        9.481812648559439
+    ],
+    "Heart Rate_first50_num": [
+        "count",
+        0.0,
+        631.0
+    ],
+    "Heart Rate_last10_min": [
+        "real",
+        0.0,
+        160.0
+    ],
+    "Heart Rate_last10_max": [
+        "real",
+        35.0,
+        239.0
+    ],
+    "Heart Rate_last10_mean": [
+        "positive_real",
+        33.333333333333336,
+        169.33333333333334
+    ],
+    "Heart Rate_last10_std": [
+        "real",
+        0.0,
+        67.88225099390856
+    ],
+    "Heart Rate_last10_skew": [
+        "real",
+        -3.880570000581308,
+        4.299706118656972
+    ],
+    "Heart Rate_last10_num": [
+        "count",
+        0.0,
+        127.0
+    ],
+    "Heart Rate_last25_min": [
+        "real",
+        0.0,
+        153.0
+    ],
+    "Heart Rate_last25_max": [
+        "real",
+        35.0,
+        293.0
+    ],
+    "Heart Rate_last25_mean": [
+        "positive_real",
+        31.538461538461537,
+        174.33333333333337
+    ],
+    "Heart Rate_last25_std": [
+        "real",
+        0.0,
+        74.95331880577403
+    ],
+    "Heart Rate_last25_skew": [
+        "real",
+        -6.915259426886497,
+        7.142749325331818
+    ],
+    "Heart Rate_last25_num": [
+        "count",
+        0.0,
+        316.0
+    ],
+    "Heart Rate_last50_min": [
+        "real",
+        0.0,
+        147.0
+    ],
+    "Heart Rate_last50_max": [
+        "real",
+        35.0,
+        293.0
+    ],
+    "Heart Rate_last50_mean": [
+        "positive_real",
+        30.30769230769231,
+        166.05769230769232
+    ],
+    "Heart Rate_last50_std": [
+        "real",
+        0.0,
+        57.982756057296896
+    ],
+    "Heart Rate_last50_skew": [
+        "real",
+        -8.848238471930255,
+        10.440737953277548
+    ],
+    "Heart Rate_last50_num": [
+        "count",
+        0.0,
+        631.0
+    ],
+    "MAP (mmHg)_full_min": [
+        "real",
+        14.0,
+        231.0
+    ],
+    "MAP (mmHg)_full_max": [
+        "real",
+        57.0,
+        329.0
+    ],
+    "MAP (mmHg)_full_mean": [
+        "positive_real",
+        51.185185185185176,
+        231.0
+    ],
+    "MAP (mmHg)_full_std": [
+        "real",
+        0.0,
+        110.17675193372996
+    ],
+    "MAP (mmHg)_full_skew": [
+        "real",
+        -4.499619991249915,
+        8.526728666497258
+    ],
+    "MAP (mmHg)_full_num": [
+        "count",
+        0.0,
+        391.0
+    ],
+    "MAP (mmHg)_first10_min": [
+        "real",
+        14.0,
+        231.0
+    ],
+    "MAP (mmHg)_first10_max": [
+        "real",
+        45.0,
+        324.0
+    ],
+    "MAP (mmHg)_first10_mean": [
+        "positive_real",
+        41.3,
+        231.0
+    ],
+    "MAP (mmHg)_first10_std": [
+        "real",
+        0.0,
+        99.38762498420013
+    ],
+    "MAP (mmHg)_first10_skew": [
+        "real",
+        -2.1222087670623715,
+        3.4828000261093717
+    ],
+    "MAP (mmHg)_first10_num": [
+        "count",
+        0.0,
+        40.0
+    ],
+    "MAP (mmHg)_first25_min": [
+        "real",
+        14.0,
+        231.0
+    ],
+    "MAP (mmHg)_first25_max": [
+        "real",
+        53.0,
+        324.0
+    ],
+    "MAP (mmHg)_first25_mean": [
+        "positive_real",
+        47.91666666666666,
+        231.0
+    ],
+    "MAP (mmHg)_first25_std": [
+        "real",
+        0.0,
+        104.65180361560905
+    ],
+    "MAP (mmHg)_first25_skew": [
+        "real",
+        -2.5912432787514894,
+        5.429524376448087
+    ],
+    "MAP (mmHg)_first25_num": [
+        "count",
+        0.0,
+        98.0
+    ],
+    "MAP (mmHg)_first50_min": [
+        "real",
+        14.0,
+        231.0
+    ],
+    "MAP (mmHg)_first50_max": [
+        "real",
+        54.0,
+        324.0
+    ],
+    "MAP (mmHg)_first50_mean": [
+        "positive_real",
+        53.16666666666666,
+        231.0
+    ],
+    "MAP (mmHg)_first50_std": [
+        "real",
+        0.0,
+        93.93786516002218
+    ],
+    "MAP (mmHg)_first50_skew": [
+        "real",
+        -3.394209554377925,
+        6.914535285316515
+    ],
+    "MAP (mmHg)_first50_num": [
+        "count",
+        0.0,
+        196.0
+    ],
+    "MAP (mmHg)_last10_min": [
+        "real",
+        19.0,
+        329.0
+    ],
+    "MAP (mmHg)_last10_max": [
+        "real",
+        31.0,
+        329.0
+    ],
+    "MAP (mmHg)_last10_mean": [
+        "positive_real",
+        31.0,
+        329.0
+    ],
+    "MAP (mmHg)_last10_std": [
+        "real",
+        0.0,
+        99.7020561473032
+    ],
+    "MAP (mmHg)_last10_skew": [
+        "real",
+        -2.0475824114825585,
+        4.021428285334216
+    ],
+    "MAP (mmHg)_last10_num": [
+        "count",
+        0.0,
+        40.0
+    ],
+    "MAP (mmHg)_last25_min": [
+        "real",
+        16.0,
+        322.0
+    ],
+    "MAP (mmHg)_last25_max": [
+        "real",
+        57.0,
+        329.0
+    ],
+    "MAP (mmHg)_last25_mean": [
+        "positive_real",
+        41.333333333333336,
+        322.0
+    ],
+    "MAP (mmHg)_last25_std": [
+        "real",
+        0.0,
+        139.21494172681324
+    ],
+    "MAP (mmHg)_last25_skew": [
+        "real",
+        -2.9994611153723207,
+        6.5116069702411234
+    ],
+    "MAP (mmHg)_last25_num": [
+        "count",
+        0.0,
+        98.0
+    ],
+    "MAP (mmHg)_last50_min": [
+        "real",
+        15.0,
+        231.0
+    ],
+    "MAP (mmHg)_last50_max": [
+        "real",
+        57.0,
+        329.0
+    ],
+    "MAP (mmHg)_last50_mean": [
+        "positive_real",
+        48.78571428571429,
+        231.0
+    ],
+    "MAP (mmHg)_last50_std": [
+        "real",
+        0.0,
+        152.02795795510772
+    ],
+    "MAP (mmHg)_last50_skew": [
+        "real",
+        -4.201881373316609,
+        7.0326540694086805
+    ],
+    "MAP (mmHg)_last50_num": [
+        "count",
+        0.0,
+        196.0
+    ],
+    "O2 Saturation_full_min": [
+        "real",
+        0.0,
+        100.0
+    ],
+    "O2 Saturation_full_max": [
+        "real",
+        0.0,
+        100.0
+    ],
+    "O2 Saturation_full_mean": [
+        "real",
+        0.0,
+        100.0
+    ],
+    "O2 Saturation_full_std": [
+        "real",
+        0.0,
+        58.689862838483435
+    ],
+    "O2 Saturation_full_skew": [
+        "real",
+        -14.177620608140534,
+        2.056066894489919
+    ],
+    "O2 Saturation_full_num": [
+        "count",
+        0.0,
+        1215.0
+    ],
+    "O2 Saturation_first10_min": [
+        "real",
+        0.0,
+        100.0
+    ],
+    "O2 Saturation_first10_max": [
+        "real",
+        0.0,
+        100.0
+    ],
+    "O2 Saturation_first10_mean": [
+        "real",
+        0.0,
+        100.0
+    ],
+    "O2 Saturation_first10_std": [
+        "real",
+        0.0,
+        59.39696961966999
+    ],
+    "O2 Saturation_first10_skew": [
+        "real",
+        -5.099273981968269,
+        2.6666666666667243
+    ],
+    "O2 Saturation_first10_num": [
+        "count",
+        0.0,
+        122.0
+    ],
+    "O2 Saturation_first25_min": [
+        "real",
+        0.0,
+        100.0
+    ],
+    "O2 Saturation_first25_max": [
+        "real",
+        0.0,
+        100.0
+    ],
+    "O2 Saturation_first25_mean": [
+        "real",
+        0.0,
+        100.0
+    ],
+    "O2 Saturation_first25_std": [
+        "real",
+        0.0,
+        56.03867711976553
+    ],
+    "O2 Saturation_first25_skew": [
+        "real",
+        -8.258168085138044,
+        2.572478777137649
+    ],
+    "O2 Saturation_first25_num": [
+        "count",
+        0.0,
+        304.0
+    ],
+    "O2 Saturation_first50_min": [
+        "real",
+        0.0,
+        100.0
+    ],
+    "O2 Saturation_first50_max": [
+        "real",
+        0.0,
+        100.0
+    ],
+    "O2 Saturation_first50_mean": [
+        "real",
+        0.0,
+        100.0
+    ],
+    "O2 Saturation_first50_std": [
+        "real",
+        0.0,
+        58.689862838483435
+    ],
+    "O2 Saturation_first50_skew": [
+        "real",
+        -11.145831469130735,
+        2.8460498941515158
+    ],
+    "O2 Saturation_first50_num": [
+        "count",
+        0.0,
+        608.0
+    ],
+    "O2 Saturation_last10_min": [
+        "real",
+        0.0,
+        100.0
+    ],
+    "O2 Saturation_last10_max": [
+        "real",
+        0.0,
+        100.0
+    ],
+    "O2 Saturation_last10_mean": [
+        "real",
+        0.0,
+        100.0
+    ],
+    "O2 Saturation_last10_std": [
+        "real",
+        0.0,
+        43.48946232518095
+    ],
+    "O2 Saturation_last10_skew": [
+        "real",
+        -4.587317109255575,
+        3.7499999999999583
+    ],
+    "O2 Saturation_last10_num": [
+        "count",
+        0.0,
+        122.0
+    ],
+    "O2 Saturation_last25_min": [
+        "real",
+        0.0,
+        100.0
+    ],
+    "O2 Saturation_last25_max": [
+        "real",
+        0.0,
+        100.0
+    ],
+    "O2 Saturation_last25_mean": [
+        "real",
+        0.0,
+        100.0
+    ],
+    "O2 Saturation_last25_std": [
+        "real",
+        0.0,
+        62.22539674441618
+    ],
+    "O2 Saturation_last25_skew": [
+        "real",
+        -7.281358514603109,
+        4.129483209670151
+    ],
+    "O2 Saturation_last25_num": [
+        "count",
+        0.0,
+        304.0
+    ],
+    "O2 Saturation_last50_min": [
+        "real",
+        0.0,
+        100.0
+    ],
+    "O2 Saturation_last50_max": [
+        "real",
+        0.0,
+        100.0
+    ],
+    "O2 Saturation_last50_mean": [
+        "real",
+        0.0,
+        100.0
+    ],
+    "O2 Saturation_last50_std": [
+        "real",
+        0.0,
+        47.00620526412799
+    ],
+    "O2 Saturation_last50_skew": [
+        "real",
+        -11.712785274610072,
+        2.334707597053791
+    ],
+    "O2 Saturation_last50_num": [
+        "count",
+        0.0,
+        608.0
+    ],
+    "Respiratory Rate_full_min": [
+        "real",
+        0.0,
+        69.0
+    ],
+    "Respiratory Rate_full_max": [
+        "real",
+        5.0,
+        100.0
+    ],
+    "Respiratory Rate_full_mean": [
+        "positive_real",
+        3.425,
+        69.0
+    ],
+    "Respiratory Rate_full_std": [
+        "real",
+        0.0,
+        45.62163229580167
+    ],
+    "Respiratory Rate_full_skew": [
+        "real",
+        -7.055336829505575,
+        10.45749307086333
+    ],
+    "Respiratory Rate_full_num": [
+        "count",
+        0.0,
+        825.0
+    ],
+    "Respiratory Rate_first10_min": [
+        "real",
+        0.0,
+        96.0
+    ],
+    "Respiratory Rate_first10_max": [
+        "real",
+        0.0,
+        100.0
+    ],
+    "Respiratory Rate_first10_mean": [
+        "real",
+        0.0,
+        96.0
+    ],
+    "Respiratory Rate_first10_std": [
+        "real",
+        0.0,
+        48.083261120685215
+    ],
+    "Respiratory Rate_first10_skew": [
+        "real",
+        -4.065098956102143,
+        4.317873440885413
+    ],
+    "Respiratory Rate_first10_num": [
+        "count",
+        0.0,
+        83.0
+    ],
+    "Respiratory Rate_first25_min": [
+        "real",
+        0.0,
+        96.0
+    ],
+    "Respiratory Rate_first25_max": [
+        "real",
+        0.0,
+        100.0
+    ],
+    "Respiratory Rate_first25_mean": [
+        "real",
+        0.0,
+        96.0
+    ],
+    "Respiratory Rate_first25_std": [
+        "real",
+        0.0,
+        46.66904755831214
+    ],
+    "Respiratory Rate_first25_skew": [
+        "real",
+        -6.246950475544209,
+        6.8571428571428665
+    ],
+    "Respiratory Rate_first25_num": [
+        "count",
+        0.0,
+        207.0
+    ],
+    "Respiratory Rate_first50_min": [
+        "real",
+        0.0,
+        69.0
+    ],
+    "Respiratory Rate_first50_max": [
+        "real",
+        5.0,
+        100.0
+    ],
+    "Respiratory Rate_first50_mean": [
+        "positive_real",
+        2.595744680851064,
+        74.14285714285714
+    ],
+    "Respiratory Rate_first50_std": [
+        "real",
+        0.0,
+        56.56854249492381
+    ],
+    "Respiratory Rate_first50_skew": [
+        "real",
+        -7.218306713885161,
+        7.89501241064669
+    ],
+    "Respiratory Rate_first50_num": [
+        "count",
+        0.0,
+        413.0
+    ],
+    "Respiratory Rate_last10_min": [
+        "real",
+        0.0,
+        92.0
+    ],
+    "Respiratory Rate_last10_max": [
+        "real",
+        0.0,
+        100.0
+    ],
+    "Respiratory Rate_last10_mean": [
+        "real",
+        0.0,
+        92.0
+    ],
+    "Respiratory Rate_last10_std": [
+        "real",
+        0.0,
+        56.56854249492381
+    ],
+    "Respiratory Rate_last10_skew": [
+        "real",
+        -5.199469468957426,
+        4.902903378454613
+    ],
+    "Respiratory Rate_last10_num": [
+        "count",
+        0.0,
+        83.0
+    ],
+    "Respiratory Rate_last25_min": [
+        "real",
+        0.0,
+        92.0
+    ],
+    "Respiratory Rate_last25_max": [
+        "real",
+        0.0,
+        100.0
+    ],
+    "Respiratory Rate_last25_mean": [
+        "real",
+        0.0,
+        93.5
+    ],
+    "Respiratory Rate_last25_std": [
+        "real",
+        0.0,
+        45.9619407771256
+    ],
+    "Respiratory Rate_last25_skew": [
+        "real",
+        -6.915207303770473,
+        7.0724275018716725
+    ],
+    "Respiratory Rate_last25_num": [
+        "count",
+        0.0,
+        207.0
+    ],
+    "Respiratory Rate_last50_min": [
+        "real",
+        0.0,
+        69.0
+    ],
+    "Respiratory Rate_last50_max": [
+        "real",
+        0.0,
+        100.0
+    ],
+    "Respiratory Rate_last50_mean": [
+        "real",
+        0.0,
+        69.33333333333333
+    ],
+    "Respiratory Rate_last50_std": [
+        "real",
+        0.0,
+        41.88476254359494
+    ],
+    "Respiratory Rate_last50_skew": [
+        "real",
+        -10.354371993794683,
+        9.709932223077617
+    ],
+    "Respiratory Rate_last50_num": [
+        "count",
+        0.0,
+        413.0
+    ],
+    "Invasive BP Systolic_full_min": [
+        "real",
+        0.0,
+        205.0
+    ],
+    "Invasive BP Systolic_full_max": [
+        "real",
+        51.0,
+        349.0
+    ],
+    "Invasive BP Systolic_full_mean": [
+        "positive_real",
+        51.0,
+        205.0
+    ],
+    "Invasive BP Systolic_full_std": [
+        "real",
+        0.0,
+        60.201932919738766
+    ],
+    "Invasive BP Systolic_full_skew": [
+        "real",
+        -4.6362359176658945,
+        7.2455224847808575
+    ],
+    "Invasive BP Systolic_full_num": [
+        "count",
+        0.0,
+        911.0
+    ],
+    "Invasive BP Systolic_first10_min": [
+        "real",
+        0.0,
+        251.0
+    ],
+    "Invasive BP Systolic_first10_max": [
+        "real",
+        15.0,
+        347.0
+    ],
+    "Invasive BP Systolic_first10_mean": [
+        "positive_real",
+        15.0,
+        285.8666666666667
+    ],
+    "Invasive BP Systolic_first10_std": [
+        "real",
+        0.0,
+        91.21677477306463
+    ],
+    "Invasive BP Systolic_first10_skew": [
+        "real",
+        -2.9460772319691766,
+        4.059852209508773
+    ],
+    "Invasive BP Systolic_first10_num": [
+        "count",
+        0.0,
+        92.0
+    ],
+    "Invasive BP Systolic_first25_min": [
+        "real",
+        0.0,
+        215.0
+    ],
+    "Invasive BP Systolic_first25_max": [
+        "real",
+        51.0,
+        347.0
+    ],
+    "Invasive BP Systolic_first25_mean": [
+        "positive_real",
+        51.0,
+        245.0
+    ],
+    "Invasive BP Systolic_first25_std": [
+        "real",
+        0.0,
+        76.74174228483906
+    ],
+    "Invasive BP Systolic_first25_skew": [
+        "real",
+        -4.234162878201063,
+        6.190366964437223
+    ],
+    "Invasive BP Systolic_first25_num": [
+        "count",
+        0.0,
+        228.0
+    ],
+    "Invasive BP Systolic_first50_min": [
+        "real",
+        0.0,
+        205.0
+    ],
+    "Invasive BP Systolic_first50_max": [
+        "real",
+        51.0,
+        349.0
+    ],
+    "Invasive BP Systolic_first50_mean": [
+        "positive_real",
+        51.0,
+        209.3333333333333
+    ],
+    "Invasive BP Systolic_first50_std": [
+        "real",
+        0.0,
+        79.3064567642953
+    ],
+    "Invasive BP Systolic_first50_skew": [
+        "real",
+        -3.736686618279077,
+        6.733346766908943
+    ],
+    "Invasive BP Systolic_first50_num": [
+        "count",
+        0.0,
+        456.0
+    ],
+    "Invasive BP Systolic_last10_min": [
+        "real",
+        0.0,
+        233.0
+    ],
+    "Invasive BP Systolic_last10_max": [
+        "real",
+        27.0,
+        327.0
+    ],
+    "Invasive BP Systolic_last10_mean": [
+        "positive_real",
+        27.0,
+        244.3
+    ],
+    "Invasive BP Systolic_last10_std": [
+        "real",
+        0.0,
+        96.14156229227815
+    ],
+    "Invasive BP Systolic_last10_skew": [
+        "real",
+        -4.479665966105908,
+        4.961074946974689
+    ],
+    "Invasive BP Systolic_last10_num": [
+        "count",
+        0.0,
+        92.0
+    ],
+    "Invasive BP Systolic_last25_min": [
+        "real",
+        0.0,
+        233.0
+    ],
+    "Invasive BP Systolic_last25_max": [
+        "real",
+        51.0,
+        340.0
+    ],
+    "Invasive BP Systolic_last25_mean": [
+        "positive_real",
+        46.2,
+        233.0
+    ],
+    "Invasive BP Systolic_last25_std": [
+        "real",
+        0.0,
+        108.89444430272829
+    ],
+    "Invasive BP Systolic_last25_skew": [
+        "real",
+        -6.7757803484082055,
+        6.392366248836407
+    ],
+    "Invasive BP Systolic_last25_num": [
+        "count",
+        0.0,
+        228.0
+    ],
+    "Invasive BP Systolic_last50_min": [
+        "real",
+        0.0,
+        205.0
+    ],
+    "Invasive BP Systolic_last50_max": [
+        "real",
+        51.0,
+        341.0
+    ],
+    "Invasive BP Systolic_last50_mean": [
+        "positive_real",
+        51.0,
+        215.12244897959184
+    ],
+    "Invasive BP Systolic_last50_std": [
+        "real",
+        0.0,
+        75.26562486098342
+    ],
+    "Invasive BP Systolic_last50_skew": [
+        "real",
+        -4.9027334800881865,
+        7.379338064301198
+    ],
+    "Invasive BP Systolic_last50_num": [
+        "count",
+        0.0,
+        456.0
+    ],
+    "Temperature (C)_full_min": [
+        "positive_real",
+        26.0,
+        39.77777777777778
+    ],
+    "Temperature (C)_full_max": [
+        "positive_real",
+        32.9,
+        44.3
+    ],
+    "Temperature (C)_full_mean": [
+        "positive_real",
+        32.34166666666667,
+        39.78888888888889
+    ],
+    "Temperature (C)_full_std": [
+        "real",
+        0.0,
+        4.549512277795496
+    ],
+    "Temperature (C)_full_skew": [
+        "real",
+        -10.936934958678744,
+        4.692557394704863
+    ],
+    "Temperature (C)_full_num": [
+        "count",
+        0.0,
+        844.0
+    ],
+    "Temperature (C)_first10_min": [
+        "positive_real",
+        26.0,
+        40.7
+    ],
+    "Temperature (C)_first10_max": [
+        "positive_real",
+        27.4,
+        41.9
+    ],
+    "Temperature (C)_first10_mean": [
+        "positive_real",
+        26.582716049382714,
+        40.95555555555556
+    ],
+    "Temperature (C)_first10_std": [
+        "real",
+        0.0,
+        5.138417395787669
+    ],
+    "Temperature (C)_first10_skew": [
+        "real",
+        -3.9946287493638977,
+        3.741958971071567
+    ],
+    "Temperature (C)_first10_num": [
+        "count",
+        0.0,
+        85.0
+    ],
+    "Temperature (C)_first25_min": [
+        "positive_real",
+        26.0,
+        40.0
+    ],
+    "Temperature (C)_first25_max": [
+        "positive_real",
+        28.9,
+        41.9
+    ],
+    "Temperature (C)_first25_mean": [
+        "positive_real",
+        27.833862433862443,
+        40.42642642642642
+    ],
+    "Temperature (C)_first25_std": [
+        "real",
+        0.0,
+        4.590767259720519
+    ],
+    "Temperature (C)_first25_skew": [
+        "real",
+        -6.1779967161275815,
+        5.9057898989811495
+    ],
+    "Temperature (C)_first25_num": [
+        "count",
+        0.0,
+        212.0
+    ],
+    "Temperature (C)_first50_min": [
+        "positive_real",
+        26.0,
+        39.77777777777778
+    ],
+    "Temperature (C)_first50_max": [
+        "positive_real",
+        32.9,
+        41.9
+    ],
+    "Temperature (C)_first50_mean": [
+        "positive_real",
+        30.392328042328053,
+        39.87826797385621
+    ],
+    "Temperature (C)_first50_std": [
+        "real",
+        0.0,
+        4.370957744583933
+    ],
+    "Temperature (C)_first50_skew": [
+        "real",
+        -7.8604440521533405,
+        6.26472395800892
+    ],
+    "Temperature (C)_first50_num": [
+        "count",
+        0.0,
+        423.0
+    ],
+    "Temperature (C)_last10_min": [
+        "positive_real",
+        26.0,
+        40.6
+    ],
+    "Temperature (C)_last10_max": [
+        "positive_real",
+        26.7,
+        42.0
+    ],
+    "Temperature (C)_last10_mean": [
+        "positive_real",
+        26.68333333333333,
+        41.444107744107754
+    ],
+    "Temperature (C)_last10_std": [
+        "real",
+        0.0,
+        5.879358990563315
+    ],
+    "Temperature (C)_last10_skew": [
+        "real",
+        -4.371409026470083,
+        5.294651389216387
+    ],
+    "Temperature (C)_last10_num": [
+        "count",
+        0.0,
+        85.0
+    ],
+    "Temperature (C)_last25_min": [
+        "positive_real",
+        26.0,
+        40.388888888888886
+    ],
+    "Temperature (C)_last25_max": [
+        "positive_real",
+        31.4,
+        42.4
+    ],
+    "Temperature (C)_last25_mean": [
+        "positive_real",
+        31.394444444444453,
+        40.8400548696845
+    ],
+    "Temperature (C)_last25_std": [
+        "real",
+        0.0,
+        6.184079519716157
+    ],
+    "Temperature (C)_last25_skew": [
+        "real",
+        -6.214278154828465,
+        4.7650187090735185
+    ],
+    "Temperature (C)_last25_num": [
+        "count",
+        0.0,
+        211.0
+    ],
+    "Temperature (C)_last50_min": [
+        "positive_real",
+        26.0,
+        39.77777777777778
+    ],
+    "Temperature (C)_last50_max": [
+        "positive_real",
+        32.722222222222236,
+        44.3
+    ],
+    "Temperature (C)_last50_mean": [
+        "positive_real",
+        31.89259259259259,
+        40.54222222222222
+    ],
+    "Temperature (C)_last50_std": [
+        "real",
+        0.0,
+        5.060472636418346
+    ],
+    "Temperature (C)_last50_skew": [
+        "real",
+        -8.51083505895542,
+        3.612345609072509
+    ],
+    "Temperature (C)_last50_num": [
+        "count",
+        0.0,
+        422.0
+    ],
+    "pH_full_min": [
+        "positive_real",
+        6.49,
+        7.7
+    ],
+    "pH_full_max": [
+        "positive_real",
+        6.88,
+        10.0
+    ],
+    "pH_full_mean": [
+        "positive_real",
+        6.88,
+        7.755
+    ],
+    "pH_full_std": [
+        "real",
+        0.0,
+        0.7893070096961992
+    ],
+    "pH_full_skew": [
+        "real",
+        -2.789126157926626,
+        2.66045860808858
+    ],
+    "pH_full_num": [
+        "count",
+        0.0,
+        61.0
+    ],
+    "pH_first10_min": [
+        "positive_real",
+        6.49,
+        7.73
+    ],
+    "pH_first10_max": [
+        "positive_real",
+        6.617999999999999,
+        10.0
+    ],
+    "pH_first10_mean": [
+        "positive_real",
+        6.59,
+        8.75
+    ],
+    "pH_first10_std": [
+        "real",
+        0.0,
+        1.7677669529663689
+    ],
+    "pH_first10_skew": [
+        "real",
+        -1.0,
+        1.141214832426344
+    ],
+    "pH_first10_num": [
+        "count",
+        0.0,
+        7.0
+    ],
+    "pH_first25_min": [
+        "positive_real",
+        6.49,
+        7.73
+    ],
+    "pH_first25_max": [
+        "positive_real",
+        6.74,
+        10.0
+    ],
+    "pH_first25_mean": [
+        "positive_real",
+        6.685,
+        8.333333333333334
+    ],
+    "pH_first25_std": [
+        "real",
+        0.0,
+        1.4433756729740643
+    ],
+    "pH_first25_skew": [
+        "real",
+        -1.9600145153763893,
+        1.9253902475483795
+    ],
+    "pH_first25_num": [
+        "count",
+        0.0,
+        16.0
+    ],
+    "pH_first50_min": [
+        "positive_real",
+        6.49,
+        7.7
+    ],
+    "pH_first50_max": [
+        "positive_real",
+        6.874,
+        10.0
+    ],
+    "pH_first50_mean": [
+        "positive_real",
+        6.751428571428571,
+        7.921666666666668
+    ],
+    "pH_first50_std": [
+        "real",
+        0.0,
+        1.018261590489726
+    ],
+    "pH_first50_skew": [
+        "real",
+        -2.5099572019936205,
+        2.4860871302423826
+    ],
+    "pH_first50_num": [
+        "count",
+        0.0,
+        31.0
+    ],
+    "pH_last10_min": [
+        "positive_real",
+        6.5,
+        7.71
+    ],
+    "pH_last10_max": [
+        "positive_real",
+        6.5,
+        7.71
+    ],
+    "pH_last10_mean": [
+        "positive_real",
+        6.5,
+        7.71
+    ],
+    "pH_last10_std": [
+        "real",
+        0.0,
+        0.1767766952966369
+    ],
+    "pH_last10_skew": [
+        "real",
+        -1.1731251294062937,
+        0.9573759158032764
+    ],
+    "pH_last10_num": [
+        "count",
+        0.0,
+        7.0
+    ],
+    "pH_last25_min": [
+        "positive_real",
+        6.5,
+        7.71
+    ],
+    "pH_last25_max": [
+        "positive_real",
+        6.5,
+        7.71
+    ],
+    "pH_last25_mean": [
+        "positive_real",
+        6.5,
+        7.71
+    ],
+    "pH_last25_std": [
+        "real",
+        0.0,
+        0.3620386719675127
+    ],
+    "pH_last25_skew": [
+        "real",
+        -1.8178300648692844,
+        1.7251744201549781
+    ],
+    "pH_last25_num": [
+        "count",
+        0.0,
+        16.0
+    ],
+    "pH_last50_min": [
+        "positive_real",
+        6.5,
+        7.7
+    ],
+    "pH_last50_max": [
+        "positive_real",
+        6.5,
+        7.75
+    ],
+    "pH_last50_mean": [
+        "positive_real",
+        6.5,
+        7.7
+    ],
+    "pH_last50_std": [
+        "real",
+        0.0,
+        0.40305086527633227
+    ],
+    "pH_last50_skew": [
+        "real",
+        -2.2154733069154657,
+        2.0221407723105767
+    ],
+    "pH_last50_num": [
+        "count",
+        0.0,
+        31.0
+    ]
+}
