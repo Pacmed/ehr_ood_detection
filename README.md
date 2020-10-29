@@ -26,6 +26,8 @@ examples.
     * [Examples](https://github.com/Pacmed/uncertainty_estimation/tree/hi-vae#point_up-examples)
         * [Experiments](https://github.com/Pacmed/uncertainty_estimation/tree/hi-vae#microscope-experiments)
         * [Plotting](https://github.com/Pacmed/uncertainty_estimation/tree/hi-vae#bar_chart-plotting)
+    * [Replication](https://github.com/Pacmed/uncertainty_estimation/tree/hi-vae#recycle-replication)
+        * [Ulmer et al. (2020)](https://github.com/Pacmed/uncertainty_estimation/tree/hi-vae#ulmer-et-al-(2020))
 * [Bibliography](https://github.com/Pacmed/uncertainty_estimation/tree/hi-vae#mortar_board-bibliography)
 
 ## :open_file_folder: Contents
@@ -231,6 +233,47 @@ examples for usage:
 `../../data/results/` by default (expecting that run this script from the module it's located in) in the form 
 of pickle files, using a folder hierarchy to distinguish between different data sets, experiments and models. 
 Images will by default be saved to `../../data/img/experiments`.
+
+### :recycle: Replication
+
+This section contains some information to replicate the experiments in the publications based on this repo.
+
+#### Ulmer et al. (2020)
+
+To replicate the experiments of Ulmer et al. (2020) unfortunately first requires a bit of messy preprocessing. Because
+we cannot publish the data sets alongside this repo, they have to be downloaded and preprocessed manually. More info about
+how to acquire the data sets is given under [Included Datasets](https://github.com/Pacmed/uncertainty_estimation/tree/hi-vae#scroll-included-datasets).
+
+For the MIMIC-III data set, @TODO Add info here. 
+
+For eICU, use the code given in [this repo](https://github.com/mostafaalishahi/eICU_Benchmark) to extract the data 
+for distinct patient stays into different folders, specifically the script `data_extraction/data_extraction_root.py` 
+(this doesn't require the whole script to be run in its entirety). On the output directory specified with `--output_dir`
+by the previous script, run the following command
+
+    python3 src/preprocessing/eicu.py --stays_dir <path to stay folders> --patient_path ${eicu}/patient.csv 
+    --diagnoses_path ${eicu}/diagnosis.csv --phenotypes_path data/yaml/hcup_ccs_2015_definitions.yaml 
+    --apachepredvar_path ${eicu}/apachePredVar.csv --output_dir <output dir>
+    
+where `${eicu}` contains the path to the original eICU directory with unzipped files. This script will create the 
+`adult_data.csv` file in the output directory. From there, adjust the `EICU_CSV` variable in 
+`utils.datahandler.py` to point to this file. 
+
+Finally, the following scripts were run to create the experimental results reported in the paper:
+
+    python3 perturbation.py --data_origin eICU --models AE AnchoredNNEnsemble BBB BootstrappedNNEnsemble LogReg MCDropout NN NNEnsemble PPCA PlattScalingNN
+    python3 perturbation.py --data_origin MIMIC --models AE AnchoredNNEnsemble BBB BootstrappedNNEnsemble LogReg MCDropout NN NNEnsemble PPCA PlattScalingNN
+    python3 out_of_domain.py --data_origin eICU --models AE AnchoredNNEnsemble BBB BootstrappedNNEnsemble LogReg MCDropout NN NNEnsemble PPCA PlattScalingNN
+    python3 out_of_domain.py --data_origin MIMIC --models AE AnchoredNNEnsemble BBB BootstrappedNNEnsemble LogReg MCDropout NN NNEnsemble PPCA PlattScalingNN
+    python3 domain_adaptation.py --models --models AE AnchoredNNEnsemble BBB BootstrappedNNEnsemble LogReg MCDropout NN NNEnsemble PPCA PlattScalingNN
+    
+To plot the results, please follow the instructions under [Plotting](https://github.com/Pacmed/uncertainty_estimation/tree/hi-vae#bar_chart-plotting).
+
+--- 
+
+**Note**: **If you encounter any problems with the replication of these experimental results, please feel free to open an issue on this repository!**
+
+---
 
 ### :mortar_board: Bibliography
 
