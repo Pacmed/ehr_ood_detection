@@ -1,4 +1,4 @@
-# Reliable Prediction for Electronic Health Records
+# OOD Detection For Electronic Health Records
 
 This repository contain code used by [Pacmed Labs](https://pacmed.ai/nl/labs) for experiments about uncertainty 
 estimation, OOD detection and (deep) generative modelling for electronic health records, i.e. tabular data, with 
@@ -6,7 +6,7 @@ estimation, OOD detection and (deep) generative modelling for electronic health 
 is used in the following publications:
 
 * ["Uncertainty Estimation For Classification And Risk Prediction on Medical Tabular Data" (Meijerink et al., 2020)](https://arxiv.org/pdf/2004.05824.pdf)
-* @TODO Dennis ML4H
+* "Trust Issues: Uncertainty Estimation Does Not Enable Reliable OOD Detection On Medical Tabular Data" (Ulmer et al., 2020) (@TODO Link / Bib entry)
 
 In the following sections the contents of the repository are explained in detail, along with how to use it and some 
 examples.
