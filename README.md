@@ -14,21 +14,21 @@ examples.
 ## :books: Table of contents
 
 * [Contents](https://github.com/Pacmed/ehr_ood_detection#open_file_folder-contents)
-    * [Included Models](https://github.com/Pacmed/ehr_ood_detection#robot-included-models)
-    * [Included Metrics](https://github.com/Pacmed/ehr_ood_detection#triangular_ruler-included-metrics)
-    * [Included Experiments](https://github.com/Pacmed/ehr_ood_detection#microscope-included-experiments)
-    * [Included Datasets](https://github.com/Pacmed/ehr_ood_detection#scroll-included-datasets)
-* [Usage](https://github.com/Pacmed/ehr_ood_detection#usage)
-    * [Setup](https://github.com/Pacmed/ehr_ood_detection#setup) 
-        * [Installation](https://github.com/Pacmed/ehr_ood_detection#inbox_tray-installation)
-        * [Automatic Code Formatting](https://github.com/Pacmed/ehr_ood_detection#hammer_and_wrench-automatic-code-formatting-recommended)
-        * [Commit Message Template](https://github.com/Pacmed/ehr_ood_detection#memo-commit-message-template-recommended)
-    * [Examples](https://github.com/Pacmed/ehr_ood_detection#point_up-examples)
-        * [Experiments](https://github.com/Pacmed/ehr_ood_detection#microscope-experiments)
-        * [Plotting](https://github.com/Pacmed/ehr_ood_detection#bar_chart-plotting)
+    * [Included Models](https://github.com/Pacmed/ehr_ood_detection/hi-vae#robot-included-models)
+    * [Included Metrics](https://github.com/Pacmed/ehr_ood_detection/hi-vae#triangular_ruler-included-metrics)
+    * [Included Experiments](https://github.com/Pacmed/ehr_ood_detection/hi-vae#microscope-included-experiments)
+    * [Included Datasets](https://github.com/Pacmed/ehr_ood_detection/hi-vae#scroll-included-datasets)
+* [Usage](https://github.com/Pacmed/ehr_ood_detection/hi-vae#usage)
+    * [Setup](https://github.com/Pacmed/ehr_ood_detection/hi-vae#setup) 
+        * [Installation](https://github.com/Pacmed/ehr_ood_detection/hi-vae#inbox_tray-installation)
+        * [Automatic Code Formatting](https://github.com/Pacmed/ehr_ood_detection/hi-vae#hammer_and_wrench-automatic-code-formatting-recommended)
+        * [Commit Message Template](https://github.com/Pacmed/ehr_ood_detection/hi-vae#memo-commit-message-template-recommended)
+    * [Examples](https://github.com/Pacmed/ehr_ood_detection/hi-vae#point_up-examples)
+        * [Experiments](https://github.com/Pacmed/ehr_ood_detection/hi-vae#microscope-experiments)
+        * [Plotting](https://github.com/Pacmed/ehr_ood_detection/hi-vae#bar_chart-plotting)
     * [Replication](https://github.com/Pacmed/ehr_ood_detection#recycle-replication)
         * [Ulmer et al. (2020)](https://github.com/Pacmed/ehr_ood_detection#ulmer-et-al-2020)
-* [Bibliography](https://github.com/Pacmed/ehr_ood_detection#mortar_board-bibliography)
+* [Bibliography](https://github.com/Pacmed/ehr_ood_detection/hi-vae#mortar_board-bibliography)
 
 ## :open_file_folder: Contents
 
@@ -128,7 +128,7 @@ Furthermore, the following experiments are currently included:
 (`perturbation.py`)
 
 Lastly, `plot_results.py` can be used to generate tables and plots from the results of these experiments. More information 
-about the correct usage is given in the section [Examples](https://github.com/Pacmed/ehr_ood_detection#point_up-examples) below.
+about the correct usage is given in the section [Examples](https://github.com/Pacmed/ehr_ood_detection/hi-vae#point_up-examples) below.
 
 ### :scroll: Included Datasets
 
@@ -205,7 +205,7 @@ for all scripts are `--data-origin`, which defines the data set experiments are 
     python3 out_of_domain.py --data_origin MIMIC
     python3 domain_adaptation.py --models LogReg AnchoredNNEnsemble
     
-**Note**: The script will write results to the path specified via `--result_dir`, which is set to 
+:bulb: **Note**: The script will write results to the path specified via `--result_dir`, which is set to 
 `../../data/results/` by default (expecting that run this script from the module it's located in) in the form 
 of pickle files, using a folder hierarchy to distinguish between different data sets, experiments and models.
  
@@ -229,7 +229,7 @@ examples for usage:
     
 **Tip**: PyCharm allows you to save presets for these kind of commands, so switching between them often becomes much easier.
 
-**Note**: The script will only plot results which are saved in the path specified via `--result_dir`, which is set to 
+:bulb: **Note**: The script will only plot results which are saved in the path specified via `--result_dir`, which is set to 
 `../../data/results/` by default (expecting that run this script from the module it's located in) in the form 
 of pickle files, using a folder hierarchy to distinguish between different data sets, experiments and models. 
 Images will by default be saved to `../../data/img/experiments`.
@@ -242,9 +242,10 @@ This section contains some information to replicate the experiments in the publi
 
 To replicate the experiments of Ulmer et al. (2020) unfortunately first requires a bit of messy preprocessing. Because
 we cannot publish the data sets alongside this repo, they have to be downloaded and preprocessed manually. More info about
-how to acquire the data sets is given under [Included Datasets](https://github.com/Pacmed/ehr_ood_detection#scroll-included-datasets).
+how to acquire the data sets is given under [Included Datasets](https://github.com/Pacmed/ehr_ood_detection/hi-vae#scroll-included-datasets).
 
-For the MIMIC-III data set, @TODO Add info here. 
+For the MIMIC-III data set, [this repo](https://github.com/YerevaNN/mimic3-benchmarks/tree/v1.0.0-alpha) was used for 
+preprocessing purposes. Follow the instructions to produce the mortality prediction task there.
 
 For eICU, use the code given in [this repo](https://github.com/mostafaalishahi/eICU_Benchmark) to extract the data 
 for distinct patient stays into different folders, specifically the script `data_extraction/data_extraction_root.py` 
@@ -267,11 +268,11 @@ Finally, the following scripts were run to create the experimental results repor
     python3 out_of_domain.py --data_origin MIMIC --models AE AnchoredNNEnsemble BBB BootstrappedNNEnsemble LogReg MCDropout NN NNEnsemble PPCA PlattScalingNN
     python3 domain_adaptation.py --models --models AE AnchoredNNEnsemble BBB BootstrappedNNEnsemble LogReg MCDropout NN NNEnsemble PPCA PlattScalingNN
     
-To plot the results, please follow the instructions under [Plotting](https://github.com/Pacmed/ehr_ood_detection#bar_chart-plotting).
+To plot the results, please follow the instructions under [Plotting](https://github.com/Pacmed/ehr_ood_detection/hi-vae#bar_chart-plotting).
 
 --- 
 
-**Note**: **If you encounter any problems with the replication of these experimental results, please feel free to open an issue on this repository!**
+:bulb: **Note**: **If you encounter any problems with the replication of these experimental results, please feel free to open an issue on this repository!**
 
 ---
 
