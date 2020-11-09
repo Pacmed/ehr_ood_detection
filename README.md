@@ -6,7 +6,7 @@ estimation, OOD detection and (deep) generative modelling for electronic health 
 is used in the following publications:
 
 * ["Uncertainty Estimation For Classification And Risk Prediction on Medical Tabular Data" (Meijerink et al., 2020)](https://arxiv.org/pdf/2004.05824.pdf)
-* "Trust Issues: Uncertainty Estimation Does Not Enable Reliable OOD Detection On Medical Tabular Data" (Ulmer et al., 2020) (@TODO Link / Bib entry)
+* ["Trust Issues: Uncertainty Estimation Does Not Enable Reliable OOD Detection On Medical Tabular Data" (Ulmer et al., 2020)](https://arxiv.org/pdf/2011.03274.pdf)
 
 In the following sections the contents of the repository are explained in detail, along with how to use it and some 
 examples.
@@ -303,3 +303,5 @@ Nazabal, A., Olmos, P. M., Ghahramani, Z., & Valera, I. (2020). Handling incompl
 Pearce, Tim, Felix Leibfried, and Alexandra Brintrup. "Uncertainty in neural networks: Approximately Bayesian ensembling." International conference on artificial intelligence and statistics. PMLR, 2020.
 
 Smith, Lewis and Gal, Yarin. Under-standing measures of uncertainty for adversarial example detection. In Proceedings of the Thirty-Fourth Conference on Uncertainty in Artificial Intelligence, UAI 2018, Monterey, California, USA, August 6-10, 2018, pages 560–569, 2018.
+
+Ulmer, Dennis, Lotta Meijerink and Giovanni Cinà. "Trust Issues: Uncertainty Estimation Does Not Enable Reliable OOD Detection on Medical Tabular Dara." ML4H@NeurIPS 2020.
