@@ -200,9 +200,9 @@ for all scripts are `--data-origin`, which defines the data set experiments are 
 `--models`, which defines the models that the experiments are performed with. With omitted, all available models defined in 
 `AVAILABLE_MODELS` in `models.info.py`. Below are given some example commands for the different experiments:
 
-    python3 hyperparameter_search.py --data_origin MIMIC --models BNN
-    python3 perturbation.py --data_origin eICU --models HI-VAE VAE
-    python3 out_of_domain.py --data_origin MIMIC
+    python3 hyperparameter_search.py --data-origin MIMIC --models BBB
+    python3 perturbation.py --data-origin eICU --models HI-VAE VAE
+    python3 out_of_domain.py --data-origin MIMIC
     python3 domain_adaptation.py --models LogReg AnchoredNNEnsemble
     
 :bulb: **Note**: The script will write results to the path specified via `--result_dir`, which is set to 
@@ -223,8 +223,8 @@ in a statistically significantly different way compared to the reference data, a
 of the group. `--print-latex` can be added in order to print all results as latex tables on screen. Below are a few
 examples for usage:
 
-    python3 plot_results.py --data_origin MIMIC -p perturb --plot-type heatmap
-    python3 plot_results.py --data_origin eICU -p ood --plot-type heatmap --show-percentage-sig --show-rel-sizes --print-latex
+    python3 plot_results.py --data-origin MIMIC -p perturb --plot-type heatmap
+    python3 plot_results.py --data-origin eICU -p ood --plot-type heatmap --show-percentage-sig --show-rel-sizes --print-latex
     python3 plot_results.py -p da --plot-type heatmap --show-percentage-sigs --show-rel-sizes --print-latex
     
 **Tip**: PyCharm allows you to save presets for these kind of commands, so switching between them often becomes much easier.
@@ -262,10 +262,10 @@ where `${eicu}` contains the path to the original eICU directory with unzipped f
 
 Finally, the following scripts were run to create the experimental results reported in the paper:
 
-    python3 perturbation.py --data_origin eICU --models AE AnchoredNNEnsemble BBB BootstrappedNNEnsemble LogReg MCDropout NN NNEnsemble PPCA PlattScalingNN
-    python3 perturbation.py --data_origin MIMIC --models AE AnchoredNNEnsemble BBB BootstrappedNNEnsemble LogReg MCDropout NN NNEnsemble PPCA PlattScalingNN
-    python3 out_of_domain.py --data_origin eICU --models AE AnchoredNNEnsemble BBB BootstrappedNNEnsemble LogReg MCDropout NN NNEnsemble PPCA PlattScalingNN
-    python3 out_of_domain.py --data_origin MIMIC --models AE AnchoredNNEnsemble BBB BootstrappedNNEnsemble LogReg MCDropout NN NNEnsemble PPCA PlattScalingNN
+    python3 perturbation.py --data-origin eICU --models AE AnchoredNNEnsemble BBB BootstrappedNNEnsemble LogReg MCDropout NN NNEnsemble PPCA PlattScalingNN
+    python3 perturbation.py --data-origin MIMIC --models AE AnchoredNNEnsemble BBB BootstrappedNNEnsemble LogReg MCDropout NN NNEnsemble PPCA PlattScalingNN
+    python3 out_of_domain.py --data-origin eICU --models AE AnchoredNNEnsemble BBB BootstrappedNNEnsemble LogReg MCDropout NN NNEnsemble PPCA PlattScalingNN
+    python3 out_of_domain.py --data-origin MIMIC --models AE AnchoredNNEnsemble BBB BootstrappedNNEnsemble LogReg MCDropout NN NNEnsemble PPCA PlattScalingNN
     python3 domain_adaptation.py --models --models AE AnchoredNNEnsemble BBB BootstrappedNNEnsemble LogReg MCDropout NN NNEnsemble PPCA PlattScalingNN
     
 To plot the results, please follow the instructions under [Plotting](https://github.com/Pacmed/ehr_ood_detection/hi-vae#bar_chart-plotting).
