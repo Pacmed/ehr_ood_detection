@@ -6,4 +6,4 @@ seaborn==0.10.1
 sklearn==0.0
 blitz-bayesian-pytorch==0.2.5
 torch==1.6.0
-tqdm @ file:///tmp/build/80754af9/tqdm_1593446365756/work
+tqdm==4.56.0
