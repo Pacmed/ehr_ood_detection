@@ -14,7 +14,8 @@ import numpy as np
 # PROJECT
 import src.utils.ood as ood_utils
 from src.utils.model_init import init_models
-from src.utils.datahandler import DataHandler
+from src.utils.datahandler import load_data_from_origin, DataHandler
+from src.mappings import MIMIC_ORIGINS
 from src.models.info import AVAILABLE_MODELS
 
 # CONST
@@ -46,7 +47,9 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    dh_mimic = DataHandler("MIMIC_for_DA")
+    data_loader_mimic = load_data_from_origin("MIMIC_for_DA")
+    dh_mimic = DataHandler(**data_loader_mimic)
+
     feature_names_mimic = dh_mimic.load_feature_names()
     train_mimic, test_mimic, val_mimic = dh_mimic.load_data_splits()
     y_mimic = dh_mimic.load_target_name()
@@ -55,7 +58,9 @@ if __name__ == "__main__":
         train_mimic, test_mimic, val_mimic, feature_names_mimic, y_mimic, "MIMIC"
     )
 
-    dh_eicu = DataHandler("eICU_for_DA")
+    data_loader_eicu = load_data_from_origin("eICU_for_DA")
+    dh_eicu = DataHandler(**data_loader_mimic)
+
     feature_names_eicu = dh_eicu.load_feature_names()
     train_eicu, test_eicu, val_eicu = dh_eicu.load_data_splits()
     y_eicu = dh_eicu.load_target_name()

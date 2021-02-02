@@ -19,7 +19,7 @@ import torch
 from tqdm import tqdm
 
 # PROJECT
-from src.utils.datahandler import DataHandler
+from src.utils.datahandler import DataHandler, load_data_from_origin
 from src.models.info import (
     AVAILABLE_MODELS,
     PARAM_SEARCH,
@@ -55,7 +55,9 @@ def perform_hyperparameter_search(
         Save the top n parameter configuration. Default is 10.
     """
 
-    dh = DataHandler(data_origin)
+    data_loader = load_data_from_origin(args.data_origin)
+    dh = DataHandler(**data_loader)
+
     train_data, _, val_data = dh.load_data_splits()
     feat_names = dh.load_feature_names()
     target_name = dh.load_target_name()
