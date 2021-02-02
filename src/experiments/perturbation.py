@@ -17,7 +17,7 @@ import torch
 # PROJECT
 from src.utils.model_init import AVAILABLE_MODELS
 from src.utils.model_init import init_models
-from src.utils.datahandler import DataHandler
+from src.utils.datahandler import DataHandler, load_data_from_origin
 from src.utils.novelty_analyzer import NoveltyAnalyzer
 
 # CONST
@@ -96,7 +96,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Loading the data
-    dh = DataHandler(args.data_origin)
+    data_loader = load_data_from_origin(args.data_origin)
+    dh = DataHandler(**data_loader)
     feature_names = dh.load_feature_names()
     train_data, test_data, val_data = dh.load_data_splits()
     y_name = dh.load_target_name()
