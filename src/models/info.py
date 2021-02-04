@@ -30,6 +30,7 @@ with open(f"{FEAT_TYPES_DIR}/feat_types_MIMIC.json", "rb") as ft_mimic_file:
 
 DENSITY_BASELINES = {
     "PPCA",  # Probabilistic PCA for density estimation
+    "LOF",
 }
 
 DISCRIMINATOR_BASELINES = {
@@ -55,7 +56,7 @@ SINGLE_INST_MULTIPLE_PRED_NN_MODELS = {
     "BBB",  # Bayesian Neural Network
 }
 
-VARIATIONAL_AUTOENCODERS = {"VAE", "HI-VAE"}
+VARIATIONAL_AUTOENCODERS = {"VAE"} #, "HI-VAE"}
 AUTOENCODERS = {"AE"} | VARIATIONAL_AUTOENCODERS
 
 NO_ENSEMBLE_NN_MODELS = (
@@ -78,6 +79,7 @@ AVAILABLE_MODELS = NEURAL_MODELS | BASELINES  # All available models in this pro
 # Available novelty scoring functions for models
 AVAILABLE_SCORING_FUNCS = {
     "PPCA": ("log_prob",),  # Default: log-prob
+    "LOF": ("outlier_score",),
     "AE": ("reconstr_err",),  # Default: Reconstruction error
     "HI-VAE": (
         "reconstr_err",
@@ -105,10 +107,18 @@ AVAILABLE_SCORING_FUNCS = {
 # ### Hyperparameters ###
 
 MODEL_PARAMS = {
-    "PPCA": {"MIMIC": {"n_components": 15}, "eICU": {"n_components": 15}},
+    "PPCA": {"MIMIC": {"n_components": 15},
+             "eICU": {"n_components": 15},
+             "VUmc": {"n_components": 15}
+             },
+    "LOF": {"MIMIC": {"n_neighbors": 20, "algorithm": "auto"},
+            "eICU": {"n_neighbors": 5, "algorithm": "brute"},
+            "VUmc": {"n_neighbors": 5, "algorithm": "brute"}
+            },
     "AE": {
         "MIMIC": {"hidden_sizes": [75], "latent_dim": 15, "lr": 0.006897},
         "eICU": {"hidden_sizes": [100], "latent_dim": 15, "lr": 0.005216},
+        "VUmc": {"hidden_sizes": [100], "latent_dim": 15, "lr": 0.005216},
     },
     "VAE": {
         "MIMIC": {
@@ -165,6 +175,12 @@ MODEL_PARAMS = {
             "lr": 0.000904,
             "class_weight": False,
         },
+        "VUmc": {
+            "dropout_rate": 0.381918,
+            "hidden_sizes": [75],
+            "lr": 0.000904,
+            "class_weight": False,
+        }
     },
     "PlattScalingNN": {
         "MIMIC": {
@@ -290,6 +306,7 @@ MODEL_PARAMS = {
 
 TRAIN_PARAMS = {
     "PPCA": {},
+    "LOF": {},
     "AE": {"n_epochs": 10, "batch_size": 64},
     "VAE": {"n_epochs": 6, "batch_size": 64},
     "HI-VAE": {"n_epochs": 6, "batch_size": 64},
@@ -374,6 +391,7 @@ NUM_EVALS = {
     "BBB": 100,
     "PPCA": 30,
     "LogReg": 5,
+    "LOF": 1,
 }
 
 

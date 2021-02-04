@@ -112,6 +112,7 @@ def run_ood_experiment_on_group(
         if method_name in NEURAL_PREDICTORS | DISCRIMINATOR_BASELINES:
             y_pred = nov_an.ne.model.predict_proba(nov_an.X_ood)[:, 1]
 
+            # TODO: Why are the metrics calculated on all data (train, test, val)?
             for metric in metrics:
                 try:
                     ood_metrics[metric.__name__][ood_data.name] += [

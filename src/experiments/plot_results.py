@@ -376,6 +376,105 @@ def plot_ood_jointly(
     # TODO: Create plots for metric dicts
 
 
+def plot_novelty_scores(
+        data_origin: str,
+        result_dir: str,
+        plot_dir: str,
+        models: List[str],
+        suffix: str,
+        print_latex: bool,
+        plot_type: str,
+        stats_dir: str,
+        dummy_group_name: Optional[str] = None,
+        show_rel_sizes: bool = False,
+        show_percentage_sigs: bool = False,
+) -> None:
+    """
+       Plot the results of the out-of-domain group experiments.
+
+       Parameters
+       ----------
+       data_origin: str
+           Data set that was being used, e.g. eICU or MIMIC.
+       result_dir: str
+           Directory containing the results.
+       plot_dir: str
+           Directory plots should be saved to.
+       models: List[str]
+           List of model names for which the results should be plotted.
+       suffix: str
+           Add a suffix to the resulting files in order to distinguish them.
+       print_latex: bool
+           Put the results into a DataFrame which is exported to latex and then printed to screen if True.
+       plot_type: str
+           Type of plot that should be created.
+       stats_dir: str
+           Directory containing statistics.
+       dummy_group_name: Optional[str]
+           Name of dummy group to "pad" plot and align eICU and MIMIC results.
+       show_rel_sizes: bool
+           Add the relative size of the OOD group to the plot.
+       show_percentage_sigs: bool
+           Add the percentage of significantly different features to the plot.
+       """
+    rel_sizes = load_rel_sizes(stats_dir, data_origin) if show_rel_sizes else None
+    percentage_sigs = (
+        load_percentage_sig(stats_dir, data_origin) if show_percentage_sigs else None
+    )
+
+    novelty_dir_name = f"{plot_dir}/{data_origin}/novelty_scores"
+
+    if not os.path.exists(novelty_dir_name):
+        os.makedirs(novelty_dir_name)
+
+    metric_dict = load_novelty_scores_from_origin(
+        models, result_dir, data_origin
+    )
+
+    name_dict = {
+        "ece": "ECE",
+        "roc_auc_score": "AUC-ROC",
+        "accuracy": "accuracy",
+        "brier_score_loss": "Brier score",
+        "nll": "NLL",
+        "log_loss": "NLL",
+    }
+
+    for m in metric_dict.keys():
+        if plot_type == "boxplot":
+            plot_results_as_boxplot(
+                metric_dict[m],
+                name=name_dict[m.split(".")[0]],
+                kind="bar",
+                x_name=" ",
+                save_dir=os.path.join(
+                    novelty_dir_name, m.split(".")[0] + f"{suffix}.png"
+                ),
+                dummy_group_name=dummy_group_name,
+                horizontal=True,
+                legend=True,
+                ylim=None,
+                xlim=(0, 1.0),
+                legend_out=True,
+                height=6,
+                aspect=1.333,
+                rel_sizes=rel_sizes,
+                percentage_sigs=percentage_sigs,
+            )
+
+        else:  # plot_type is "heatmap"
+            plot_results_as_heatmap(
+                metric_dict[m],
+                name=f"{name_dict[m.split('.')[0]]} ({data_origin})",
+                save_dir=os.path.join(
+                    novelty_dir_name, m.split(".")[0] + f"{suffix}.png"
+                ),
+                lower_cmap_limit=0.5 if "roc_auc_score" in m else 0,
+                rel_sizes=rel_sizes,
+                percentage_sigs=percentage_sigs,
+            )
+
+
 def plot_domain_adaption(
     result_dir: str,
     plot_dir: str,
@@ -821,6 +920,8 @@ def plot_confidence_performance(
     # TODO: Export to latex table
 
 
+
+
 def load_ood_results_from_origin(
     models: List[str], result_dir: str, data_origin: str
 ) -> Tuple[ResultDict, ResultDict, ResultDict]:
@@ -875,6 +976,47 @@ def load_ood_results_from_origin(
     return auc_dict, recall_dict, metric_dict
 
 
+# TODO: add novelty scores to loading, right now just metrics
+def load_novelty_scores_from_origin(
+        models: List[str], result_dir: str, data_origin: str):
+    novelty_dir_name = os.path.join(result_dir, data_origin, "novelty_scores")
+
+    metric_dict = defaultdict(dict)
+    novelty_dict = defaultdict(dict)
+
+    available_results = set(os.listdir(f"{result_dir}/{data_origin}/novelty_scores/"))
+
+    for method in available_results & set(models):
+        method_dir = os.path.join(novelty_dir_name, method)
+
+        novelty_dir_name = os.path.join(result_dir, data_origin, "novelty_scores")
+        available_results = set(os.listdir(f"{result_dir}/{data_origin}/novelty_scores/"))
+
+        novelty_dict = {}
+
+        for method in available_results & set(models):
+            method_dir = os.path.join(novelty_dir_name, method)
+
+            novelty_dir = os.path.join(method_dir, "novelty")
+
+            for scoring_func in os.listdir(novelty_dir):
+                name = f"{method.replace('_', ' ')} ({scoring_func.replace('_', ' ')})"
+
+                with open(os.path.join(novelty_dir, scoring_func, "scores.pkl"), "rb") as f:
+                    novelty_dict[name] = pickle.load(f)
+
+        if method in NEURAL_PREDICTORS | DISCRIMINATOR_BASELINES:
+            metrics_dir = os.path.join(method_dir, "metrics")
+
+            for metric in os.listdir(metrics_dir):
+                name = method.replace("_", " ")
+
+                with open(os.path.join(metrics_dir, metric), "rb") as f:
+                    metric_dict[metric][name] = pickle.load(f)
+
+    return novelty_dict, metric_dict
+
+
 def load_rel_sizes(stats_dir: str, task: str) -> Dict[str, float]:
     """ Load pickle containing the relative sizes of data set groups. """
     with open(f"{stats_dir}/{task}/rel_sizes.pkl", "rb") as f:
@@ -892,15 +1034,19 @@ def load_percentage_sig(stats_dir: str, task: str) -> Dict[str, float]:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--data_origin", type=str, nargs="+", default="MIMIC", help="Which data to use",
+        "--data_origin",
+        type=str,
+        nargs="+",
+        default=["MIMIC"],
+        help="Which data to use",
     )
     parser.add_argument(
         "--plots",
         "-p",
         type=str,
         nargs="+",
-        default=["da", "ood", "perturb"],
-        choices=["da", "ood", "perturb", "confidence"],
+        default=["novelty"],
+        choices=["da", "ood", "perturb", "confidence", "novelty"],
         help="Specify the types of plots that should be created.",
     )
     parser.add_argument(
@@ -1033,3 +1179,14 @@ if __name__ == "__main__":
             print_latex=args.print_latex,
             plot_type=args.plot_type,
         )
+
+    if "novelty" in args.plots:
+        plot_novelty_scores(data_origin=args.data_origin[0],
+                            result_dir=args.result_dir,
+                            plot_dir=args.plot_dir,
+                            models=args.models,
+                            suffix=args.suffix,
+                            stats_dir=args.stats_dir,
+                            print_latex=args.print_latex,
+                            plot_type=args.plot_type
+                            )
