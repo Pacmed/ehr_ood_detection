@@ -66,7 +66,7 @@ class DataKey(TypedDict):
 MIMIC_NEWBORNS_MAPPING = ("ADMISSION_TYPE", "NEWBORN")
 
 MIMIC_KEYS = DataKey(data_folder="/data/processed/benchmark/inhospitalmortality/not_scaled",
-                     feature_names_path="../../data/feature_names/common_mimic_params.pkl",
+                     feature_names_path=["../../data/feature_names/common_mimic_params.pkl"],
                      target_name="y",
                      ood_mapping=MIMIC_OOD_MAPPINGS,
                      other_groups={"newborns": ("/data/processed/benchmark/inhospitalmortality/not_scaled"
@@ -82,10 +82,16 @@ EICU_KEYS = DataKey(data_folder="/data/processed/eicu_processed/data/adult_data_
                     ood_mapping=EICU_OOD_MAPPINGS,
                     )
 
-VUMC_KEYS = DataKey(data_folder="/data/interim/VUmc/MLflow/",
-                    feature_names_path="/data/interim/VUmc/MLflow//columns_to_use.pkl",
-                    target_name='readmission_or_mortality_after_discharge',
-                    ood_mapping=VUMC_OOD_MAPPINGS
+# VUMC_KEYS = DataKey(data_folder="/data/interim/VUmc/MLflow/",
+#                     feature_names_path="/data/interim/VUmc/MLflow//columns_to_use.pkl",
+#                     target_name='readmission_or_mortality_after_discharge',
+#                     ood_mapping=VUMC_OOD_MAPPINGS
+#                     )
+
+VUMC_KEYS = DataKey(data_folder="/data/processed/eicu_processed/data/adult_data_nan.csv",
+                    feature_names_path="../../data/feature_names/common_eicu_params.pkl",
+                    target_name="hospitaldischargestatus",
+                    ood_mapping=EICU_OOD_MAPPINGS,
                     )
 
 MAPPING_KEYS = {"MIMIC": MIMIC_KEYS,

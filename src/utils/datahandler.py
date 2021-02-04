@@ -75,8 +75,8 @@ class DataHandler:
                  other_groups: Optional[dict] = None,
                  test_size: Optional[float] = None,
                  val_size: Optional[float] = None,
-                 shuffle: Optional[bool] = True):
-
+                 shuffle: Optional[bool] = True,
+                 ):
         self.data = data
         self.feature_names = columns_to_use
         self.target_name = target_column
@@ -95,7 +95,7 @@ class DataHandler:
         else:
             self.val_size = val_size
 
-        assert ((self.test_size + self.val_size) < 1, "Invalid test or validation size provided.")
+        assert self.test_size + self.val_size < 1, "Invalid test or validation size provided."
         self.train_size = 1 - self.test_size - self.val_size
         self.train_data, self.test_data, self.val_data = self._split_train_test_val(self.data)
 
