@@ -45,6 +45,7 @@ if __name__ == "__main__":
         default=STATS_DIR,
         help="Define the directory that results should be saved to.",
     )
+
     args = parser.parse_args()
 
     data_loader_mimic = load_data_from_origin("MIMIC_for_DA")

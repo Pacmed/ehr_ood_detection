@@ -91,10 +91,17 @@ def perform_hyperparameter_search(
 
             for run, param_set in enumerate(sampled_params):
 
+            # TODO: make this part of code nicer
                 if model_name in NEURAL_MODELS:
-                    param_set.update(input_size=len(feat_names))
+                    try:
+                        param_set_ = param_set.copy()
+                        param_set_.update(input_size=len(feat_names))
+                        model = model_type(**param_set_)
+                    except:
+                        model = model_type(**param_set)
 
-                model = model_type(**param_set)
+                else:
+                    model = model_type(**param_set)
 
                 try:
                     model.fit(X_train, y_train, **TRAIN_PARAMS[model_name])
@@ -221,13 +228,16 @@ if __name__ == "__main__":
     torch.manual_seed(SEED)
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--data-origin", type=str, default="eICU", help="Which data to use"
+        "--data-origin",
+        type=str,
+        default="VUmc",
+        help="Which data to use"
     )
     parser.add_argument(
         "--models",
         type=str,
         nargs="+",
-        default=AVAILABLE_MODELS,
+        default=["PlattScalingNN"],
         choices=AVAILABLE_MODELS,
         help="Determine the models which are being used for this experiment.",
     )

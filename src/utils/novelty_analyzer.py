@@ -73,6 +73,18 @@ class NoveltyAnalyzer:
         """
         Impute and scale, using the train data to fit the (mean) imputer and scaler.
         """
+        # if self.impute_and_scale == "impute_and_scale":
+        #     self.pipe = pipeline.Pipeline(
+        #         [("scaler", StandardScaler()), ("imputer", SimpleImputer())]
+        #     )
+        # elif self.impute_and_scale == "impute":
+        #     self.pipe = pipeline.Pipeline(
+        #         [("imputer", SimpleImputer())]
+        #     )
+        # else:
+        #     raise Warning(f"Your choice: {self.impute_and_scale}, "
+        #                   f"of feature processing is not available at the moment.")
+
         self.pipe = pipeline.Pipeline(
             [("scaler", StandardScaler()), ("imputer", SimpleImputer())]
         )
