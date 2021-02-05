@@ -99,7 +99,8 @@ def run_ood_experiment_on_group(
     for _ in tqdm(range(n_seeds)):
         nov_an.train()
         nov_an.set_ood(
-            all_ood[ood_data.feature_names], impute_and_scale=impute_and_scale
+            all_ood[ood_data.feature_names],
+            impute_and_scale=impute_and_scale
         )
 
         for scoring_func in scoring_funcs:

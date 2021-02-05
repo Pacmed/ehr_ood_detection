@@ -6,6 +6,7 @@ Define a data-handler class.
 import os
 import pickle
 from typing import Tuple, ItemsView, Union, List, Optional
+from typing_extensions import TypedDict
 
 # EXT
 import numpy as np
@@ -51,10 +52,15 @@ def load_data_from_origin(origin: str = "MIMIC", ) -> dict:
     except:
         other_groups = None
 
+    try:
+        ood_mapping = MAPPING_KEYS[f"{origin}"]["ood_mapping"]
+    except:
+        ood_mapping = None
+
     return {"data": data,
             "columns_to_use": feature_names,
             "target_column": MAPPING_KEYS[f"{origin}"]["target_name"],
-            "ood_mapping": MAPPING_KEYS[f"{origin}"]["ood_mapping"],
+            "ood_mapping": ood_mapping,
             "other_groups": other_groups,
             "test_size": test_size,
             "val_size": val_size,
@@ -99,6 +105,7 @@ class DataHandler:
         self.train_size = 1 - self.test_size - self.val_size
         self.train_data, self.test_data, self.val_data = self._split_train_test_val(self.data)
 
+
     def _split_train_test_val(
             self, df: pd.DataFrame
     ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -137,7 +144,10 @@ class DataHandler:
     # Preserve the function for compatibility
     def load_feature_names(self) -> List[str]:
         """ Load the feature names for a given data set. """
-        return self.feature_names
+        # TODO: add warning if not all features are selected
+        selected_features = np.extract([feat in self.data.columns for feat in self.feature_names],
+                                       self.feature_names)
+        return selected_features
 
     def load_other_groups(self, group) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         """ Load other group data. E.g. newborns for MIMIC). """

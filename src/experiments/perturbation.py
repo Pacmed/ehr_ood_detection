@@ -27,7 +27,7 @@ RESULT_DIR = "../../data/results"
 
 
 def run_perturbation_experiment(
-    nov_an: NoveltyAnalyzer, X_test: np.ndarray, scoring_func: str = None
+        nov_an: NoveltyAnalyzer, X_test: np.ndarray, scoring_func: str = None
 ) -> Tuple[Dict[str, List[float]], Dict[str, List[float]]]:
     """Runs the perturbation experiment for a single novelty estimator.
 
@@ -93,6 +93,7 @@ if __name__ == "__main__":
         default=RESULT_DIR,
         help="Define the directory that results should be saved to.",
     )
+
     args = parser.parse_args()
 
     # Loading the data
@@ -103,17 +104,17 @@ if __name__ == "__main__":
     y_name = dh.load_target_name()
 
     for ne, scoring_funcs, name in init_models(
-        input_dim=len(feature_names), selection=args.models, origin=args.data_origin
+            input_dim=len(feature_names), selection=args.models, origin=args.data_origin
     ):
         print(name)
         nov_an = NoveltyAnalyzer(
-            ne,
-            train_data[feature_names].values,
-            test_data[feature_names].values,
-            val_data[feature_names].values,
-            train_data[y_name].values,
-            test_data[y_name].values,
-            val_data[y_name].values,
+            novelty_estimator=ne,
+            X_train=train_data[feature_names].values,
+            X_test=test_data[feature_names].values,
+            X_val=val_data[feature_names].values,
+            y_train=train_data[y_name].values,
+            y_test=test_data[y_name].values,
+            y_val=val_data[y_name].values,
         )
         nov_an.train()
 

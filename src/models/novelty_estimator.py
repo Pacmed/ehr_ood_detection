@@ -21,6 +21,7 @@ from src.models.info import (
 # Define all combination of possible models and scoring funcs
 SCORING_FUNCS = {
     ("PPCA", "log_prob"): lambda model, data: -model.score_samples(data),
+    ("LOF", "outlier_score"): lambda model, data: model.get_scores(data),
     ("AE", "reconstr_err"): lambda model, data: model.get_reconstr_error(data),
     ("HI-VAE", "reconstr_err"): lambda model, data: model.get_reconstr_error(data),
     ("HI-VAE", "latent_prob"): lambda model, data: -model.get_latent_prob(data),

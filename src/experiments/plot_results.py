@@ -14,6 +14,7 @@ from warnings import warn
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 # PROJECT
 from src.visualizing.ood_plots import (
@@ -30,6 +31,7 @@ from src.models.info import (
 )
 from src.experiments.perturbation import SCALES
 from src.utils.types import ResultDict
+from src.utils.datahandler import DataHandler, load_data_from_origin
 
 # CONST
 N_SEEDS = 5
@@ -42,17 +44,17 @@ STATS_DIR = "../../data/stats"
 
 
 def plot_ood(
-    data_origin: str,
-    result_dir: str,
-    plot_dir: str,
-    models: List[str],
-    suffix: str,
-    print_latex: bool,
-    plot_type: str,
-    stats_dir: str,
-    dummy_group_name: Optional[str] = None,
-    show_rel_sizes: bool = False,
-    show_percentage_sigs: bool = False,
+        data_origin: str,
+        result_dir: str,
+        plot_dir: str,
+        models: List[str],
+        suffix: str,
+        print_latex: bool,
+        plot_type: str,
+        stats_dir: str,
+        dummy_group_name: Optional[str] = None,
+        show_rel_sizes: bool = False,
+        show_percentage_sigs: bool = False,
 ) -> None:
     """
     Plot the results of the out-of-domain group experiments.
@@ -235,13 +237,13 @@ def plot_ood(
 
 
 def plot_ood_jointly(
-    data_origins: List[str],
-    result_dir: str,
-    plot_dir: str,
-    models: List[str],
-    suffix: str,
-    plot_type: str,
-    stats_dir: str,
+        data_origins: List[str],
+        result_dir: str,
+        plot_dir: str,
+        models: List[str],
+        suffix: str,
+        plot_type: str,
+        stats_dir: str,
 ):
     """
     Plot the results for the OOD group experiments for two or more data sets jointly next to each other.
@@ -427,7 +429,7 @@ def plot_novelty_scores(
     if not os.path.exists(novelty_dir_name):
         os.makedirs(novelty_dir_name)
 
-    metric_dict = load_novelty_scores_from_origin(
+    novelty_dict, metric_dict = load_novelty_scores_from_origin(
         models, result_dir, data_origin
     )
 
@@ -474,16 +476,57 @@ def plot_novelty_scores(
                 percentage_sigs=percentage_sigs,
             )
 
+    # TODO: plot novelty scores for each model and each patient
+
+
+def export_novelty_csv(
+        data_origin: str,
+        result_dir: str,
+        plot_dir: str,
+        models: List[str],
+        suffix: str,
+        type: str = "test",
+        scale: bool = False,
+):
+    save_dir = f"{plot_dir}/{data_origin}/novelty_scores/csv/"
+
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+
+    novelty_dict, _ = load_novelty_scores_from_origin(
+        models, result_dir, data_origin
+    )
+
+    novelty_selected = dict()
+    for key in novelty_dict.keys():
+        novelty_selected[key] = novelty_dict[key][type]
+
+    # Load unscaled novelty scores
+    novelty_df = pd.DataFrame(novelty_selected)
+
+    data_loader = load_data_from_origin(data_origin)
+    dh = DataHandler(**data_loader)
+    train_data, test_data, val_data = dh.load_data_splits()
+
+    novelty_df.index = test_data[dh.load_feature_names()].index
+
+    if scale:
+        scaler = MinMaxScaler()
+        novelty_df[novelty_df.columns] = scaler.fit_transform(novelty_df)
+
+    save_path = os.path.join(save_dir, f"novelty_{type}_{suffix}.csv")
+    novelty_df.to_csv(save_path)
+
 
 def plot_domain_adaption(
-    result_dir: str,
-    plot_dir: str,
-    models: List[str],
-    suffix: str,
-    print_latex: bool,
-    plot_type: str,
-    stats_dir: str,
-    show_percentage_sigs: bool = False,
+        result_dir: str,
+        plot_dir: str,
+        models: List[str],
+        suffix: str,
+        print_latex: bool,
+        plot_type: str,
+        stats_dir: str,
+        show_percentage_sigs: bool = False,
 ) -> None:
     """
     Plot the results of the domain adaption experiments.
@@ -525,12 +568,12 @@ def plot_domain_adaption(
             name = f"{method.replace('_', ' ')} ({scoring_func.replace('_', ' ')})"
 
             with open(
-                os.path.join(detection_dir, scoring_func, "detect_auc.pkl"), "rb"
+                    os.path.join(detection_dir, scoring_func, "detect_auc.pkl"), "rb"
             ) as f:
                 auc_dict[name] = pickle.load(f)
 
             with open(
-                os.path.join(detection_dir, scoring_func, "recall.pkl"), "rb"
+                    os.path.join(detection_dir, scoring_func, "recall.pkl"), "rb"
             ) as f:
                 recall_dict[name] = pickle.load(f)
 
@@ -686,14 +729,14 @@ def plot_domain_adaption(
 
 
 def plot_perturbation(
-    data_origin: str,
-    result_dir: str,
-    plot_dir: str,
-    models: List[str],
-    suffix: str,
-    print_latex: bool,
-    plot_type: str,
-    scales: List[int] = SCALES,
+        data_origin: str,
+        result_dir: str,
+        plot_dir: str,
+        models: List[str],
+        suffix: str,
+        print_latex: bool,
+        plot_type: str,
+        scales: List[int] = SCALES,
 ) -> None:
     """
     Plot the results of the perturbation experiments.
@@ -725,7 +768,6 @@ def plot_perturbation(
 
     for method in available_results & set(models):
         for scoring_func in AVAILABLE_SCORING_FUNCS[method]:
-
             method_dir = os.path.join(
                 perturb_dir_name, method, "detection", scoring_func
             )
@@ -798,13 +840,13 @@ def plot_perturbation(
 
 
 def plot_confidence_performance(
-    data_origin: str,
-    result_dir: str,
-    plot_dir: str,
-    models: List[str],
-    suffix: str,
-    print_latex: bool,
-    plot_type: str,
+        data_origin: str,
+        result_dir: str,
+        plot_dir: str,
+        models: List[str],
+        suffix: str,
+        print_latex: bool,
+        plot_type: str,
 ) -> None:
     """
     Plot the confidence-performance plots based on the in-domain data experiments..
@@ -851,7 +893,7 @@ def plot_confidence_performance(
 
                 try:
                     with open(
-                        os.path.join(predictions_dir, "predictions.pkl"), "rb"
+                            os.path.join(predictions_dir, "predictions.pkl"), "rb"
                     ) as f:
                         predictions[name] = pickle.load(f)
                     with open(os.path.join(uncertainties_dir, scoring_func), "rb") as f:
@@ -920,10 +962,8 @@ def plot_confidence_performance(
     # TODO: Export to latex table
 
 
-
-
 def load_ood_results_from_origin(
-    models: List[str], result_dir: str, data_origin: str
+        models: List[str], result_dir: str, data_origin: str
 ) -> Tuple[ResultDict, ResultDict, ResultDict]:
     """
     Load the OOD experiment results for a specific data sets and selection of models.
@@ -955,12 +995,12 @@ def load_ood_results_from_origin(
             name = f"{method.replace('_', ' ')} ({scoring_func.replace('_', ' ')})"
 
             with open(
-                os.path.join(detection_dir, scoring_func, "detect_auc.pkl"), "rb"
+                    os.path.join(detection_dir, scoring_func, "detect_auc.pkl"), "rb"
             ) as f:
                 auc_dict[name] = pickle.load(f)
 
             with open(
-                os.path.join(detection_dir, scoring_func, "recall.pkl"), "rb"
+                    os.path.join(detection_dir, scoring_func, "recall.pkl"), "rb"
             ) as f:
                 recall_dict[name] = pickle.load(f)
 
@@ -976,7 +1016,6 @@ def load_ood_results_from_origin(
     return auc_dict, recall_dict, metric_dict
 
 
-# TODO: add novelty scores to loading, right now just metrics
 def load_novelty_scores_from_origin(
         models: List[str], result_dir: str, data_origin: str):
     novelty_dir_name = os.path.join(result_dir, data_origin, "novelty_scores")
@@ -984,26 +1023,19 @@ def load_novelty_scores_from_origin(
     metric_dict = defaultdict(dict)
     novelty_dict = defaultdict(dict)
 
-    available_results = set(os.listdir(f"{result_dir}/{data_origin}/novelty_scores/"))
+    available_results = set(os.listdir(novelty_dir_name))
 
-    for method in available_results & set(models):
+    models_to_plot = available_results & set(models)
+    for method in models_to_plot:
         method_dir = os.path.join(novelty_dir_name, method)
 
-        novelty_dir_name = os.path.join(result_dir, data_origin, "novelty_scores")
-        available_results = set(os.listdir(f"{result_dir}/{data_origin}/novelty_scores/"))
+        method_novelty_dir = os.path.join(method_dir, "novelty")
 
-        novelty_dict = {}
+        for scoring_func in os.listdir(method_novelty_dir):
+            name = f"{method.replace('_', ' ')} ({scoring_func.replace('_', ' ')})"
 
-        for method in available_results & set(models):
-            method_dir = os.path.join(novelty_dir_name, method)
-
-            novelty_dir = os.path.join(method_dir, "novelty")
-
-            for scoring_func in os.listdir(novelty_dir):
-                name = f"{method.replace('_', ' ')} ({scoring_func.replace('_', ' ')})"
-
-                with open(os.path.join(novelty_dir, scoring_func, "scores.pkl"), "rb") as f:
-                    novelty_dict[name] = pickle.load(f)
+            with open(os.path.join(method_novelty_dir, scoring_func, "scores.pkl"), "rb") as f:
+                novelty_dict[name] = pickle.load(f)
 
         if method in NEURAL_PREDICTORS | DISCRIMINATOR_BASELINES:
             metrics_dir = os.path.join(method_dir, "metrics")
@@ -1037,7 +1069,7 @@ if __name__ == "__main__":
         "--data_origin",
         type=str,
         nargs="+",
-        default=["MIMIC"],
+        default=["VUmc"],
         help="Which data to use",
     )
     parser.add_argument(
@@ -1046,7 +1078,7 @@ if __name__ == "__main__":
         type=str,
         nargs="+",
         default=["novelty"],
-        choices=["da", "ood", "perturb", "confidence", "novelty"],
+        choices=["da", "ood", "perturb", "confidence", "novelty", "novelty_csv"],
         help="Specify the types of plots that should be created.",
     )
     parser.add_argument(
@@ -1064,7 +1096,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--suffix",
         type=str,
-        default="",
+        default="_heatmap",
         help="Add a suffix to plot file names to help to distinguish them.",
     )
     parser.add_argument(
@@ -1083,7 +1115,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--plot-type",
         type=str,
-        default="boxplot",
+        default="heatmap",
         choices=["boxplot", "heatmap"],
         help="Type of plot that is used to present results.",
     )
@@ -1098,7 +1130,7 @@ if __name__ == "__main__":
         action="store_true",
         default=False,
         help="For the OOD / DA experiments, add the percentage of feature that are significantly different compared to "
-        "the reference group.",
+             "the reference group.",
     )
     parser.add_argument(
         "--stats-dir",
@@ -1106,6 +1138,14 @@ if __name__ == "__main__":
         default=STATS_DIR,
         help="Define the directory that results should be saved to.",
     )
+
+    parser.add_argument(
+        "--export-csv",
+        type=bool,
+        default=False,
+        help="Define whether to export csv file from the data.",
+    )
+
     args = parser.parse_args()
 
     if "da" in args.plots:
@@ -1188,5 +1228,19 @@ if __name__ == "__main__":
                             suffix=args.suffix,
                             stats_dir=args.stats_dir,
                             print_latex=args.print_latex,
-                            plot_type=args.plot_type
+                            plot_type=args.plot_type,
                             )
+    if "novelty_csv" in args.plots:
+        export_novelty_csv(data_origin=args.data_origin[0],
+                           result_dir=args.result_dir,
+                           plot_dir=args.plot_dir,
+                           models=args.models,
+                           suffix=args.suffix,
+                           type = "test",
+                           scale = True,
+                           )
+
+
+
+
+

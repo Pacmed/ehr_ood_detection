@@ -12,19 +12,19 @@ import numpy as np
 from sklearn.utils.fixes import loguniform
 from scipy.stats import uniform
 
-# CONST
-FEAT_TYPES_DIR = "../../data/feature_types"
-
-# Load feat types for HI-VAE
-with open(f"{FEAT_TYPES_DIR}/feat_types_eICU.json", "rb") as ft_eicu_file:
-    feat_types_eicu = list(
-        json.load(ft_eicu_file, object_pairs_hook=OrderedDict).values()
-    )
-
-with open(f"{FEAT_TYPES_DIR}/feat_types_MIMIC.json", "rb") as ft_mimic_file:
-    feat_types_mimic = list(
-        json.load(ft_mimic_file, object_pairs_hook=OrderedDict).values()
-    )
+# # CONST
+# FEAT_TYPES_DIR = "../../data/feature_types"
+#
+# # Load feat types for HI-VAE
+# with open(f"{FEAT_TYPES_DIR}/feat_types_eICU.json", "rb") as ft_eicu_file:
+#     feat_types_eicu = list(
+#         json.load(ft_eicu_file, object_pairs_hook=OrderedDict).values()
+#     )
+#
+# with open(f"{FEAT_TYPES_DIR}/feat_types_MIMIC.json", "rb") as ft_mimic_file:
+#     feat_types_mimic = list(
+#         json.load(ft_mimic_file, object_pairs_hook=OrderedDict).values()
+#     )
 
 # ### Models and novelty scoring functions ###
 
@@ -109,7 +109,7 @@ AVAILABLE_SCORING_FUNCS = {
 MODEL_PARAMS = {
     "PPCA": {"MIMIC": {"n_components": 15},
              "eICU": {"n_components": 15},
-             "VUmc": {"n_components": 15}
+             "VUmc": {"n_components": 19}
              },
     "LOF": {"MIMIC": {"n_neighbors": 20, "algorithm": "auto"},
             "eICU": {"n_neighbors": 5, "algorithm": "brute"},
@@ -118,7 +118,7 @@ MODEL_PARAMS = {
     "AE": {
         "MIMIC": {"hidden_sizes": [75], "latent_dim": 15, "lr": 0.006897},
         "eICU": {"hidden_sizes": [100], "latent_dim": 15, "lr": 0.005216},
-        "VUmc": {"hidden_sizes": [100], "latent_dim": 15, "lr": 0.005216},
+        "VUmc": {"hidden_sizes": [75], "latent_dim": 20, "lr": 0.006809},
     },
     "VAE": {
         "MIMIC": {
@@ -137,32 +137,73 @@ MODEL_PARAMS = {
             "lr": 0.003047,
             "reconstr_error_weight": 0.183444,
         },
-    },
-    "HI-VAE": {
-        "MIMIC": {
+        "VUmc": {
             "anneal": False,
-            "beta": 2.138636,
-            "hidden_sizes": [75],
+            "beta": 0.20462,
+            "hidden_sizes": [100],
             "latent_dim": 20,
-            "lr": 0.00278,
-            "n_mix_components": 5,
-            "reconstr_error_weight": 0.065363,
-            "feat_types": feat_types_mimic,
+            "lr": 0.001565,
+            "reconstr_error_weight": 0.238595,
+        },
+    },
+    # "HI-VAE": {
+    #     "MIMIC": {
+    #         "anneal": False,
+    #         "beta": 2.138636,
+    #         "hidden_sizes": [75],
+    #         "latent_dim": 20,
+    #         "lr": 0.00278,
+    #         "n_mix_components": 5,
+    #         "reconstr_error_weight": 0.065363,
+    #         "feat_types": feat_types_mimic,
+    #     },
+    #     "eICU": {
+    #         "anneal": False,
+    #         "beta": 1.457541,
+    #         "hidden_sizes": [30],
+    #         "latent_dim": 10,
+    #         "lr": 0.002141,
+    #         "n_mix_components": 7,
+    #         "reconstr_error_weight": 0.045573,
+    #         "feat_types": feat_types_eicu,
+    #     },
+    #     "VUmc": {
+    #         "anneal": False,
+    #         "beta": 1.457541,
+    #         "hidden_sizes": [30],
+    #         "latent_dim": 10,
+    #         "lr": 0.002141,
+    #         "n_mix_components": 7,
+    #         "reconstr_error_weight": 0.045573,
+    #         "feat_types": feat_types_eicu,
+    #     },
+    # },
+    "SVM": {},
+    "LogReg": {"MIMIC": {"C": 10},
+               "eICU": {"C": 1000},
+               "VUmc": {"C": 100}}
+    ,
+    "NN": {
+        "MIMIC": {
+            "dropout_rate": 0.157483,
+            "hidden_sizes": [30],
+            "lr": 0.000538,
+            "class_weight": False,
         },
         "eICU": {
-            "anneal": False,
-            "beta": 1.457541,
-            "hidden_sizes": [30],
-            "latent_dim": 10,
-            "lr": 0.002141,
-            "n_mix_components": 7,
-            "reconstr_error_weight": 0.045573,
-            "feat_types": feat_types_eicu,
+            "dropout_rate": 0.381918,
+            "hidden_sizes": [75],
+            "lr": 0.000904,
+            "class_weight": False,
         },
+        "VUmc": {
+            "dropout_rate": 0.246843,
+            "hidden_sizes": [100,100],
+            "lr": 0.00017,
+            "class_weight": False,
+        }
     },
-    "SVM": {},
-    "LogReg": {"MIMIC": {"C": 10}, "eICU": {"C": 1000}},
-    "NN": {
+    "PlattScalingNN": {
         "MIMIC": {
             "dropout_rate": 0.157483,
             "hidden_sizes": [30],
@@ -180,20 +221,6 @@ MODEL_PARAMS = {
             "hidden_sizes": [75],
             "lr": 0.000904,
             "class_weight": False,
-        }
-    },
-    "PlattScalingNN": {
-        "MIMIC": {
-            "dropout_rate": 0.157483,
-            "hidden_sizes": [30],
-            "lr": 0.000538,
-            "class_weight": False,
-        },
-        "eICU": {
-            "dropout_rate": 0.381918,
-            "hidden_sizes": [75],
-            "lr": 0.000904,
-            "class_weight": False,
         },
     },
     "MCDropout": {
@@ -204,6 +231,12 @@ MODEL_PARAMS = {
             "class_weight": False,
         },
         "eICU": {
+            "dropout_rate": 0.333312,
+            "hidden_sizes": [50],
+            "lr": 0.000526,
+            "class_weight": False,
+        },
+        "VUmc": {
             "dropout_rate": 0.333312,
             "hidden_sizes": [50],
             "lr": 0.000526,
@@ -225,6 +258,19 @@ MODEL_PARAMS = {
             "class_weight": False,
         },
         "eICU": {
+            "anneal": True,
+            "beta": 1.437923,
+            "dropout_rate": 0.082861,
+            "hidden_sizes": [100],
+            "lr": 0.000578,
+            "posterior_mu_init": 0.412893,
+            "posterior_rho_init": -7.542776,
+            "prior_pi": 0.484903,
+            "prior_sigma_1": 0.449329,
+            "prior_sigma_2": 0.740818,
+            "class_weight": False,
+        },
+        "VUmc": {
             "anneal": True,
             "beta": 1.437923,
             "dropout_rate": 0.082861,
@@ -259,6 +305,16 @@ MODEL_PARAMS = {
                 "class_weight": False,
             },
         },
+        "VUmc": {
+            "n_models": 10,
+            "bootstrap": False,
+            "model_params": {
+                "dropout_rate": 0.381918,
+                "hidden_sizes": [75],
+                "lr": 0.000904,
+                "class_weight": False,
+            },
+        },
     },
     "BootstrappedNNEnsemble": {
         "MIMIC": {
@@ -281,6 +337,16 @@ MODEL_PARAMS = {
                 "class_weight": False,
             },
         },
+        "VUmc": {
+            "n_models": 10,
+            "bootstrap": False,
+            "model_params": {
+                "dropout_rate": 0.381918,
+                "hidden_sizes": [75],
+                "lr": 0.000904,
+                "class_weight": False,
+            },
+        },
     },
     "AnchoredNNEnsemble": {
         "MIMIC": {
@@ -293,6 +359,15 @@ MODEL_PARAMS = {
             },
         },
         "eICU": {
+            "n_models": 10,
+            "model_params": {
+                "dropout_rate": 0,
+                "hidden_sizes": [75],
+                "lr": 0.000904,
+                "class_weight": False,
+            },
+        },
+        "VUmc": {
             "n_models": 10,
             "model_params": {
                 "dropout_rate": 0,
@@ -392,6 +467,10 @@ NUM_EVALS = {
     "PPCA": 30,
     "LogReg": 5,
     "LOF": 1,
+    "AnchoredNNEnsemble": 1,
+    "BootstrappeNNEnsemble": 1,
+    "PlattScalingNN" : 5,
+    "NNEnsemble": 1,
 }
 
 
