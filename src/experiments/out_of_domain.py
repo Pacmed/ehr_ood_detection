@@ -29,13 +29,16 @@ RESULT_DIR = "../../data/results"
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--data-origin", type=str, default="MIMIC", help="Which data to use",
+        "--data-origin",
+        type=str,
+        default="MIMIC",
+        help="Which data to use",
     )
     parser.add_argument(
         "--models",
         type=str,
         nargs="+",
-        default=AVAILABLE_MODELS,
+        default={"MCDropout"},
         choices=AVAILABLE_MODELS,
         help="Determine the models which are being used for this experiment.",
     )
@@ -128,7 +131,8 @@ if __name__ == "__main__":
 
         ne, scoring_funcs, method_name = model_info
         # Save everything for this model
-        dir_name = os.path.join(args.result_dir, args.data_origin, "OOD", method_name)
+
+        dir_name = os.path.join(args.result_dir, f"{args.data_origin}", "OOD", method_name)
 
         metric_dir_name = os.path.join(dir_name, "metrics")
 
