@@ -1,31 +1,27 @@
 # STD
+import argparse
 import os
 import pickle
 from collections import defaultdict
-import argparse
 
+from sklearn.metrics import brier_score_loss, roc_auc_score
 # EXT
 from tqdm import tqdm
-from sklearn.metrics import brier_score_loss, roc_auc_score
-import numpy as np
-import pandas as pd
 
-# PROJECT
-from src.utils.model_init import init_models
-from src.utils.datahandler import load_data_from_origin, DataHandler
-from src.utils.novelty_analyzer import NoveltyAnalyzer
-from src.mappings import MIMIC_ORIGINS
 from src.models.info import AVAILABLE_MODELS
-
 from src.models.info import (
     NEURAL_PREDICTORS,
     DISCRIMINATOR_BASELINES,
 )
+from src.utils.datahandler import load_data_from_origin, DataHandler
 from src.utils.metrics import (
     ece,
     accuracy,
     nll,
 )
+# PROJECT
+from src.utils.model_init import init_models
+from src.utils.novelty_analyzer import NoveltyAnalyzer
 
 METRICS_TO_USE = (ece, roc_auc_score, accuracy, brier_score_loss, nll)
 
@@ -38,14 +34,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--data-origin",
         type=str,
-        default="VUmc",
+        default="MIMIC",
         help="Which data to use",
     )
     parser.add_argument(
         "--models",
         type=str,
         nargs="+",
-        default={"NN", "LogReg", "MCDropout", "AE", "VAE", "PPCA"},
+        default=AVAILABLE_MODELS,
         choices=AVAILABLE_MODELS,
         help="Determine the models which are being used for this experiment.",
     )
@@ -134,7 +130,8 @@ if __name__ == "__main__":
                     print(f"\t\tCould not calculate {metric_.__name__} metric.")
 
         # Save everything for this model
-        dir_name = os.path.join(args.result_dir, args.data_origin, "novelty_scores", method_name)
+        # TODO: SCALING
+        dir_name = os.path.join(args.result_dir, f"{args.data_origin}", "novelty_scores", method_name)
 
         metric_dir_name = os.path.join(dir_name, "metrics")
 

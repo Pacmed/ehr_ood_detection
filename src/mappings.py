@@ -66,7 +66,7 @@ class DataKey(TypedDict):
 
 
 MIMIC_KEYS = DataKey(data_folder="/data/processed/benchmark/inhospitalmortality/not_scaled",
-                     feature_names_path=["../../data/feature_names/common_mimic_params.pkl"],
+                     feature_names_path="../../data/feature_names/common_mimic_params.pkl",
                      target_name="y",
                      ood_mapping=MIMIC_OOD_MAPPINGS,
                      other_groups={"newborns": ("/data/processed/benchmark/inhospitalmortality/not_scaled"

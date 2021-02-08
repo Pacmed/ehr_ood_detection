@@ -1,11 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="karina@10.60.0.26:22 password" remoteFilesAllowedToDisappearOnAutoupload="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="karina@10.60.0.12:22 password" createEmptyFolders="true">
     <serverData>
-      <paths name="karina@10.60.0.26:22 password">
+      <paths name="10.60.0.26">
         <serverdata>
           <mappings>
-            <mapping deploy="/home/karina/ehr_ood_detection" local="$PROJECT_DIR$" />
+            <mapping deploy="/home/karina/ehr_ood_detection" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="karina@10.60.0.12:22 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/karina/ehr_ood_detection" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
