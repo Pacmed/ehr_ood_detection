@@ -15,9 +15,9 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer
 
 # PROJECT
-from src.utils.datahandler import MIMIC_ORIGINS
 import src.utils.ood as ood_utils
-from src.utils.datahandler import DataHandler
+from src.utils.datahandler import DataHandler, load_data_from_origin
+from src.mappings import MIMIC_ORIGINS
 
 
 def validate_ood_group(
@@ -128,7 +128,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Loading the data
-    dh = DataHandler(args.data_origin)
+    data_loader = load_data_from_origin(args.data_origin)
+    dh = DataHandler(**data_loader)
     feature_names = dh.load_feature_names()
     train_data, test_data, val_data = dh.load_data_splits()
     y_name = dh.load_target_name()

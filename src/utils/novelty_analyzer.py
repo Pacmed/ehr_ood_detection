@@ -42,15 +42,15 @@ class NoveltyAnalyzer:
     """
 
     def __init__(
-        self,
-        novelty_estimator: NoveltyEstimator,
-        X_train: np.array,
-        X_test: np.array,
-        X_val: Optional[np.array] = None,
-        y_train: Optional[np.array] = None,
-        y_test: Optional[np.array] = None,
-        y_val: Optional[np.array] = None,
-        impute_and_scale: bool = True,
+            self,
+            novelty_estimator: NoveltyEstimator,
+            X_train: np.array,
+            X_test: np.array,
+            X_val: Optional[np.array] = None,
+            y_train: Optional[np.array] = None,
+            y_test: Optional[np.array] = None,
+            y_val: Optional[np.array] = None,
+            impute_and_scale: bool = True,
     ):
         self.ne = novelty_estimator
         self.X_train = X_train
@@ -73,6 +73,22 @@ class NoveltyAnalyzer:
         """
         Impute and scale, using the train data to fit the (mean) imputer and scaler.
         """
+        # if self.impute_and_scale == "impute_and_scale":
+        #     self.pipe = pipeline.Pipeline(
+        #         [("scaler", StandardScaler()), ("imputer", SimpleImputer())]
+        #     )
+        # elif self.impute_and_scale == "impute":
+        #     self.pipe = pipeline.Pipeline(
+        #         [("imputer", SimpleImputer())]
+        #     )
+        # else:
+        #     raise Warning(f"Your choice: {self.impute_and_scale}, "
+        #                   f"of feature processing is not available at the moment.")
+
+        # self.pipe = pipeline.Pipeline(
+        #     [("scaler", StandardScaler()), ("imputer", SimpleImputer())]
+        # )
+        # TODO: SCALING
         self.pipe = pipeline.Pipeline(
             [("scaler", StandardScaler()), ("imputer", SimpleImputer())]
         )
@@ -140,16 +156,16 @@ class NoveltyAnalyzer:
         # variational autoencoders - in these cases, just replace NaNs with the largest possible value. This behavior is
         # restricted to VAEs to not accidentally also catch errors in other models
         if (
-            np.any(np.isnan(self.ood_novelty))
-            and self.ne.name in VARIATIONAL_AUTOENCODERS
+                np.any(np.isnan(self.ood_novelty))
+                and self.ne.name in VARIATIONAL_AUTOENCODERS
         ):
             self.ood_novelty[np.isnan(self.ood_novelty)] = np.finfo(
                 self.ood_novelty.dtype
             ).max
 
         if (
-            np.any(self.ood_novelty == np.inf)
-            and self.ne.name in VARIATIONAL_AUTOENCODERS
+                np.any(self.ood_novelty == np.inf)
+                and self.ne.name in VARIATIONAL_AUTOENCODERS
         ):
             self.ood_novelty[self.ood_novelty == np.inf] = np.finfo(
                 self.ood_novelty.dtype

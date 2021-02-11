@@ -1,0 +1,151 @@
+{
+    "19": {
+        "score": -487.8516540527344,
+        "hyperparameters": {
+            "anneal": false,
+            "beta": 0.20462,
+            "hidden_sizes": [
+                100
+            ],
+            "latent_dim": 20,
+            "lr": 0.001565,
+            "reconstr_error_weight": 0.238595,
+            "input_size": 1196
+        }
+    },
+    "5": {
+        "score": -761.5065307617188,
+        "hyperparameters": {
+            "anneal": true,
+            "beta": 0.958549,
+            "hidden_sizes": [
+                50
+            ],
+            "latent_dim": 10,
+            "lr": 0.009208,
+            "reconstr_error_weight": 0.053765,
+            "input_size": 1196
+        }
+    },
+    "10": {
+        "score": -830.3341064453125,
+        "hyperparameters": {
+            "anneal": false,
+            "beta": 1.28918,
+            "hidden_sizes": [
+                50,
+                50
+            ],
+            "latent_dim": 10,
+            "lr": 0.002044,
+            "reconstr_error_weight": 0.294237,
+            "input_size": 1196
+        }
+    },
+    "8": {
+        "score": -870.77197265625,
+        "hyperparameters": {
+            "anneal": false,
+            "beta": 2.244134,
+            "hidden_sizes": [
+                100,
+                100,
+                100
+            ],
+            "latent_dim": 5,
+            "lr": 0.003203,
+            "reconstr_error_weight": 0.165713,
+            "input_size": 1196
+        }
+    },
+    "11": {
+        "score": -898.95458984375,
+        "hyperparameters": {
+            "anneal": true,
+            "beta": 2.083218,
+            "hidden_sizes": [
+                25,
+                25
+            ],
+            "latent_dim": 20,
+            "lr": 0.004317,
+            "reconstr_error_weight": 0.046757,
+            "input_size": 1196
+        }
+    },
+    "0": {
+        "score": -914.18212890625,
+        "hyperparameters": {
+            "anneal": true,
+            "beta": 1.811093,
+            "hidden_sizes": [
+                25,
+                25,
+                25
+            ],
+            "latent_dim": 5,
+            "lr": 0.011821,
+            "reconstr_error_weight": 0.254328,
+            "input_size": 1196
+        }
+    },
+    "16": {
+        "score": -957.3216552734375,
+        "hyperparameters": {
+            "anneal": false,
+            "beta": 2.486296,
+            "hidden_sizes": [
+                100,
+                100
+            ],
+            "latent_dim": 5,
+            "lr": 0.00085,
+            "reconstr_error_weight": 0.097994,
+            "input_size": 1196
+        }
+    },
+    "17": {
+        "score": -1031.151611328125,
+        "hyperparameters": {
+            "anneal": true,
+            "beta": 0.467369,
+            "hidden_sizes": [
+                50,
+                50,
+                50
+            ],
+            "latent_dim": 10,
+            "lr": 0.000904,
+            "reconstr_error_weight": 0.225049,
+            "input_size": 1196
+        }
+    },
+    "7": {
+        "score": -1064.135986328125,
+        "hyperparameters": {
+            "anneal": true,
+            "beta": 0.517376,
+            "hidden_sizes": [
+                50
+            ],
+            "latent_dim": 10,
+            "lr": 0.00017,
+            "reconstr_error_weight": 0.548294,
+            "input_size": 1196
+        }
+    },
+    "2": {
+        "score": -1121.7103271484375,
+        "hyperparameters": {
+            "anneal": false,
+            "beta": 1.062442,
+            "hidden_sizes": [
+                25
+            ],
+            "latent_dim": 20,
+            "lr": 0.000939,
+            "reconstr_error_weight": 0.030083,
+            "input_size": 1196
+        }
+    }
+}
