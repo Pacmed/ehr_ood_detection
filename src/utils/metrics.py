@@ -13,6 +13,8 @@ from sklearn.metrics import accuracy_score, log_loss, roc_auc_score
 # CONST
 DEFAULT_N_BINS = 10
 
+def outlier_score(scores: Union[float, np.array]) -> Union[float, np.array]:
+    return scores
 
 def nll(y: np.array, y_pred: np.array) -> float:
     """

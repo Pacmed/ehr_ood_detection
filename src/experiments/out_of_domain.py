@@ -18,24 +18,27 @@ from src.utils.ood import (
     split_by_ood_name,
 )
 from src.utils.model_init import init_models
-from src.utils.datahandler import DataHandler, MIMIC_ORIGINS
+from src.utils.datahandler import load_data_from_origin, DataHandler
+from src.mappings import MIMIC_ORIGINS
 from src.models.info import AVAILABLE_MODELS
 
 # CONST
-N_SEEDS = 3
 N_SEEDS = 5
 RESULT_DIR = "../../data/results"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--data-origin", type=str, default="MIMIC", help="Which data to use",
+        "--data-origin",
+        type=str,
+        default="MIMIC",
+        help="Which data to use",
     )
     parser.add_argument(
         "--models",
         type=str,
         nargs="+",
-        default=AVAILABLE_MODELS,
+        default={"MCDropout"},
         choices=AVAILABLE_MODELS,
         help="Determine the models which are being used for this experiment.",
     )
@@ -48,14 +51,16 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Loading the data
-    dh = DataHandler(args.data_origin)
+    data_loader = load_data_from_origin(args.data_origin)
+    dh = DataHandler(**data_loader)
+
     feature_names = dh.load_feature_names()
 
     train_data, test_data, val_data = dh.load_data_splits()
     y_name = dh.load_target_name()
 
     if args.data_origin in MIMIC_ORIGINS:
-        train_newborns, test_newborns, val_newborns = dh.load_newborns()
+        train_newborns, test_newborns, val_newborns = dh.load_other_groups(group="newborns")
 
     ood_mappings = dh.load_ood_mappings()
 
@@ -126,7 +131,8 @@ if __name__ == "__main__":
 
         ne, scoring_funcs, method_name = model_info
         # Save everything for this model
-        dir_name = os.path.join(args.result_dir, args.data_origin, "OOD", method_name)
+
+        dir_name = os.path.join(args.result_dir, f"{args.data_origin}", "OOD", method_name)
 
         metric_dir_name = os.path.join(dir_name, "metrics")
 

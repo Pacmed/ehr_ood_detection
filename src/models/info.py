@@ -12,24 +12,25 @@ import numpy as np
 from sklearn.utils.fixes import loguniform
 from scipy.stats import uniform
 
-# CONST
-FEAT_TYPES_DIR = "../../data/feature_types"
-
-# Load feat types for HI-VAE
-with open(f"{FEAT_TYPES_DIR}/feat_types_eICU.json", "rb") as ft_eicu_file:
-    feat_types_eicu = list(
-        json.load(ft_eicu_file, object_pairs_hook=OrderedDict).values()
-    )
-
-with open(f"{FEAT_TYPES_DIR}/feat_types_MIMIC.json", "rb") as ft_mimic_file:
-    feat_types_mimic = list(
-        json.load(ft_mimic_file, object_pairs_hook=OrderedDict).values()
-    )
+# # CONST
+# FEAT_TYPES_DIR = "../../data/feature_types"
+#
+# # Load feat types for HI-VAE
+# with open(f"{FEAT_TYPES_DIR}/feat_types_eICU.json", "rb") as ft_eicu_file:
+#     feat_types_eicu = list(
+#         json.load(ft_eicu_file, object_pairs_hook=OrderedDict).values()
+#     )
+#
+# with open(f"{FEAT_TYPES_DIR}/feat_types_MIMIC.json", "rb") as ft_mimic_file:
+#     feat_types_mimic = list(
+#         json.load(ft_mimic_file, object_pairs_hook=OrderedDict).values()
+#     )
 
 # ### Models and novelty scoring functions ###
 
 DENSITY_BASELINES = {
     "PPCA",  # Probabilistic PCA for density estimation
+    "LOF",
 }
 
 DISCRIMINATOR_BASELINES = {
@@ -55,7 +56,7 @@ SINGLE_INST_MULTIPLE_PRED_NN_MODELS = {
     "BBB",  # Bayesian Neural Network
 }
 
-VARIATIONAL_AUTOENCODERS = {"VAE", "HI-VAE"}
+VARIATIONAL_AUTOENCODERS = {"VAE"} #, "HI-VAE"}
 AUTOENCODERS = {"AE"} | VARIATIONAL_AUTOENCODERS
 
 NO_ENSEMBLE_NN_MODELS = (
@@ -78,6 +79,7 @@ AVAILABLE_MODELS = NEURAL_MODELS | BASELINES  # All available models in this pro
 # Available novelty scoring functions for models
 AVAILABLE_SCORING_FUNCS = {
     "PPCA": ("log_prob",),  # Default: log-prob
+    "LOF": ("outlier_score",),
     "AE": ("reconstr_err",),  # Default: Reconstruction error
     "HI-VAE": (
         "reconstr_err",
@@ -105,10 +107,18 @@ AVAILABLE_SCORING_FUNCS = {
 # ### Hyperparameters ###
 
 MODEL_PARAMS = {
-    "PPCA": {"MIMIC": {"n_components": 15}, "eICU": {"n_components": 15}},
+    "PPCA": {"MIMIC": {"n_components": 15},
+             "eICU": {"n_components": 15},
+             "VUmc": {"n_components": 19}
+             },
+    "LOF": {"MIMIC": {"n_neighbors": 20, "algorithm": "auto"},
+            "eICU": {"n_neighbors": 5, "algorithm": "brute"},
+            "VUmc": {"n_neighbors": 5, "algorithm": "brute"}
+            },
     "AE": {
         "MIMIC": {"hidden_sizes": [75], "latent_dim": 15, "lr": 0.006897},
         "eICU": {"hidden_sizes": [100], "latent_dim": 15, "lr": 0.005216},
+        "VUmc": {"hidden_sizes": [75], "latent_dim": 20, "lr": 0.006809},
     },
     "VAE": {
         "MIMIC": {
@@ -127,31 +137,52 @@ MODEL_PARAMS = {
             "lr": 0.003047,
             "reconstr_error_weight": 0.183444,
         },
-    },
-    "HI-VAE": {
-        "MIMIC": {
+        "VUmc": {
             "anneal": False,
-            "beta": 2.138636,
-            "hidden_sizes": [75],
+            "beta": 0.20462,
+            "hidden_sizes": [100],
             "latent_dim": 20,
-            "lr": 0.00278,
-            "n_mix_components": 5,
-            "reconstr_error_weight": 0.065363,
-            "feat_types": feat_types_mimic,
-        },
-        "eICU": {
-            "anneal": False,
-            "beta": 1.457541,
-            "hidden_sizes": [30],
-            "latent_dim": 10,
-            "lr": 0.002141,
-            "n_mix_components": 7,
-            "reconstr_error_weight": 0.045573,
-            "feat_types": feat_types_eicu,
+            "lr": 0.001565,
+            "reconstr_error_weight": 0.238595,
         },
     },
+    # "HI-VAE": {
+    #     "MIMIC": {
+    #         "anneal": False,
+    #         "beta": 2.138636,
+    #         "hidden_sizes": [75],
+    #         "latent_dim": 20,
+    #         "lr": 0.00278,
+    #         "n_mix_components": 5,
+    #         "reconstr_error_weight": 0.065363,
+    #         "feat_types": feat_types_mimic,
+    #     },
+    #     "eICU": {
+    #         "anneal": False,
+    #         "beta": 1.457541,
+    #         "hidden_sizes": [30],
+    #         "latent_dim": 10,
+    #         "lr": 0.002141,
+    #         "n_mix_components": 7,
+    #         "reconstr_error_weight": 0.045573,
+    #         "feat_types": feat_types_eicu,
+    #     },
+    #     "VUmc": {
+    #         "anneal": False,
+    #         "beta": 1.457541,
+    #         "hidden_sizes": [30],
+    #         "latent_dim": 10,
+    #         "lr": 0.002141,
+    #         "n_mix_components": 7,
+    #         "reconstr_error_weight": 0.045573,
+    #         "feat_types": feat_types_eicu,
+    #     },
+    # },
     "SVM": {},
-    "LogReg": {"MIMIC": {"C": 10}, "eICU": {"C": 1000}},
+    "LogReg": {"MIMIC": {"C": 10},
+               "eICU": {"C": 1000},
+               "VUmc": {"C": 100}}
+    ,
     "NN": {
         "MIMIC": {
             "dropout_rate": 0.157483,
@@ -165,6 +196,12 @@ MODEL_PARAMS = {
             "lr": 0.000904,
             "class_weight": False,
         },
+        "VUmc": {
+            "dropout_rate": 0.246843,
+            "hidden_sizes": [100,100],
+            "lr": 0.00017,
+            "class_weight": False,
+        }
     },
     "PlattScalingNN": {
         "MIMIC": {
@@ -179,6 +216,12 @@ MODEL_PARAMS = {
             "lr": 0.000904,
             "class_weight": False,
         },
+        "VUmc": {
+            "dropout_rate": 0.381918,
+            "hidden_sizes": [75],
+            "lr": 0.000904,
+            "class_weight": False,
+        },
     },
     "MCDropout": {
         "MIMIC": {
@@ -188,6 +231,12 @@ MODEL_PARAMS = {
             "class_weight": False,
         },
         "eICU": {
+            "dropout_rate": 0.333312,
+            "hidden_sizes": [50],
+            "lr": 0.000526,
+            "class_weight": False,
+        },
+        "VUmc": {
             "dropout_rate": 0.333312,
             "hidden_sizes": [50],
             "lr": 0.000526,
@@ -209,6 +258,19 @@ MODEL_PARAMS = {
             "class_weight": False,
         },
         "eICU": {
+            "anneal": True,
+            "beta": 1.437923,
+            "dropout_rate": 0.082861,
+            "hidden_sizes": [100],
+            "lr": 0.000578,
+            "posterior_mu_init": 0.412893,
+            "posterior_rho_init": -7.542776,
+            "prior_pi": 0.484903,
+            "prior_sigma_1": 0.449329,
+            "prior_sigma_2": 0.740818,
+            "class_weight": False,
+        },
+        "VUmc": {
             "anneal": True,
             "beta": 1.437923,
             "dropout_rate": 0.082861,
@@ -243,6 +305,16 @@ MODEL_PARAMS = {
                 "class_weight": False,
             },
         },
+        "VUmc": {
+            "n_models": 10,
+            "bootstrap": False,
+            "model_params": {
+                "dropout_rate": 0.381918,
+                "hidden_sizes": [75],
+                "lr": 0.000904,
+                "class_weight": False,
+            },
+        },
     },
     "BootstrappedNNEnsemble": {
         "MIMIC": {
@@ -256,6 +328,16 @@ MODEL_PARAMS = {
             },
         },
         "eICU": {
+            "n_models": 10,
+            "bootstrap": False,
+            "model_params": {
+                "dropout_rate": 0.381918,
+                "hidden_sizes": [75],
+                "lr": 0.000904,
+                "class_weight": False,
+            },
+        },
+        "VUmc": {
             "n_models": 10,
             "bootstrap": False,
             "model_params": {
@@ -285,11 +367,21 @@ MODEL_PARAMS = {
                 "class_weight": False,
             },
         },
+        "VUmc": {
+            "n_models": 10,
+            "model_params": {
+                "dropout_rate": 0,
+                "hidden_sizes": [75],
+                "lr": 0.000904,
+                "class_weight": False,
+            },
+        },
     },
 }
 
 TRAIN_PARAMS = {
     "PPCA": {},
+    "LOF": {},
     "AE": {"n_epochs": 10, "batch_size": 64},
     "VAE": {"n_epochs": 6, "batch_size": 64},
     "HI-VAE": {"n_epochs": 6, "batch_size": 64},
@@ -374,6 +466,11 @@ NUM_EVALS = {
     "BBB": 100,
     "PPCA": 30,
     "LogReg": 5,
+    "LOF": 1,
+    "AnchoredNNEnsemble": 1,
+    "BootstrappeNNEnsemble": 1,
+    "PlattScalingNN" : 5,
+    "NNEnsemble": 1,
 }
 
 
