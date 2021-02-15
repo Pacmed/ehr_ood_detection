@@ -62,7 +62,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--models",
         type=str,
-        default=AVAILABLE_MODELS,
+        default=AVAILABLE_MODELS-{"BBB"},
         nargs="+",
         help="Distinguish the methods that should be included in the plot.",
     )
@@ -145,7 +145,6 @@ if __name__ == "__main__":
                 f"Perturbation experiment plots can only be created with one data set at a time, using "
                 f"{args.data_origin[0]}."
             )
-
         plot_perturbation(
             data_origin=args.data_origin[0],
             result_dir=args.result_dir,
@@ -181,6 +180,7 @@ if __name__ == "__main__":
                             suffix=args.suffix,
                             stats_dir=args.stats_dir,
                             plot_type=args.plot_type,
+                            scale=False,
                             )
 
     if "novelty_csv" in args.plots:
@@ -190,5 +190,6 @@ if __name__ == "__main__":
                            models=args.models,
                            suffix=args.suffix,
                            res_type="test",
-                           scale=True,
+                           scale=False,
                            )
+

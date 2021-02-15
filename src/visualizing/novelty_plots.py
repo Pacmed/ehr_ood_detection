@@ -5,6 +5,7 @@ from typing import List, Optional
 # EXT
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 
 from src.models.info import (
@@ -118,15 +119,42 @@ def plot_novelty_scores(
                 percentage_sigs=percentage_sigs,
             )
 
-    # Plot distributions of novelty scores
-    # TODO: plot novelty scores for each model and each patient
-    df = export_novelty_csv("MIMIC", result_dir, plot_dir, AVAILABLE_MODELS, scale=scale, save=False)
 
-    df.hist(figsize=(20, 20), grid=False, bins=50, color='lightsalmon')
+    plt.style.use('default')
+    df = export_novelty_csv("MIMIC", result_dir, plot_dir, models, scale=scale, save=False)
+
+    # Plot 1
+    df.hist(figsize=(20, 20), grid=False, bins=50, color='lightsalmon', sharey=False)
+    if plot_dir:
+        plt.savefig(os.path.join(novelty_dir_name, f"novelty_distr_separate"))
+        plt.title(f"{data_origin}")
+        plt.close()
+    else:
+        plt.show()
+
+    # Plot #2
+    model_names = [s.split(' ')[0] for s in df.columns]
+    grouping = np.unique([df.filter(regex=f"^{name}").columns.tolist() for name in model_names])
+
+    fig = plt.figure(figsize=(15, 15))
+    ncols = int(np.sqrt(len(grouping)))
+    nrows = ncols
+    if ncols * nrows < len(grouping):
+        nrows += 1
+
+    colors = ['lightsalmon', 'turquoise', 'darkmagenta', 'lightcoral', 'blue', 'grey']
+
+    for i, group in enumerate(grouping):
+        ax = fig.add_subplot(nrows, ncols, i + 1)
+        df[group].plot.hist(bins=50, alpha=0.5, subplots=False, color=colors, ax=ax)
+        ax.set_title(group[0].split(' ')[0])
+        ax.legend(labels=[' '.join(gr.split(' ')[1:]).replace("(", "").replace(")", "") for gr in group])
+
+    plt.suptitle({data_origin}, fontsize=16, y=0.93)
 
     if plot_dir:
-        plt.savefig(os.path.join(novelty_dir_name, "novelty_distributions"))
-        plt.title(data_origin)
+        plt.savefig(os.path.join(novelty_dir_name, f"novelty_distr_per_model"))
+        plt.title(f"{data_origin[0]}")
         plt.close()
     else:
         plt.show()
@@ -150,27 +178,32 @@ def export_novelty_csv(
     novelty_dict, _ = load_novelty_scores_from_origin(
         models, result_dir, data_origin
     )
+    if len(novelty_dict) == 0:
+        return None
 
     novelty_selected = dict()
     for key in novelty_dict.keys():
         novelty_selected[key] = novelty_dict[key][res_type]
 
-    # Load unscaled novelty scores
     novelty_df = pd.DataFrame(novelty_selected)
 
-    data_loader = load_data_from_origin(data_origin)
-    dh = DataHandler(**data_loader)
-    train_data, test_data, val_data = dh.load_data_splits()
-
-    novelty_df.index = test_data[dh.load_feature_names()].index
+    try:
+        data_loader = load_data_from_origin(data_origin)
+        dh = DataHandler(**data_loader)
+        train_data, test_data, val_data = dh.load_data_splits()
+        novelty_df.index = test_data[dh.load_feature_names()].index
+    except:
+        print("When loading novelty scores, could not set patients ID. Continuing with IDs.")
 
     if scale:
         scaler = MinMaxScaler()
         novelty_df[novelty_df.columns] = scaler.fit_transform(novelty_df)
 
     if save:
-        save_path = os.path.join(save_dir, f"novelty_{type}_{suffix}.csv")
+        save_path = os.path.join(save_dir, f"novelty_{res_type}_{suffix}.csv")
         novelty_df.to_csv(save_path)
 
     else:
         return novelty_df
+
+

@@ -12,6 +12,7 @@ from typing import List, Dict, Tuple
 from src.models.info import (
     NEURAL_PREDICTORS,
     DISCRIMINATOR_BASELINES,
+    AVAILABLE_SCORING_FUNCS
 )
 from src.utils.types import ResultDict
 
@@ -78,6 +79,46 @@ def load_ood_results_from_origin(
     return auc_dict, recall_dict, metric_dict
 
 
+def load_perturbation(data_origin: str,
+                      result_dir: str,
+                      models: List[str],
+                      ):
+    """
+    Parameters
+    ----------
+    data_origin: str
+        Data set that was being used, e.g. eICU or MIMIC.
+    result_dir: str
+        Directory containing the results.
+    plot_dir: str
+        Directory plots should be saved to.
+    models: List[str]
+        List of model names for which the results should be plotted.
+    """
+    perturb_dir_name = os.path.join(result_dir, data_origin, "perturbation")
+
+    auc_dict, recall_dict = dict(), dict()
+    available_results = set(os.listdir(f"{result_dir}/{data_origin}/perturbation/"))
+
+    for method in available_results & set(models):
+        try:
+            for scoring_func in AVAILABLE_SCORING_FUNCS[method]:
+                method_dir = os.path.join(
+                    perturb_dir_name, method, "detection", scoring_func
+                )
+                name = f"{method.replace('_', ' ')} ({scoring_func.replace('_', ' ')})"
+
+                with open(os.path.join(method_dir, "detect_auc.pkl"), "rb") as f:
+                    auc_dict[name] = pickle.load(f)
+
+                with open(os.path.join(method_dir, "recall.pkl"), "rb") as f:
+                    recall_dict[name] = pickle.load(f)
+        except:
+            print(f"Warning: No data for {method, scoring_func} found.")
+
+    return auc_dict,recall_dict
+
+
 def load_novelty_scores_from_origin(
         models: List[str],
         result_dir: str,
@@ -91,6 +132,10 @@ def load_novelty_scores_from_origin(
     available_results = set(os.listdir(novelty_dir_name))
 
     models_to_plot = available_results & set(models)
+
+    if len(models_to_plot) == 0:
+        print(f"None of the models {models} found. Returning empty dictionaries.")
+
     for method in models_to_plot:
         method_dir = os.path.join(novelty_dir_name, method)
 

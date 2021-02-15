@@ -4,6 +4,7 @@ Module defining functions to plot the results of experiments.
 
 # STD
 import os
+import sys
 import pickle
 from collections import defaultdict
 from typing import List, Optional, Dict, Tuple
@@ -22,11 +23,14 @@ from src.models.info import (
     NEURAL_PREDICTORS,
     AVAILABLE_SCORING_FUNCS,
     DISCRIMINATOR_BASELINES,
+    AVAILABLE_MODELS
 )
 from src.utils.types import ResultDict
 from src.visualizing.load_results import (load_ood_results_from_origin,
                                           load_rel_sizes,
                                           load_percentage_sig)
+
+from src.visualizing.load_results import load_perturbation
 
 N_SEEDS = 5
 
@@ -610,21 +614,13 @@ def plot_perturbation(
 
     perturb_dir_name = os.path.join(result_dir, data_origin, "perturbation")
     perturb_plot_dir_name = f"{plot_dir}/{data_origin}/perturbation"
-    auc_dict, recall_dict = dict(), dict()
-    available_results = set(os.listdir(f"{result_dir}/{data_origin}/perturbation/"))
 
-    for method in available_results & set(models):
-        for scoring_func in AVAILABLE_SCORING_FUNCS[method]:
-            method_dir = os.path.join(
-                perturb_dir_name, method, "detection", scoring_func
-            )
-            name = f"{method.replace('_', ' ')} ({scoring_func.replace('_', ' ')})"
+    if not os.path.exists(perturb_plot_dir_name):
+        os.makedirs(perturb_plot_dir_name)
 
-            with open(os.path.join(method_dir, "detect_auc.pkl"), "rb") as f:
-                auc_dict[name] = pickle.load(f)
-
-            with open(os.path.join(method_dir, "recall.pkl"), "rb") as f:
-                recall_dict[name] = pickle.load(f)
+    auc_dict, recall_dict = load_perturbation(data_origin=data_origin,
+                                              result_dir= result_dir,
+                                              models=models)
 
     if plot_type == "boxplot":
         plot_results_as_boxplot(
