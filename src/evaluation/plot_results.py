@@ -29,7 +29,7 @@ if __name__ == "__main__":
         "--data_origin",
         type=str,
         nargs="+",
-        default=["MIMIC"],
+        default=["VUmc"],
         help="Which data to use",
     )
     parser.add_argument(
