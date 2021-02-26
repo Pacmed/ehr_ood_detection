@@ -1,5 +1,6 @@
 # STD
 from typing import List, Optional
+from collections import defaultdict
 
 import numpy as np
 import pandas as pd
@@ -128,6 +129,10 @@ class NoveltyScoresHandler:
         return thresholds
 
     def _get_outliers(self):
+        """
+        Return a dataframe with boolean values that indicate whether a patient is above the specified threshold of
+        OOD-ness.
+        """
         outliers = dict()
         for col in self.scores_test.columns:
             outliers[col] = self.scores_test[col] > self.thresholds[col]
@@ -184,3 +189,42 @@ class NoveltyScoresHandler:
                               f"There at most {max_intersction} intersections.")
 
         return intersection
+
+    def get_top_outliers(self,
+                         N: int = 50,
+                         multiindex: bool = False):
+        """
+
+        Parameters
+        ----------
+        N: int
+            Number of top outliers to return.
+        multiindex: bool
+            Indicates whether the dataframe should be returned as with multiindex (Model: Metric1, Metric2..).
+
+        Returns
+        -------
+        IDs: pd.Dataframe
+            Pandas dataframe with the N most OOD patient IDs for each model and each metric.
+        """
+
+        top_outliers = defaultdict(lambda: defaultdict(list))
+
+        for col in self.scores_test.columns:
+            top_outliers[col]["ID"] = self.scores_test.index[self.scores_test[col] > self.thresholds[col]]
+            top_outliers[col]["score"] = self.scores_test[col][self.scores_test[col] > self.thresholds[col]]
+
+        top_outliers = {k: {"ID": v["ID"], "score": sorted(v["score"], reverse=True)} for k, v in top_outliers.items()}
+
+        IDs = pd.DataFrame()
+        for col in top_outliers.keys():
+            df = pd.DataFrame(top_outliers[col])
+            IDs[col] = df[:N]['ID']
+
+        IDs.index.name = "Top Outliers"
+
+        if multiindex:
+            IDs.columns = pd.MultiIndex.from_tuples(
+                [(c.split(' ')[0], ' '.join(c.split(' ')[1:])) for c in IDs.columns])
+
+        return IDs
