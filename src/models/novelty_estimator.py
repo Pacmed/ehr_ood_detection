@@ -15,11 +15,14 @@ from src.models.info import (
     DISCRIMINATOR_BASELINES,
     NEURAL_PREDICTORS,
     AUTOENCODERS,
+    DEEP_KERNELS
 )
 
 # CONST
 # Define all combination of possible models and scoring funcs
 SCORING_FUNCS = {
+    ("DUE", "entropy"): lambda model, data: model.get_entropy(data),
+    ("DUE", "std"): lambda model, data: model.get_std(data),
     ("PPCA", "log_prob"): lambda model, data: -model.score_samples(data),
     ("LOF", "outlier_score"): lambda model, data: model.get_scores(data),
     ("AE", "reconstr_err"): lambda model, data: model.get_reconstr_error(data),
@@ -149,6 +152,9 @@ class NoveltyEstimator:
             self.model.train(
                 X_train, y_train, X_val, y_val, training_params=self.train_params
             )
+        elif self.name in DEEP_KERNELS:
+            self.model = self.model_type(**self.model_params)
+            self.model.train(X_train, y_train, **self.train_params)
 
         elif self.name in NEURAL_PREDICTORS:
             self.model = self.model_type(**self.model_params)

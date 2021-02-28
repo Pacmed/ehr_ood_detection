@@ -6,6 +6,10 @@ matplotlib==3.1.2
 seaborn==0.10.1
 sklearn==0.0
 blitz-bayesian-pytorch==0.2.5
-torch==1.4.0
+torch~=1.7.1
 typing-extensions=3.7.4.3
 tqdm==4.56.0
+scikit-learn~=0.24.0
+gpytorch~=1.4.0
+due~=1.0
+umap~=0.1.1
