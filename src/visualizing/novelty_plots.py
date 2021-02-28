@@ -20,6 +20,7 @@ from src.visualizing.ood_plots import (
     plot_results_as_heatmap,
 )
 
+# TODO: Change novelty scores plotting to use NoveltyScoreHandler
 
 def plot_novelty_scores(
         data_origin: str,
@@ -121,7 +122,7 @@ def plot_novelty_scores(
 
 
     plt.style.use('default')
-    df = export_novelty_csv("MIMIC", result_dir, plot_dir, models, scale=scale, save=False)
+    df = export_novelty_csv(data_origin, result_dir, plot_dir, models, scale=scale, save=False)
 
     # Plot 1
     df.hist(figsize=(20, 20), grid=False, bins=50, color='lightsalmon', sharey=False)
@@ -133,24 +134,24 @@ def plot_novelty_scores(
         plt.show()
 
     # Plot #2
-    model_names = [s.split(' ')[0] for s in df.columns]
-    grouping = np.unique([df.filter(regex=f"^{name}").columns.tolist() for name in model_names])
-
-    fig = plt.figure(figsize=(15, 15))
-    ncols = int(np.sqrt(len(grouping)))
-    nrows = ncols
-    if ncols * nrows < len(grouping):
-        nrows += 1
-
-    colors = ['lightsalmon', 'turquoise', 'darkmagenta', 'lightcoral', 'blue', 'grey']
-
-    for i, group in enumerate(grouping):
-        ax = fig.add_subplot(nrows, ncols, i + 1)
-        df[group].plot.hist(bins=50, alpha=0.5, subplots=False, color=colors, ax=ax)
-        ax.set_title(group[0].split(' ')[0])
-        ax.legend(labels=[' '.join(gr.split(' ')[1:]).replace("(", "").replace(")", "") for gr in group])
-
-    plt.suptitle({data_origin}, fontsize=16, y=0.93)
+    # model_names = [s.split(' ')[0] for s in df.columns]
+    # grouping = np.unique([df.filter(regex=f"^{name}").columns.tolist() for name in model_names])
+    #
+    # fig = plt.figure(figsize=(15, 15))
+    # ncols = int(np.sqrt(len(grouping)))
+    # nrows = ncols
+    # if ncols * nrows < len(grouping):
+    #     nrows += 1
+    #
+    # colors = ['lightsalmon', 'turquoise', 'darkmagenta', 'lightcoral', 'blue', 'grey']
+    #
+    # for i, group in enumerate(grouping):
+    #     ax = fig.add_subplot(nrows, ncols, i + 1)
+    #     df[group].plot.hist(bins=50, alpha=0.5, subplots=False, color=colors, ax=ax)
+    #     ax.set_title(group[0].split(' ')[0])
+    #     ax.legend(labels=[' '.join(gr.split(' ')[1:]).replace("(", "").replace(")", "") for gr in group])
+    #
+    # plt.suptitle({data_origin}, fontsize=16, y=0.93)
 
     if plot_dir:
         plt.savefig(os.path.join(novelty_dir_name, f"novelty_distr_per_model"))
@@ -163,17 +164,13 @@ def plot_novelty_scores(
 def export_novelty_csv(
         data_origin: str,
         result_dir: str,
-        plot_dir: str,
-        models: List[str],
+        plot_dir: Optional[str] = None,
+        models: List[str] = AVAILABLE_MODELS,
         suffix: str = None,
         res_type: str = "test",
         scale: bool = False,
         save: bool = True,
 ):
-    save_dir = f"{plot_dir}/{data_origin}/novelty_scores/csv/"
-
-    if not os.path.exists(save_dir):
-        os.makedirs(save_dir)
 
     novelty_dict, _ = load_novelty_scores_from_origin(
         models, result_dir, data_origin
@@ -193,17 +190,46 @@ def export_novelty_csv(
         train_data, test_data, val_data = dh.load_data_splits()
         novelty_df.index = test_data[dh.load_feature_names()].index
     except:
-        print("When loading novelty scores, could not set patients ID. Continuing with IDs.")
+        print("When loading novelty scores, could not set patients ID. Continuing without IDs.")
 
     if scale:
         scaler = MinMaxScaler()
         novelty_df[novelty_df.columns] = scaler.fit_transform(novelty_df)
 
     if save:
+        save_dir = f"{plot_dir}/{data_origin}/novelty_scores/csv/"
+
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+
         save_path = os.path.join(save_dir, f"novelty_{res_type}_{suffix}.csv")
         novelty_df.to_csv(save_path)
 
     else:
         return novelty_df
+
+
+def plot_novelty_scores_distribution(df,
+                                     data_origin: Optional[str]):
+
+    model_names = [s.split(' ')[0] for s in df.columns]
+    grouping = np.unique([df.filter(regex=f"^{name}").columns.tolist() for name in model_names])
+
+    fig = plt.figure(figsize=(15, 15))
+    ncols = int(np.sqrt(len(grouping)))
+    nrows = ncols
+    if ncols * nrows < len(grouping):
+        nrows += 1
+
+    colors = ['lightsalmon', 'turquoise', 'darkmagenta', 'lightcoral', 'blue', 'grey']
+
+    for i, group in enumerate(grouping):
+        ax = fig.add_subplot(nrows, ncols, i + 1)
+        df[group].plot.hist(bins=50, alpha=0.5, subplots=False, color=colors, ax=ax)
+        ax.set_title(group[0].split(' ')[0])
+        ax.legend(labels=[' '.join(gr.split(' ')[1:]).replace("(", "").replace(")", "") for gr in group])
+
+    if data_origin:
+        plt.suptitle({data_origin}, fontsize=16, y=0.93)
 
 

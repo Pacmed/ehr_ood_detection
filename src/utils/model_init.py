@@ -21,6 +21,7 @@ from src.models.mlp import (
     MCDropoutMLP,
     PlattScalingMLP,
 )
+from src.models.dkl_due import DUE
 from src.models.bbb import BBBMLP
 from src.models.ppca import PPCA
 from src.models.lof import LOF
@@ -37,6 +38,7 @@ from src.utils.types import ModelInfo
 
 # Model classes
 MODEL_CLASSES = {
+    "DUE" : DUE,
     "PPCA": PPCA,
     "LOF": LOF,
     "LogReg": LogisticRegression,

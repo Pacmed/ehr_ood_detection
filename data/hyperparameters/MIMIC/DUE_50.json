@@ -1,0 +1,52 @@
+{
+    "3": {
+        "score": 0.8440803295639403,
+        "hyperparameters": {
+            "coeff": 1,
+            "depth": 6,
+            "features": 128,
+            "lr": 0.015387,
+            "n_inducing_points": 15
+        }
+    },
+    "2": {
+        "score": 0.8331837760229719,
+        "hyperparameters": {
+            "coeff": 2,
+            "depth": 4,
+            "features": 256,
+            "lr": 0.002772,
+            "n_inducing_points": 10
+        }
+    },
+    "4": {
+        "score": 0.8298319085598371,
+        "hyperparameters": {
+            "coeff": 2,
+            "depth": 4,
+            "features": 128,
+            "lr": 0.006049,
+            "n_inducing_points": 10
+        }
+    },
+    "1": {
+        "score": 0.8259984391156305,
+        "hyperparameters": {
+            "coeff": 3,
+            "depth": 5,
+            "features": 512,
+            "lr": 0.001859,
+            "n_inducing_points": 15
+        }
+    },
+    "0": {
+        "score": 0.8205847388976336,
+        "hyperparameters": {
+            "coeff": 3,
+            "depth": 5,
+            "features": 512,
+            "lr": 0.001929,
+            "n_inducing_points": 15
+        }
+    }
+}
