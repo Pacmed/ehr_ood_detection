@@ -10,27 +10,28 @@ is used in the following publications:
 
 In the following sections the contents of the repository are explained in detail, along with how to use it and some 
 examples.
+ 
+## Table of contents
 
-## :books: Table of contents
+- [OOD Detection For Electronic Health Records](#ood-detection-for-electronic-health-records)
+  * [Contents](#contents)
+    + [Included Models](#included-models)
+    + [Included Metrics](#included-metrics)
+    + [Included Experiments](#included-experiments)
+    + [Included Datasets](#included-datasets)
+  * [Usage](#usage)
+    + [Setup](#setup)
+      - [Installation](#installation)
+      - [Automatic Code Formatting (recommended)](#automatic-code-formatting--recommended-)
+      - [Commit Message Template (recommended)](#commit-message-template--recommended-)
+    + [Examples](#examples)
+      - [Experiments](#experiments)
+      - [Plotting](#plotting)
+    + [Replication](#replication)
+      - [Ulmer et al. (2020)](#ulmer-et-al--2020-)
+    + [Bibliography](#bibliography)
 
-* [Contents](https://github.com/Pacmed/ehr_ood_detection#open_file_folder-contents)
-    * [Included Models](https://github.com/Pacmed/ehr_ood_detection/hi-vae#robot-included-models)
-    * [Included Metrics](https://github.com/Pacmed/ehr_ood_detection/hi-vae#triangular_ruler-included-metrics)
-    * [Included Experiments](https://github.com/Pacmed/ehr_ood_detection/hi-vae#microscope-included-experiments)
-    * [Included Datasets](https://github.com/Pacmed/ehr_ood_detection/hi-vae#scroll-included-datasets)
-* [Usage](https://github.com/Pacmed/ehr_ood_detection/hi-vae#usage)
-    * [Setup](https://github.com/Pacmed/ehr_ood_detection/hi-vae#setup) 
-        * [Installation](https://github.com/Pacmed/ehr_ood_detection/hi-vae#inbox_tray-installation)
-        * [Automatic Code Formatting](https://github.com/Pacmed/ehr_ood_detection/hi-vae#hammer_and_wrench-automatic-code-formatting-recommended)
-        * [Commit Message Template](https://github.com/Pacmed/ehr_ood_detection/hi-vae#memo-commit-message-template-recommended)
-    * [Examples](https://github.com/Pacmed/ehr_ood_detection/hi-vae#point_up-examples)
-        * [Experiments](https://github.com/Pacmed/ehr_ood_detection/hi-vae#microscope-experiments)
-        * [Plotting](https://github.com/Pacmed/ehr_ood_detection/hi-vae#bar_chart-plotting)
-    * [Replication](https://github.com/Pacmed/ehr_ood_detection#recycle-replication)
-        * [Ulmer et al. (2020)](https://github.com/Pacmed/ehr_ood_detection#ulmer-et-al-2020)
-* [Bibliography](https://github.com/Pacmed/ehr_ood_detection/hi-vae#mortar_board-bibliography)
-
-## :open_file_folder: Contents
+## Contents
 
 The repo contains the following directories:
 
@@ -43,7 +44,7 @@ The repo contains the following directories:
     * `preprocessing`: Preprocessing script for the eICU data set
     * `utils`: Helper functions
 
-### :robot: Included Models
+### Included Models
 
 The following discriminators are included in the repository:
 * Logistic Regression baseline (`LogReg`, `models.logreg.py`)
@@ -77,7 +78,7 @@ model's logic, the latter one defines interfaces to train and test it and comput
     * Finally import the class in `utils.model_init.py` and add it to the `MODEL_CLASSES` dictionary
 
 
-### :triangular_ruler: Included Metrics
+### Included Metrics
 
 The following metrics are available for uncertainty estimation / OOD detection:
 
@@ -109,7 +110,7 @@ The availability by model is given in the following table:
     * Add it to corresponding model in `AVAILABLE_SCORING_FUNCS` in `models.info.py` 
     * Add the exact function to `SCORING_FUNCS` in `models.novelty_estimator.py`
 
-### :microscope: Included Experiments
+### Included Experiments
 
 The following scripts are included to prepare experiments:
 
@@ -130,7 +131,7 @@ Furthermore, the following experiments are currently included:
 Lastly, `plot_results.py` can be used to generate tables and plots from the results of these experiments. More information 
 about the correct usage is given in the section [Examples](https://github.com/Pacmed/ehr_ood_detection/hi-vae#point_up-examples) below.
 
-### :scroll: Included Datasets
+### Included Datasets
 
 Currently, the repository is tailored towards the [eICU](https://eicu-crd.mit.edu/) and [MIMIC-III](https://mimic.physionet.org/) 
 datasets, which are publicly available on request and therefore not included in the repo. The dataset to use - if applicable - 
@@ -139,22 +140,22 @@ are usually specified using the `--data-origin` argument when invoking the scrip
 :bulb: **Note**: To add new data sets would unfortunately require some additional refactoring. First, add some logic
 to `utils.datahandler.py`. After that, one would probably have to adjust all experimental script to accomdate the new data.
 
-## :interrobang: Usage
+## Usage
 
 The following sections walk you through the setup for the repo and give some examples for commands.
 
-### :rocket: Setup 
+### Setup 
 
 The setup consists of installing all the necessary packages, as well as optional but recommended steps to stratify the 
 work flow.
 
-#### :inbox_tray: Installation
+#### Installation
 
 The necessary packages can be installed with the commonly used `pip` command
 
     pip install -r requirements.txt
 
-#### :hammer_and_wrench: Automatic Code Formatting (recommended)
+#### Automatic Code Formatting (recommended)
 
 To ensure that code style guidelines are not being violated in commits, you can set up an automatic pre-commit hook 
 using the [Black](https://github.com/psf/black) code formatter, so you never have to worry about your code style ever 
@@ -180,7 +181,7 @@ terminal. In the case of black, simply try your `git add` and `git commit` again
 the case of flake8, check which piece of your code triggered the failure in the terminal message and correct it (if you 
 are _really_ sure that flake8 should ignore this kind of violation, add it to the `.flake8` file).
 
-#### :memo: Commit Message Template (recommended)
+#### Commit Message Template (recommended)
 
 Lastly, a commit message template using emojis is used in this project, which makes it easier to categorize commits and 
 quicker for others to understand the changes made in previous commits. The template along with the rationale and 
@@ -189,11 +190,11 @@ involves downloading the `.gitmessage` file, and then, from the repository root,
 
     git config commit.template .gitmessage
 
-### :point_up: Examples
+### Examples
 
 The following sections gives some examples on how to run experiments and plotting the results.
 
-#### :microscope: Experiments
+#### Experiments
 
 The experiments can be run invoking the corresponding scripts in the `experiments` module. The two most important arguments
 for all scripts are `--data-origin`, which defines the data set experiments are run on (except for domain adaptation), and
@@ -209,7 +210,7 @@ for all scripts are `--data-origin`, which defines the data set experiments are 
 `../../data/results/` by default (expecting that run this script from the module it's located in) in the form 
 of pickle files, using a folder hierarchy to distinguish between different data sets, experiments and models.
  
-#### :bar_chart: Plotting
+#### Plotting
 
 Plotting is done using the `experiments.plot_results.py` script. For a comprehensive overview over the options, type
 
@@ -234,7 +235,7 @@ examples for usage:
 of pickle files, using a folder hierarchy to distinguish between different data sets, experiments and models. 
 Images will by default be saved to `../../data/img/experiments`.
 
-### :recycle: Replication
+### Replication
 
 This section contains some information to replicate the experiments in the publications based on this repo.
 
@@ -276,7 +277,7 @@ To plot the results, please follow the instructions under [Plotting](https://git
 
 ---
 
-### :mortar_board: Bibliography
+### Bibliography
 
 Bishop, Christopher M. Bayesian pca. In Advances in neural information processing systems, pages 382–388, 1999.
 
