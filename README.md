@@ -10,7 +10,7 @@ is used in the following publications:
 
 In the following sections the contents of the repository are explained in detail, along with how to use it and some 
 examples.
-
+ 
 ## Table of contents
 
 - [OOD Detection For Electronic Health Records](#ood-detection-for-electronic-health-records)
