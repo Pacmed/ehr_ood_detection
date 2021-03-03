@@ -14,7 +14,7 @@ examples.
 ## :books: Table of contents
 
 - [OOD Detection For Electronic Health Records](#ood-detection-for-electronic-health-records)
-  * [:open_file_folder: Contents](#-:open-file-folder:--contents)
+  * [:open_file_folder: Contents](#-open-file-folder--contents)
     + [:robot: Included Models](#-robot--included-models)
     + [:triangular_ruler: Included Metrics](#-triangular-ruler--included-metrics)
     + [:microscope: Included Experiments](#-microscope--included-experiments)
