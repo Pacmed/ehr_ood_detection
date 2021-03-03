@@ -38,7 +38,7 @@ from src.utils.types import ModelInfo
 
 # Model classes
 MODEL_CLASSES = {
-    "DUE" : DUE,
+    "DUE": DUE,
     "PPCA": PPCA,
     "LOF": LOF,
     "LogReg": LogisticRegression,

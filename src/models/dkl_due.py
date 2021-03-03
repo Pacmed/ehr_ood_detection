@@ -128,7 +128,11 @@ class DUE:
             else:
                 print(f"Epoch: {epoch}. Train loss: {np.round(np.mean(losses), 3)}.")
 
-
+    def fit(self, X_train, y_train, **kwargs):
+        """
+        Implement for compatibility.
+        """
+        self.train(X_train, y_train, **kwargs)
 
     def _predict(self, X):
         """
