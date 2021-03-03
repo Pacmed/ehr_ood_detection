@@ -447,7 +447,7 @@ PARAM_SEARCH = {
     "n_inducing_points": range(10,20),
     "coeff": np.linspace(0.5, 4, 10),
     "features": [128, 256, 512],
-    "depth": np.range(4,8),
+    "depth": range(4,8),
     "n_components": range(2, 20),
     "hidden_sizes": [
         [hidden_size] * num_layers
@@ -486,6 +486,7 @@ NUM_EVALS = {
     "BootstrappeNNEnsemble": 1,
     "PlattScalingNN": 5,
     "NNEnsemble": 1,
+    "DUE": 5,
 }
 
 # Default training hyperparameters

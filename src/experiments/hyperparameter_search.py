@@ -237,7 +237,7 @@ if __name__ == "__main__":
         "--models",
         type=str,
         nargs="+",
-        default=["PlattScalingNN"],
+        default=["DUE"],
         choices=AVAILABLE_MODELS,
         help="Determine the models which are being used for this experiment.",
     )
