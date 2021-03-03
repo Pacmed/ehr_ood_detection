@@ -15,6 +15,7 @@ from gpytorch.mlls import VariationalELBO
 class DUE:
     def __init__(self,
                  n_inducing_points: int = 20,
+                 kernel: str = "Matern12",
                  coeff: [float, int] = 3,
                  features: int = 128,
                  depth: int = 4,
@@ -29,6 +30,9 @@ class DUE:
         n_inducing_points: int
             Number of points used to calculate the covariance matrix. m inducing points in the feature space that are
             learnable by maximizing ELBO. Reduces matrix inversion computation expenses.
+        kernel: str
+            Defines the kernel of the last layer Gaussian Process.
+            Options: "RFB", "Matern12", "Matern32", "Matern52", "RQ"
         lr: float
             Learning rate.
         coeff: float
@@ -40,6 +44,7 @@ class DUE:
         """
 
         self.num_outputs = 2
+        self.kernel = kernel
         self.input_dim = None
         self.n_inducing_points = n_inducing_points
         self.lr = lr
@@ -219,7 +224,7 @@ class DUE:
 
     def _initialize_models(self,
                            ds_train):
-        kernel = "Matern12"
+        # kernel = "Matern12"
 
         self.feature_extractor = FCResNet(input_dim=self.input_dim,
                                           features=self.features,
@@ -236,7 +241,7 @@ class DUE:
             num_outputs=self.num_outputs,
             initial_lengthscale=initial_lengthscale,
             initial_inducing_points=initial_inducing_points,
-            kernel=kernel,
+            kernel=self.kernel,
         )
 
         self.model = DKL_GP(self.feature_extractor, gp)

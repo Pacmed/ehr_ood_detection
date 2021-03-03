@@ -56,28 +56,31 @@ SINGLE_INST_MULTIPLE_PRED_NN_MODELS = {
     "BBB",  # Bayesian Neural Network
 }
 
-VARIATIONAL_AUTOENCODERS = {"VAE"} #, "HI-VAE"}
+DEEP_KERNELS = {"DUE"}
+
+VARIATIONAL_AUTOENCODERS = {"VAE"}  # , "HI-VAE"}
 AUTOENCODERS = {"AE"} | VARIATIONAL_AUTOENCODERS
 
 NO_ENSEMBLE_NN_MODELS = (
-    SINGLE_PRED_NN_MODELS | AUTOENCODERS | SINGLE_INST_MULTIPLE_PRED_NN_MODELS
+        SINGLE_PRED_NN_MODELS | AUTOENCODERS | SINGLE_INST_MULTIPLE_PRED_NN_MODELS
 )
 
 MULTIPLE_PRED_NN_MODELS = SINGLE_INST_MULTIPLE_PRED_NN_MODELS | ENSEMBLE_MODELS
 
 SINGLE_PRED_MODELS = (
-    DENSITY_BASELINES | SINGLE_PRED_NN_MODELS
+        DENSITY_BASELINES | SINGLE_PRED_NN_MODELS
 )  # All models only making a single prediction
 
 NEURAL_PREDICTORS = (
-    SINGLE_PRED_NN_MODELS | MULTIPLE_PRED_NN_MODELS
+        SINGLE_PRED_NN_MODELS | MULTIPLE_PRED_NN_MODELS
 )  # All neural network-based discriminators
 
-NEURAL_MODELS = NEURAL_PREDICTORS | AUTOENCODERS  # All neural models
+NEURAL_MODELS = NEURAL_PREDICTORS | AUTOENCODERS | DEEP_KERNELS  # All neural models
 AVAILABLE_MODELS = NEURAL_MODELS | BASELINES  # All available models in this project
 
 # Available novelty scoring functions for models
 AVAILABLE_SCORING_FUNCS = {
+    "DUE": ("entropy", "std"),
     "PPCA": ("log_prob",),  # Default: log-prob
     "LOF": ("outlier_score",),
     "AE": ("reconstr_err",),  # Default: Reconstruction error
@@ -107,6 +110,12 @@ AVAILABLE_SCORING_FUNCS = {
 # ### Hyperparameters ###
 
 MODEL_PARAMS = {
+    "DUE": {"MIMIC": {"n_inducing_points": 20, "kernel": "Matern12",
+                      "coeff": 0.5, "features": 256, "depth": 4, "lr": 0.004508},
+            "eICU": {"n_inducing_points": 20, "kernel": "Matern12",
+                     "coeff": 0.5, "features": 256, "depth": 4, "lr": 0.004508},
+            "VUmc": {"n_inducing_points": 20, "kernel": "Matern12",
+                     "coeff": 0.5, "features": 256, "depth": 4, "lr": 0.004508}},
     "PPCA": {"MIMIC": {"n_components": 15},
              "eICU": {"n_components": 15},
              "VUmc": {"n_components": 19}
@@ -198,7 +207,7 @@ MODEL_PARAMS = {
         },
         "VUmc": {
             "dropout_rate": 0.246843,
-            "hidden_sizes": [100,100],
+            "hidden_sizes": [100, 100],
             "lr": 0.00017,
             "class_weight": False,
         }
@@ -380,6 +389,7 @@ MODEL_PARAMS = {
 }
 
 TRAIN_PARAMS = {
+    "DUE": {"n_epochs": 5, "batch_size": 64},
     "PPCA": {},
     "LOF": {},
     "AE": {"n_epochs": 10, "batch_size": 64},
@@ -433,6 +443,11 @@ TRAIN_PARAMS = {
 
 # Hyperparameter ranges / distributions that should be considered during the random search
 PARAM_SEARCH = {
+    "kernel": ["RFB", "Matern12", "Matern32", "Matern52", "RQ"],
+    "n_inducing_points": range(10,20),
+    "coeff": np.linspace(0.5, 4, 10),
+    "features": [128, 256, 512],
+    "depth": np.range(4,8),
     "n_components": range(2, 20),
     "hidden_sizes": [
         [hidden_size] * num_layers
@@ -469,10 +484,9 @@ NUM_EVALS = {
     "LOF": 1,
     "AnchoredNNEnsemble": 1,
     "BootstrappeNNEnsemble": 1,
-    "PlattScalingNN" : 5,
+    "PlattScalingNN": 5,
     "NNEnsemble": 1,
 }
-
 
 # Default training hyperparameters
 DEFAULT_LEARNING_RATE: float = 1e-2
