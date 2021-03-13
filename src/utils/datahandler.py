@@ -11,6 +11,9 @@ from typing_extensions import TypedDict
 # EXT
 import numpy as np
 import pandas as pd
+from sklearn import pipeline
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import StandardScaler
 
 # CONST
 import torch
@@ -18,8 +21,6 @@ from torch.utils.data import Dataset
 
 # PROJECT
 from src.mappings import MAPPING_KEYS, MIMIC_ORIGINS, ALL_ORIGINS
-
-
 
 SEED = 42
 
@@ -105,7 +106,6 @@ class DataHandler:
         self.train_size = 1 - self.test_size - self.val_size
         self.train_data, self.test_data, self.val_data = self._split_train_test_val(self.data)
 
-
     def _split_train_test_val(
             self, df: pd.DataFrame
     ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -166,6 +166,38 @@ class DataHandler:
                                         Available groups are: {self.other_groups.keys()}.""")
         else:
             raise AttributeError("There are no other groups available for this dataset.")
+
+    def get_processed_data(self, scale=False):
+        """
+        For quick reference. Returns train, test and validations datasets that are already processed. Do not use
+        with Novelty Analyzer since it's performing processing on it own.
+        """
+
+        if scale:
+            pipe = pipeline.Pipeline(
+                [("scaler", StandardScaler()), ("imputer", SimpleImputer())]
+            )
+        else:
+            pipe = pipeline.Pipeline(
+                [("imputer", SimpleImputer())]
+            )
+
+        features = self.load_feature_names()
+        train_data, test_data, val_data = self.train_data[features], self.test_data[features], \
+                                          self.val_data[features],
+        y_train, y_test, y_val = self.train_data[self.target_name], self.test_data[self.target_name], \
+                                 self.val_data[self.target_name]
+
+        pipe.fit(train_data)
+        X_train = pipe.transform(train_data)
+        X_test = pipe.transform(test_data)
+        X_val = pipe.transform(val_data)
+
+        X_train = pd.DataFrame(X_train, columns=features, index=self.train_data.index)
+        X_test = pd.DataFrame(X_test, columns=features, index=self.test_data.index)
+        X_val = pd.DataFrame(X_val, columns=features, index=self.val_data.index)
+
+        return X_train, y_train, X_test, y_test, X_val, y_val
 
 
 class SimpleDataset(Dataset):
