@@ -29,6 +29,7 @@ from src.models.info import (
     NEURAL_MODELS,
     TRAIN_PARAMS,
     AUTOENCODERS,
+    DEEP_KERNELS
 )
 from src.utils.model_init import MODEL_CLASSES
 
@@ -108,7 +109,7 @@ def perform_hyperparameter_search(
                     preds = model.predict(X_val)
 
                     # Neural predictors: Use the AUC-ROC score
-                    if model_name in NEURAL_PREDICTORS:
+                    if model_name in NEURAL_PREDICTORS | DEEP_KERNELS:
                         # When model training goes completely awry
                         if np.isnan(preds).all():
                             score = 0
@@ -119,6 +120,7 @@ def perform_hyperparameter_search(
                                 y_true=y_val[~np.isnan(preds)],
                                 y_score=preds[~np.isnan(preds)],
                             )
+                            print(f"Score: {score}")
 
                     # Auto-encoders: Use mean negative reconstruction error (because score are sorted descendingly)
                     elif model_name in AUTOENCODERS:
@@ -156,7 +158,7 @@ def perform_hyperparameter_search(
                     os.makedirs(model_result_dir)
 
                 with open(f"{model_result_dir}/{model_name}.json", "w") as result_file:
-                    result_file.write(json.dumps(sorted_scores, indent=4))
+                    result_file.write(json.dumps(sorted_scores, indent=4, default=str))
 
 
 def get_num_runs(models: List[str]) -> int:

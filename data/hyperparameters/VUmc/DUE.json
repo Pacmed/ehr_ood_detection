@@ -1,0 +1,112 @@
+{
+    "10": {
+        "score": 0.7829041902289793,
+        "hyperparameters": {
+            "coeff": 1.375,
+            "depth": 4,
+            "features": 512,
+            "kernel": "Matern12",
+            "lr": 0.006444,
+            "n_inducing_points": 15
+        }
+    },
+    "4": {
+        "score": 0.778474668582553,
+        "hyperparameters": {
+            "coeff": 0.5,
+            "depth": 5,
+            "features": 128,
+            "kernel": "Matern12",
+            "lr": 0.01663,
+            "n_inducing_points": 14
+        }
+    },
+    "25": {
+        "score": 0.7748331324742745,
+        "hyperparameters": {
+            "coeff": 1.375,
+            "depth": 6,
+            "features": 256,
+            "kernel": "Matern32",
+            "lr": 0.009248,
+            "n_inducing_points": 19
+        }
+    },
+    "15": {
+        "score": 0.7746375845925652,
+        "hyperparameters": {
+            "coeff": 1.375,
+            "depth": 5,
+            "features": 512,
+            "kernel": "Matern32",
+            "lr": 0.007616,
+            "n_inducing_points": 13
+        }
+    },
+    "11": {
+        "score": 0.7732397793640493,
+        "hyperparameters": {
+            "coeff": 1.375,
+            "depth": 4,
+            "features": 128,
+            "kernel": "Matern52",
+            "lr": 0.001783,
+            "n_inducing_points": 13
+        }
+    },
+    "12": {
+        "score": 0.7726256141651988,
+        "hyperparameters": {
+            "coeff": 3.125,
+            "depth": 7,
+            "features": 256,
+            "kernel": "Matern12",
+            "lr": 0.002346,
+            "n_inducing_points": 12
+        }
+    },
+    "9": {
+        "score": 0.771785482525262,
+        "hyperparameters": {
+            "coeff": 1.375,
+            "depth": 7,
+            "features": 512,
+            "kernel": "Matern12",
+            "lr": 0.002044,
+            "n_inducing_points": 18
+        }
+    },
+    "2": {
+        "score": 0.7702674515620654,
+        "hyperparameters": {
+            "coeff": 1.375,
+            "depth": 7,
+            "features": 512,
+            "kernel": "RQ",
+            "lr": 0.001564,
+            "n_inducing_points": 14
+        }
+    },
+    "3": {
+        "score": 0.7676514554556411,
+        "hyperparameters": {
+            "coeff": 1.375,
+            "depth": 7,
+            "features": 512,
+            "kernel": "RQ",
+            "lr": 0.003932,
+            "n_inducing_points": 14
+        }
+    },
+    "28": {
+        "score": 0.7642677528506536,
+        "hyperparameters": {
+            "coeff": 2.25,
+            "depth": 6,
+            "features": 256,
+            "kernel": "Matern52",
+            "lr": 0.001117,
+            "n_inducing_points": 13
+        }
+    }
+}

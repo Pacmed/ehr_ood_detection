@@ -12,7 +12,8 @@ from typing import List, Dict, Tuple
 from src.models.info import (
     NEURAL_PREDICTORS,
     DISCRIMINATOR_BASELINES,
-    AVAILABLE_SCORING_FUNCS
+    AVAILABLE_SCORING_FUNCS,
+    DEEP_KERNELS
 )
 from src.utils.types import ResultDict
 
@@ -67,7 +68,7 @@ def load_ood_results_from_origin(
             ) as f:
                 recall_dict[name] = pickle.load(f)
 
-        if method in NEURAL_PREDICTORS | DISCRIMINATOR_BASELINES:
+        if method in NEURAL_PREDICTORS | DISCRIMINATOR_BASELINES | DEEP_KERNELS:
             metrics_dir = os.path.join(method_dir, "metrics")
 
             for metric in os.listdir(metrics_dir):
@@ -147,7 +148,7 @@ def load_novelty_scores_from_origin(
             with open(os.path.join(method_novelty_dir, scoring_func, "scores.pkl"), "rb") as f:
                 novelty_dict[name] = pickle.load(f)
 
-        if method in NEURAL_PREDICTORS | DISCRIMINATOR_BASELINES:
+        if method in NEURAL_PREDICTORS | DISCRIMINATOR_BASELINES | DEEP_KERNELS:
             metrics_dir = os.path.join(method_dir, "metrics")
 
             for metric in os.listdir(metrics_dir):

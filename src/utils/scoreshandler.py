@@ -139,7 +139,8 @@ class NoveltyScoresHandler:
 
         return pd.DataFrame(outliers)
 
-    def get_union(self):
+    def get_union(self,
+                  multiindex=False):
         """
         Returns
         -------
@@ -151,6 +152,11 @@ class NoveltyScoresHandler:
         union = self.outliers.copy()
         union["Number of models"] = union.sum(axis=1)
         union = union.sort_values("Number of models", ascending=False)
+
+        if multiindex:
+            union.columns = pd.MultiIndex.from_tuples(
+                [(c.split(' ')[0], ' '.join(c.split(' ')[1:])) for c in union.columns])
+
         # union = union[union["Number of models"] > 0]
 
         return union
