@@ -1,24 +1,21 @@
-import sys
 import os
+import sys
 import argparse
-import pickle
-from typing import Optional, Union
+from typing import Union, Optional
 from collections import defaultdict
-from collections import namedtuple
-from tqdm import tqdm
 
+from tqdm import tqdm
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 import shap
-import sklearn
 
 from src.utils.datahandler import DataHandler, load_data_from_origin
-from src.models.novelty_estimator import NoveltyEstimator, SCORING_FUNCS
+from src.models.novelty_estimator import NoveltyEstimator
 from src.utils.model_init import init_models
 from src.models.info import AVAILABLE_MODELS
 
 RESULT_DIR = "../../data/results"
+SAVE_DIR = "../../img/experiments"
 DENSITY_ESTIMATORS = {"AE", "VAE", "PPCA", "LOF", "DUE"}
 
 
@@ -27,6 +24,7 @@ def plot_shap(ne,
               X_train: pd.DataFrame,
               X_test: pd.DataFrame,
               indices: Union[int, list],
+              save_dir: Optional[str] = None,
               ):
     """
 
@@ -67,9 +65,30 @@ def plot_shap(ne,
                         out_names=f'novelty score',
                         show=False,
                         matplotlib=True)
+        plt.title(ne.__dict__['name'] + ' ' + scoring_func + '\n' + f'ID={index}', fontsize=14, loc='left')
+        plt.tight_layout()
 
+        if save_dir is not None:
+            if not os.path.exists(save_dir):
+                os.makedirs(save_dir)
+
+            plt.savefig(os.path.join(save_dir, f"ID{index}_force_plot"))
+            plt.close()
+        else:
+            plt.show()
+
+        shap.decision_plot(explainer.expected_value,
+                           shap_values[0],
+                           feature_names,
+                           show=False)
         plt.title(ne.__dict__['name'] + ' ' + scoring_func + '\n' + f'ID={index}', fontsize=14)
-        plt.show()
+        plt.tight_layout()
+
+        if save_dir is not None:
+            plt.savefig(os.path.join(save_dir, f"ID{index}_decision_plot"))
+            plt.close()
+        else:
+            plt.show()
 
 
 if __name__ == "__main__":
@@ -84,7 +103,7 @@ if __name__ == "__main__":
         "--models",
         type=str,
         nargs="+",
-        default=DENSITY_ESTIMATORS,
+        default={"NN"},
         choices=AVAILABLE_MODELS,
         help="Determine the models which are being used for this experiment.",
     )
@@ -94,6 +113,13 @@ if __name__ == "__main__":
         default=RESULT_DIR,
         help="Define the directory that results should be saved to.",
     )
+    parser.add_argument(
+        "--indices",
+        type=list,
+        nargs='+',
+        default=[191, 15941],
+        help="Select which patient IDs you want to visualize.",
+    )
 
     args = parser.parse_args()
 
@@ -101,22 +127,23 @@ if __name__ == "__main__":
     data_loader = load_data_from_origin(args.data_origin)
     dh = DataHandler(**data_loader)
     X_train, y_train, X_test, y_test, X_val, y_val = dh.get_processed_data(scale=True)
-    X_train.head()
-
-    # Run models
-    novelty_estimators = defaultdict(dict)
 
     for model_info in tqdm(init_models(input_dim=X_train.shape[1],
-                                       selection={"NN"},
+                                       selection=args.models,
                                        origin=args.data_origin)):
         print("\n\n", model_info[2])
         ne, scoring_funcs, method_name = model_info
 
         print('Starting training...')
-        tqdm(ne.train(X_train.values, y_train.values, X_val.values, y_val.values))
+        ne.train(X_train.values, y_train.values, X_val.values, y_val.values)
         print('..finished training.')
-        novelty_estimators[method_name] = {"model": ne, "scoring_funcs": scoring_funcs}
 
-    for key, item in novelty_estimators:
-        for scoring_func in item["scoring_funcs"]:
-            plot_shap(item["model"], scoring_func, X_train, X_test, indices=[191])
+        for scoring_func in scoring_funcs:
+            print(f'Calculating SHAP for {method_name} ({scoring_func})...')
+
+            plot_shap(ne,
+                      scoring_func,
+                      X_train,
+                      X_test,
+                      indices=args.indices,
+                      save_dir=os.path.join(SAVE_DIR, args.data_origin, 'feature_importance'))
