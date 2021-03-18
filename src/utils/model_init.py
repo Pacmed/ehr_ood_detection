@@ -22,7 +22,7 @@ from src.models.mlp import (
     PlattScalingMLP,
 )
 from src.models.dkl_due import DUE
-from src.models.bbb import BBBMLP
+# from src.models.bbb import BBBMLP
 from src.models.ppca import PPCA
 from src.models.lof import LOF
 from src.models.novelty_estimator import NoveltyEstimator
@@ -48,7 +48,7 @@ MODEL_CLASSES = {
     "HI-VAE": HIVAE,
     "NN": MLP,
     "PlattScalingNN": PlattScalingMLP,
-    "BBB": BBBMLP,
+    # "BBB": BBBMLP,
     "MCDropout": MCDropoutMLP,
     "NNEnsemble": NNEnsemble,
     "BootstrappedNNEnsemble": NNEnsemble,
