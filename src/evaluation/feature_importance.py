@@ -11,14 +11,13 @@ import pandas as pd
 import shap
 from tqdm import tqdm
 
-from src.models.info import AVAILABLE_MODELS
+from src.models.info import AVAILABLE_MODELS, DENSITY_ESTIMATORS
 from src.models.novelty_estimator import NoveltyEstimator
 from src.utils.datahandler import DataHandler, load_data_from_origin
 from src.utils.model_init import init_models
 
 RESULT_DIR = "../../data/results"
 SAVE_DIR = "../../img/experiments"
-DENSITY_ESTIMATORS = {"AE", "VAE", "PPCA", "LOF", "DUE"}
 
 
 def plot_shap(ne,

@@ -28,6 +28,8 @@ from scipy.stats import uniform
 
 # ### Models and novelty scoring functions ###
 
+DENSITY_ESTIMATORS = {"AE", "VAE", "PPCA", "LOF", "DUE"}
+
 DENSITY_BASELINES = {
     "PPCA",  # Probabilistic PCA for density estimation
     "LOF",
@@ -53,7 +55,7 @@ ENSEMBLE_MODELS = {
 
 SINGLE_INST_MULTIPLE_PRED_NN_MODELS = {
     "MCDropout",  # Single neural discriminator using MC Dropout for uncertainty estimation
-    "BBB",  # Bayesian Neural Network
+    # "BBB",  # Bayesian Neural Network
 }
 
 DEEP_KERNELS = {"DUE"}
