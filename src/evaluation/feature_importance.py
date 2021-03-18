@@ -1,18 +1,20 @@
-import os
-import sys
+"""
+Plot SHAP values for novelty score predictions.
+"""
+
 import argparse
+import os
 from typing import Union, Optional
-from collections import defaultdict
 
-from tqdm import tqdm
-import pandas as pd
 import matplotlib.pyplot as plt
+import pandas as pd
 import shap
+from tqdm import tqdm
 
-from src.utils.datahandler import DataHandler, load_data_from_origin
-from src.models.novelty_estimator import NoveltyEstimator
-from src.utils.model_init import init_models
 from src.models.info import AVAILABLE_MODELS
+from src.models.novelty_estimator import NoveltyEstimator
+from src.utils.datahandler import DataHandler, load_data_from_origin
+from src.utils.model_init import init_models
 
 RESULT_DIR = "../../data/results"
 SAVE_DIR = "../../img/experiments"
@@ -27,7 +29,9 @@ def plot_shap(ne,
               save_dir: Optional[str] = None,
               ):
     """
-
+    Plots SHAP plots to explain uncertainty about each individual prediction. Plots or saves force plot and decision
+    plots for each patient whose ID was provided in indices. Calculates novelty score using novelty
+    estimators and its associated scoring function on training data and takes this value as the base E[f(x)].
     Parameters
     ----------
     ne: NoveltyEstimator
@@ -40,10 +44,14 @@ def plot_shap(ne,
         Dataframe of testing data.
     indices: list, int
         List of integers or an integer index indicates patients' IDs.
-    Returns
-    -------
-
+    save_dir: str
+        Path to where images whould be saved, e.g. "../../img/experiments/VUmc/feature_importance/".
     """
+    if save_dir is not None:
+        save_dir = os.path.join(save_dir, method_name, scoring_func)
+
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
 
     if type(indices) is int:
         indices = list(indices)
@@ -57,7 +65,7 @@ def plot_shap(ne,
     feature_names = list(map(lambda x: x.replace('_', ' '), X_test.columns))
 
     for i, index in enumerate(indices):
-        print(f'ID={index}')
+        print(f'\tID={index}')
 
         shap.force_plot(explainer.expected_value,
                         shap_values[i],
@@ -69,16 +77,13 @@ def plot_shap(ne,
         plt.tight_layout()
 
         if save_dir is not None:
-            if not os.path.exists(save_dir):
-                os.makedirs(save_dir)
-
             plt.savefig(os.path.join(save_dir, f"ID{index}_force_plot"))
             plt.close()
         else:
             plt.show()
 
         shap.decision_plot(explainer.expected_value,
-                           shap_values[0],
+                           shap_values[i],
                            feature_names,
                            show=False)
         plt.title(ne.__dict__['name'] + ' ' + scoring_func + '\n' + f'ID={index}', fontsize=14)
@@ -115,9 +120,9 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--indices",
-        type=list,
+        type=Union[list, int],
         nargs='+',
-        default=[191, 15941],
+        default=[6796, 16657],
         help="Select which patient IDs you want to visualize.",
     )
 
@@ -134,16 +139,28 @@ if __name__ == "__main__":
         print("\n\n", model_info[2])
         ne, scoring_funcs, method_name = model_info
 
-        print('Starting training...')
-        ne.train(X_train.values, y_train.values, X_val.values, y_val.values)
-        print('..finished training.')
+        try:
+            print('\tstarted training...')
+            ne.train(X_train.values, y_train.values, X_val.values, y_val.values)
+            print('\t..finished training.')
 
-        for scoring_func in scoring_funcs:
-            print(f'Calculating SHAP for {method_name} ({scoring_func})...')
+            for scoring_func in scoring_funcs:
+                print(f'\n\tcalculating SHAP for {method_name} ({scoring_func})...')
 
-            plot_shap(ne,
-                      scoring_func,
-                      X_train,
-                      X_test,
-                      indices=args.indices,
-                      save_dir=os.path.join(SAVE_DIR, args.data_origin, 'feature_importance'))
+                try:
+                    plot_shap(
+                        ne=ne,
+                        scoring_func=scoring_func,
+                        X_train=X_train,
+                        X_test=X_test,
+                        indices=args.indices,
+                        save_dir=os.path.join(SAVE_DIR, args.data_origin, 'feature_importance'),
+                    )
+                    print(f'\t...done.')
+                except Exception as e:
+                    print(f"{method_name}({scoring_func}) SHAP plotting error")
+                    print(e)
+
+        except Exception as e:
+            print(f"{method_name} There was an error when training the model")
+            print(e)
