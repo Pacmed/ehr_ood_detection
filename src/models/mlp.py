@@ -305,6 +305,9 @@ class MLP:
             torch.sigmoid(self.model(X_test_tensor)).detach().squeeze().numpy()
         )
 
+        if predictions.ndim == 0:
+            predictions = predictions.reshape(1,-1)
+
         return np.stack([1 - predictions, predictions], axis=1)
 
     def predict(self, X_test: np.array) -> np.array:
