@@ -1,0 +1,32 @@
+{
+        "824": [
+                "lactate_dehydrogenase__last__overall",
+                "lactate_dehydrogenase__maximum__last_24h",
+                "lactate_dehydrogenase__mean__overall"
+        ],
+        "6796": [
+                "troponin__minimum__first_24h",
+                "troponin__first__overall",
+                "troponin__mean__first_24h"
+        ],
+        "4145": [
+                "creatinine_kinase__minimum__overall",
+                "creatinine_kinase__first__overall",
+                "creatinine_kinase__minimum__first_24h"
+        ],
+        "191": [
+                "bilirubin__mean__overall__diff",
+                "asat__mean__overall__diff",
+                "bilirubin__minimum__last_24h"
+        ],
+        "7304": [
+                "prothrombin_time__minimum__last_24h",
+                "prothrombin_time__last__overall",
+                "prothrombin_time__mean__last_24h"
+        ],
+        "4072": [
+                "po2__maximum__last_24h",
+                "po2__standard_deviation__last_24h",
+                "rass__maximum__last_24h"
+        ]
+}
