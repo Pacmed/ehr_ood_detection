@@ -7,7 +7,7 @@ import argparse
 import os
 
 # PROJECT
-from src.models.info import AVAILABLE_MODELS
+from src.models.info import AVAILABLE_MODELS, DENSITY_ESTIMATORS
 from src.utils.scoreshandler import NoveltyScoresHandler
 
 # CONST
@@ -39,13 +39,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--suffix",
         type=str,
-        default="_wo_AnchNNEnsembles",
+        default="_density",
         help="Add a suffix to table file names to help to distinguish them.",
     )
     parser.add_argument(
         "--models",
         type=str,
-        default=AVAILABLE_MODELS - {"BBB", "AnchoredNNEnsemble"},
+        default=DENSITY_ESTIMATORS,
         nargs="+",
         help="Distinguish the methods that should be included in the plot.",
     )
