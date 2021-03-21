@@ -145,7 +145,7 @@ if __name__ == "__main__":
         "--type",
         type=str,
         nargs='+',
-        default="reconstr",
+        default="SHAP",
         choices=["SHAP", "reconstr"],
         help="Select which patient IDs you want to visualize.",
     )
@@ -153,7 +153,7 @@ if __name__ == "__main__":
         "--models",
         type=str,
         nargs="+",
-        default={"AE"},
+        default={"DUE", "LOF"},
         choices=AVAILABLE_MODELS,
         help="Determine the models which are being used for this experiment.",
     )
@@ -237,7 +237,7 @@ if __name__ == "__main__":
         if not os.path.exists(save_dir):
             os.mkdir(save_dir)
         with open(os.path.join(save_dir, f"AE_reconstr{args.suffix}.json"), "w", encoding="utf8") as f:
-            json.dump(feature_importance, f, indent=4)
+            json.dump(list(feature_importance), f, indent=4)
 
 
 

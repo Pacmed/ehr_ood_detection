@@ -109,12 +109,12 @@ if __name__ == "__main__":
         print(name)
         nov_an = NoveltyAnalyzer(
             novelty_estimator=ne,
-            X_train=train_data[feature_names].values,
-            X_test=test_data[feature_names].values,
-            X_val=val_data[feature_names].values,
-            y_train=train_data[y_name].values,
-            y_test=test_data[y_name].values,
-            y_val=val_data[y_name].values,
+            X_train=train_data[feature_names],
+            X_test=test_data[feature_names],
+            X_val=val_data[feature_names],
+            y_train=train_data[y_name],
+            y_test=test_data[y_name],
+            y_val=val_data[y_name],
         )
         nov_an.train()
 

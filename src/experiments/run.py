@@ -51,15 +51,6 @@ if __name__ == "__main__":
         default=RESULT_DIR,
         help="Define the directory that results should be saved to.",
     )
-
-    # parser.add_argument(
-    #     "--feature_proc",
-    #     type=str,
-    #     default="impute_and_scale",
-    #     choices = ["impute_and_scale", "impute"],
-    #     help="Define the directory that results should be saved to.",
-    # )
-
     args = parser.parse_args()
 
     # Loading the data
@@ -69,7 +60,6 @@ if __name__ == "__main__":
     feature_names = dh.load_feature_names()
     y_name = dh.load_target_name()
 
-    # TODO: Make sure shuffling is ok, especially for individual novelty score comparisons
     train_data, test_data, val_data = dh.load_data_splits()
 
     for model_info in tqdm(init_models(
@@ -86,11 +76,11 @@ if __name__ == "__main__":
         nov_an = NoveltyAnalyzer(
             ne,
             *map(
-                lambda spl: spl[feature_names].values,
+                lambda spl: spl[feature_names],
                 [train_data, test_data, val_data]
             ),
             *map(
-                lambda spl: spl[y_name].values,
+                lambda spl: spl[y_name],
                 [train_data, test_data, val_data]
             ),
             impute_and_scale=True,
