@@ -4,12 +4,15 @@ Plot SHAP values for novelty score predictions.
 
 import argparse
 import os
-from typing import Union, Optional
+import json
+from typing import Union, Optional, List
 
 import matplotlib.pyplot as plt
 import pandas as pd
 import shap
 from tqdm import tqdm
+import torch
+import numpy as np
 
 from src.models.info import AVAILABLE_MODELS, DENSITY_ESTIMATORS
 from src.models.novelty_estimator import NoveltyEstimator
@@ -95,6 +98,41 @@ def plot_shap(ne,
             plt.show()
 
 
+def get_reconstr_features(ne: NoveltyEstimator,
+                          X: pd.DataFrame,
+                          indices: Union[int, List[int]],
+                          N: int = 3,
+                          print_features: bool = True):
+
+    if type(indices) is int:
+        indices = list(indices)
+
+    feature_importance = dict()
+
+    for ID in indices:
+        sample = X.loc[[ID]].values
+        z = ne.model.model.encoder(torch.from_numpy(sample).float())
+        reconstr = ne.model.model.decoder(z)
+        reconstr = reconstr.detach().numpy()
+
+        diff = np.abs(sample - reconstr)[0]
+        order = np.argsort(diff * -1)
+        features = X.columns[order][:N]
+
+        feature_importance[ID] = features
+
+    if print_features:
+        print("AE reconstruction error")
+        for key, item in feature_importance.items():
+            print(f'{key}:', end='\t')
+
+            for feat in item:
+                print(feat.replace('_', ' '), end='\n\t')
+            print('\n')
+
+    return feature_importance
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -104,10 +142,18 @@ if __name__ == "__main__":
         help="Which data to use",
     )
     parser.add_argument(
+        "--type",
+        type=str,
+        nargs='+',
+        default="SHAP",
+        choices=["SHAP", "reconstr"],
+        help="Select which patient IDs you want to visualize.",
+    )
+    parser.add_argument(
         "--models",
         type=str,
         nargs="+",
-        default={"NN"},
+        default={"DUE", "LOF"},
         choices=AVAILABLE_MODELS,
         help="Determine the models which are being used for this experiment.",
     )
@@ -121,8 +167,13 @@ if __name__ == "__main__":
         "--indices",
         type=Union[list, int],
         nargs='+',
-        default=[6796, 16657],
-        help="Select which patient IDs you want to visualize.",
+        default=[824, 6796, 4145, 191, 7304, 4072],
+        help="Select which patient IDs to analyze.",
+    )
+    parser.add_argument(
+        "--suffix",
+        type=str,
+        default="",
     )
 
     args = parser.parse_args()
@@ -132,34 +183,62 @@ if __name__ == "__main__":
     dh = DataHandler(**data_loader)
     X_train, y_train, X_test, y_test, X_val, y_val = dh.get_processed_data(scale=True)
 
-    for model_info in tqdm(init_models(input_dim=X_train.shape[1],
-                                       selection=args.models,
-                                       origin=args.data_origin)):
+
+    if args.type == "SHAP":
+        for model_info in tqdm(init_models(input_dim=X_train.shape[1],
+                                           selection=args.models,
+                                           origin=args.data_origin)):
+            print("\n\n", model_info[2])
+            ne, scoring_funcs, method_name = model_info
+
+            try:
+                    print('\tstarted training...')
+                    ne.train(X_train.values, y_train.values, X_val.values, y_val.values)
+                    print('\t..finished training.')
+
+                    for scoring_func in scoring_funcs:
+                        print(f'\n\tcalculating SHAP for {method_name} ({scoring_func})...')
+
+                        try:
+                            plot_shap(
+                                ne=ne,
+                                scoring_func=scoring_func,
+                                X_train=X_train,
+                                X_test=X_test,
+                                indices=args.indices,
+                                save_dir=os.path.join(SAVE_DIR, args.data_origin, 'feature_importance'),
+                            )
+                            print(f'\t...done.')
+                        except Exception as e:
+                            print(f"{method_name}({scoring_func}) SHAP plotting error:")
+                            print(e)
+
+            except Exception as e:
+                print(f"{method_name}: there was an error when training the model:")
+                print(e)
+
+    if args.type == "reconstr":
+        model_info = init_models(input_dim=X_train.shape[1],
+                                 selection={"AE"},
+                                 origin=args.data_origin)[0]
         print("\n\n", model_info[2])
         ne, scoring_funcs, method_name = model_info
+        print('\tstarted training...')
+        ne.train(X_train.values, y_train.values, X_val.values, y_val.values)
+        print('\t..finished training.')
 
-        try:
-            print('\tstarted training...')
-            ne.train(X_train.values, y_train.values, X_val.values, y_val.values)
-            print('\t..finished training.')
+        feature_importance = get_reconstr_features(ne=ne,
+                                                   X=X_test,
+                                                   indices=args.indices,
+                                                   N=3,
+                                                   print_features=True)
 
-            for scoring_func in scoring_funcs:
-                print(f'\n\tcalculating SHAP for {method_name} ({scoring_func})...')
+        save_dir =os.path.join(RESULT_DIR, args.data_origin, "feature_importance")
+        if not os.path.exists(save_dir):
+            os.mkdir(save_dir)
+        with open(os.path.join(save_dir, f"AE_reconstr{args.suffix}.json"), "w", encoding="utf8") as f:
+            json.dump(list(feature_importance), f, indent=4)
 
-                try:
-                    plot_shap(
-                        ne=ne,
-                        scoring_func=scoring_func,
-                        X_train=X_train,
-                        X_test=X_test,
-                        indices=args.indices,
-                        save_dir=os.path.join(SAVE_DIR, args.data_origin, 'feature_importance'),
-                    )
-                    print(f'\t...done.')
-                except Exception as e:
-                    print(f"{method_name}({scoring_func}) SHAP plotting error")
-                    print(e)
 
-        except Exception as e:
-            print(f"{method_name} There was an error when training the model")
-            print(e)
+
+
