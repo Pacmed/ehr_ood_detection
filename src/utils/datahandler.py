@@ -144,10 +144,9 @@ class DataHandler:
     # Preserve the function for compatibility
     def load_feature_names(self) -> List[str]:
         """ Load the feature names for a given data set. """
-        # TODO: add warning if not all features are selected
         selected_features = np.extract([feat in self.data.columns for feat in self.feature_names],
                                        self.feature_names)
-        return selected_features
+        return selected_features.tolist()
 
     def load_other_groups(self, group) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         """ Load other group data. E.g. newborns for MIMIC). """
@@ -183,27 +182,46 @@ class DataHandler:
             )
 
         features = self.load_feature_names()
-        train_data, test_data, val_data = self.train_data[features], self.test_data[features], \
-                                          self.val_data[features],
-        y_train, y_test, y_val = self.train_data[self.target_name], self.test_data[self.target_name], \
-                                 self.val_data[self.target_name]
 
-        pipe.fit(train_data)
-        X_train = pipe.transform(train_data)
-        X_test = pipe.transform(test_data)
-        X_val = pipe.transform(val_data)
+        X_train, X_test, X_val = tuple(map(
+            lambda x: x[features],
+            [self.train_data, self.test_data, self.val_data]
+        ))
 
-        X_train = pd.DataFrame(X_train, columns=features, index=self.train_data.index)
-        X_test = pd.DataFrame(X_test, columns=features, index=self.test_data.index)
-        X_val = pd.DataFrame(X_val, columns=features, index=self.val_data.index)
+        y_train, y_test, y_val = tuple(map(
+            lambda x: x[self.target_name],
+            [self.train_data, self.test_data, self.val_data]
+        ))
 
+        continuous = [column for column in features if len(np.unique(X_train[column].values)) > 2]
+        categorical = list(set(features) ^ set(continuous))
+
+        pipe.fit(X_train[continuous])
+        X_train_contin, X_test_contin, X_val_contin = tuple(map(
+            lambda x: pd.DataFrame(pipe.transform(x), columns = continuous, index = x.index),
+            [X_train[continuous], X_test[continuous], X_val[continuous]]
+        ))
+
+        X_train = pd.concat([X_train_contin, X_train[categorical]], axis=1, join='inner')
+        X_test = pd.concat([X_test_contin, X_test[categorical]], axis=1, join='inner')
+        X_val = pd.concat([X_val_contin, X_val[categorical]], axis=1, join='inner')
+
+        X_train, X_test, X_val = tuple(map(
+            lambda x: x.reindex(sorted(x.columns), axis=1),
+            [X_train, X_test, X_val]
+        ))
+        X_test.reindex(sorted(X_test.columns), axis=1)
+
+        #TODO: add imputation for categorical if there is dataset where they are missing
         return X_train, y_train, X_test, y_test, X_val, y_val
+
+
+
 
 
 class SimpleDataset(Dataset):
     """
     Create a new (simple) PyTorch Dataset instance.
-
     Parameters
     ----------
     X: torch.Tensor
@@ -218,7 +236,6 @@ class SimpleDataset(Dataset):
 
     def __len__(self):
         """Return the number of items in the dataset.
-
         Returns
         -------
         type: int
@@ -228,12 +245,10 @@ class SimpleDataset(Dataset):
 
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
         """Return X and y at index idx.
-
         Parameters
         ----------
         idx: int
             Index.
-
         Returns
         -------
         type: Tuple[torch.Tensor, torch.Tensor]

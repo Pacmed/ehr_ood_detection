@@ -86,11 +86,11 @@ def run_ood_experiment_on_group(
     nov_an = NoveltyAnalyzer(
         ne,
         *map(
-            lambda spl: spl[id_data.feature_names].values,
+            lambda spl: spl[id_data.feature_names],
             [id_data.train, id_data.test, id_data.val],
         ),
         *map(
-            lambda spl: spl[id_data.target].values,
+            lambda spl: spl[id_data.target],
             [id_data.train, id_data.test, id_data.val],
         ),
         impute_and_scale=impute_and_scale,

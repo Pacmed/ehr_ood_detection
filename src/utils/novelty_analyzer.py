@@ -25,17 +25,17 @@ class NoveltyAnalyzer:
     ----------
     novelty_estimator: NoveltyEstimator
         Which novelty estimator to use.
-    X_train: np.array
+    X_train: pd.DataFrame
         Which training data to use.
-    X_test: np.array
+    X_test: pd.DataFrame
         The test data.
-    X_val: Optional[np.array]
+    X_val: Optional[pd.DataFrame]
         The validation data.
-    y_train: Optional[np.array]
+    y_train: Optional[pd.DataFrame]
         The training labels.
-    y_test: Optional[np.array]
+    y_test: Optional[pd.DataFrame]
         The test labels.
-    y_val: Optional[np.array]
+    y_val: Optional[pd.DataFrame]
         The validation labels.
     impute_and_scale: bool
         Whether to impute and scale the data before fitting the novelty estimator.
@@ -44,21 +44,16 @@ class NoveltyAnalyzer:
     def __init__(
             self,
             novelty_estimator: NoveltyEstimator,
-            X_train: np.array,
-            X_test: np.array,
-            X_val: Optional[np.array] = None,
-            y_train: Optional[np.array] = None,
-            y_test: Optional[np.array] = None,
-            y_val: Optional[np.array] = None,
+            X_train: pd.DataFrame,
+            X_test: pd.DataFrame,
+            X_val: Optional[pd.DataFrame] = None,
+            y_train: Optional[pd.DataFrame] = None,
+            y_test: Optional[pd.DataFrame] = None,
+            y_val: Optional[pd.DataFrame] = None,
             impute_and_scale: bool = True,
     ):
         self.ne = novelty_estimator
-        self.X_train = X_train
-        self.X_test = X_test
-        self.X_val = X_val
-        self.y_train = y_train
-        self.y_test = y_test
-        self.y_val = y_val
+
         self.new_test = True
         self.ood = False
         self.impute_and_scale = impute_and_scale
@@ -67,36 +62,40 @@ class NoveltyAnalyzer:
         self.ood_novelty = None
 
         if self.impute_and_scale and novelty_estimator.name != "HI-VAE":
-            self._impute_and_scale()
+            self.X_train, self.y_train, self.X_test, self.y_test, self.X_val, self.y_val =\
+                self._impute_and_scale(X_train, y_train, X_test, y_test, X_val, y_val)
 
-    def _impute_and_scale(self):
+        else:
+            self.X_train, self.y_train, self.X_test, self.y_test, self.X_val, self.y_val = list(map(
+                lambda x: x.values,
+                [X_train,y_train, X_test,y_test, X_val, y_val]
+            ))
+
+    def _impute_and_scale(self,X_train,y_train, X_test,y_test, X_val, y_val):
         """
         Impute and scale, using the train data to fit the (mean) imputer and scaler.
         """
-        # if self.impute_and_scale == "impute_and_scale":
-        #     self.pipe = pipeline.Pipeline(
-        #         [("scaler", StandardScaler()), ("imputer", SimpleImputer())]
-        #     )
-        # elif self.impute_and_scale == "impute":
-        #     self.pipe = pipeline.Pipeline(
-        #         [("imputer", SimpleImputer())]
-        #     )
-        # else:
-        #     raise Warning(f"Your choice: {self.impute_and_scale}, "
-        #                   f"of feature processing is not available at the moment.")
 
-        # self.pipe = pipeline.Pipeline(
-        #     [("scaler", StandardScaler()), ("imputer", SimpleImputer())]
-        # )
-        # TODO: SCALING
         self.pipe = pipeline.Pipeline(
             [("scaler", StandardScaler()), ("imputer", SimpleImputer())]
         )
 
-        self.pipe.fit(self.X_train)
-        self.X_train = self.pipe.transform(self.X_train)
-        self.X_test = self.pipe.transform(self.X_test)
-        self.X_val = self.pipe.transform(self.X_val)
+        continuous = [column for column in X_train.columns if len(np.unique(X_train[column].values))>2]
+        categorical = list(set(X_train.columns) ^ set(continuous))
+
+        self.pipe.fit(X_train[continuous])
+
+        X_train_contin, X_test_contin, X_val_contin = tuple(map(
+            lambda x: pd.DataFrame(self.pipe.transform(x), columns=continuous, index=x.index),
+            [X_train[continuous], X_test[continuous], X_val[continuous]]
+        ))
+
+        X_train = pd.concat([X_train_contin, X_train[categorical]], axis=1, join='inner')
+        X_test = pd.concat([X_test_contin, X_test[categorical]], axis=1, join='inner')
+        X_val = pd.concat([X_val_contin, X_val[categorical]], axis=1, join='inner')
+
+        # TODO: add imputation for categorical if there is dataset where they are missing
+        return X_train.values,y_train.values, X_test.values,y_test.values, X_val.values, y_val.values
 
     def set_ood(self, new_X_ood: np.array, impute_and_scale: bool = True):
         """
