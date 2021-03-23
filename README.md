@@ -16,9 +16,13 @@ examples.
 - [OOD Detection For Electronic Health Records](#ood-detection-for-electronic-health-records)
   * [Contents](#contents)
     + [Included Models](#included-models)
+      - [Add New Models](#add-new-models)
     + [Included Metrics](#included-metrics)
+      - [Add New Metrics](#add-new-metrics)
     + [Included Experiments](#included-experiments)
+    + [Included Evaluation](#included-evaluation)
     + [Included Datasets](#included-datasets)
+      - [Add New Datasets](#add-new-datasets)
   * [Usage](#usage)
     + [Setup](#setup)
       - [Installation](#installation)
@@ -39,7 +43,8 @@ The repo contains the following directories:
 * `img`: Experimental plots and data visualizations
 * `notebooks`: Jupyter notebooks for data exploration
 * `src`: All the code used organized in the following packages
-    * `experiments`: Scripts to prepare and run experiments as well plotting results
+    * `experiments`: Scripts to prepare and run experiments 
+    * `evaluation`: Scripts to plot results and export result tables
     * `models`: All models contained in the repo (see next section)
     * `preprocessing`: Preprocessing script for the eICU data set
     * `utils`: Helper functions
@@ -58,17 +63,21 @@ The following discriminators are included in the repository:
 
 The repo also contains the following density-estimation models:
 * Probabilistic PCA baseline  (Bishop 1999; `PPCA`, `models.ppca.py`)
+* Local Outlier Factor (Breunig 2000; `LOF`, `models.lof.py`)
 * Autoencoder (`AE`, `models.autoencoder.py`)
 * Variational Autoencoder (Kingma & Welling, 2014; `VAE`, `models.vae.py`)
 * Heterogenous-Incomplete Variational Autoencoder (Nazabal et al., 2020; `HI-VAE`, `models.hi_vae.py`)
+* Deep Kernel Learning - Deterministic Uncertainty Estimation (Amersfoort et al., 2021, `DUE`, `models.dkl_due.py`)
 
 **All** **actually** **used** **hyperparameters**, **hyperparameter** **search** **ranges**, **metrics** **and** 
 **model** **hierarchies** **are** **defined** **in** **`src.models.info.py`**.
 
-Miscellaneous notes:
-
+Note:
 * For models, we usually distinguish the module and the model, i.e. `VAEModule` and `VAE`. The former implements the 
 model's logic, the latter one defines interfaces to train and test it and compute certain metrics.
+
+
+#### Add New Models
 
 * :bulb: To add new models, first add the following things in `models.info.py`:
     * Add it somewhere in the model hierarchy so that it is included in `AVAILABLE_MODELS`
@@ -76,7 +85,6 @@ model's logic, the latter one defines interfaces to train and test it and comput
     * Add model and training parameters to `MODEL_PARAMS` and `TRAIN_PARAMS` respectively (if you haven't done hyperparameter search yet, add some placeholders here)
     * For the hyperparameter search, add the search ranges to `PARAM_RANGES` and the number of trials to `NUM_EVALS`
     * Finally import the class in `utils.model_init.py` and add it to the `MODEL_CLASSES` dictionary
-
 
 ### Included Metrics
 
@@ -106,9 +114,12 @@ The availability by model is given in the following table:
 | Latent prop. | :x: | :x: | :x: | :x: | :x: | :x: | :x: | :x: | :x: | :x:  | :white_check_mark: | :white_check_mark: |
 | Latent prior prob. | :x: | :x: | :x: | :x: | :x: | :x: | :x: | :x: | :x: | :x:  | :white_check_mark: | :white_check_mark: |
 
+
+#### Add New Metrics
 :bulb: **Note** To add a new metrics, perform the following steps:
     * Add it to corresponding model in `AVAILABLE_SCORING_FUNCS` in `models.info.py` 
     * Add the exact function to `SCORING_FUNCS` in `models.novelty_estimator.py`
+
 
 ### Included Experiments
 
@@ -128,8 +139,16 @@ Furthermore, the following experiments are currently included:
 * A perturbation experiment simulating data corruption / human error by scaling random feature by an increasing amount 
 (`perturbation.py`)
 
-Lastly, `plot_results.py` can be used to generate tables and plots from the results of these experiments. More information 
+And finally:
+
+*  To run a simple novelty scoring on the dataset use the `experiments.run.py` script. This will save a pickle file of novelty scores for test and train data for each metric as well as performance metrics in the `data/results` folder.
+
+### Included Evaluation
+
+* `plot_results.py` can be used to generate tables and plots from the results of these experiments. More information 
 about the correct usage is given in the section [Examples](https://github.com/Pacmed/ehr_ood_detection/hi-vae#point_up-examples) below.
+* `export_results.py` saves csv tables for novelty scores. Exports either raw scores for each sample or a table of booleans for each model that indicate whether it metric flagged a patient as OOD. The boolean table is sorted by the most uncertain samples (by the number of models that flagged the patient).
+* `feature_importance.py` evaluates contribution of individual features to the overall uncertainty score. 
 
 ### Included Datasets
 
@@ -137,8 +156,10 @@ Currently, the repository is tailored towards the [eICU](https://eicu-crd.mit.ed
 datasets, which are publicly available on request and therefore not included in the repo. The dataset to use - if applicable - 
 are usually specified using the `--data-origin` argument when invoking the script, using either `MIMIC` or `eICU` as arguments.
 
-:bulb: **Note**: To add new data sets would unfortunately require some additional refactoring. First, add some logic
-to `utils.datahandler.py`. After that, one would probably have to adjust all experimental script to accomdate the new data.
+#### Add New Datasets
+First, define the name of the dataset, a path to the dataset, path to a pickle file with feature names*, and target name in `src/mappings.py`. Then, it is enough to provide the name of the dataset to the function `load_data_from_origin` defined in `src/utils/datahandler.py`.
+
+*Note: alternatively, skip the step of adding paths to `mapppings.py` and provide the dataset, feature names, and the target name directly to the `datahandler.py`.
 
 ## Usage
 
@@ -212,7 +233,7 @@ of pickle files, using a folder hierarchy to distinguish between different data 
  
 #### Plotting
 
-Plotting is done using the `experiments.plot_results.py` script. For a comprehensive overview over the options, type
+Plotting is done using the `evaluation.plot_results.py` script. For a comprehensive overview over the options, type
 
     python3 plot_results.py -h
     
