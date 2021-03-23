@@ -63,11 +63,11 @@ The following discriminators are included in the repository:
 
 The repo also contains the following density-estimation models:
 * Probabilistic PCA baseline  (Bishop 1999; `PPCA`, `models.ppca.py`)
-* Local Outlier Factor (Breunig 2000; `LOF`, `lof.py`)
+* Local Outlier Factor (Breunig 2000; `LOF`, `models.lof.py`)
 * Autoencoder (`AE`, `models.autoencoder.py`)
 * Variational Autoencoder (Kingma & Welling, 2014; `VAE`, `models.vae.py`)
 * Heterogenous-Incomplete Variational Autoencoder (Nazabal et al., 2020; `HI-VAE`, `models.hi_vae.py`)
-* Deep Kernel Learning - Deterministic Uncertainty Estimation (Amersfoort et al., 2021, `DUE`, `dkl_due.py`)
+* Deep Kernel Learning - Deterministic Uncertainty Estimation (Amersfoort et al., 2021, `DUE`, `models.dkl_due.py`)
 
 **All** **actually** **used** **hyperparameters**, **hyperparameter** **search** **ranges**, **metrics** **and** 
 **model** **hierarchies** **are** **defined** **in** **`src.models.info.py`**.
