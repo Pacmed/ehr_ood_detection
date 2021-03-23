@@ -119,8 +119,6 @@ if __name__ == "__main__":
                 except ValueError:
                     print(f"\t\tCould not calculate {metric_.__name__} metric.")
 
-        # Save everything for this model
-        # TODO: SCALING
         dir_name = os.path.join(args.result_dir, f"{args.data_origin}", "novelty_scores", method_name)
 
         metric_dir_name = os.path.join(dir_name, "metrics")
