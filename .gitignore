@@ -129,4 +129,7 @@ dmypy.json
 .pyre/
 
 # Notebooks
-/notebooks/.ipynb_checkpoints
+notebooks/.ipynb_checkpoints
+notebooks/VUmc/
+img/experiments/VUmc
+data/results/VUmc
