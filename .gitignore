@@ -128,8 +128,12 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Notebooks
+# Notebook checkpoints
 notebooks/.ipynb_checkpoints
+
+# VUmc data
 notebooks/VUmc/
 img/experiments/VUmc
 data/results/VUmc
+temp.py
+.idea/
