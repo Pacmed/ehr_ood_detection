@@ -98,7 +98,7 @@ def main(args):
 
         # Save everything for this model
 
-        dir_name = os.path.join(args.result_dir, f"{args.data_origin}", "novelty_scores", method_name)
+        dir_name = os.path.join(args.result_dir, f"{args.data_origin}", "novelty_scores_aggreg_feats", method_name)
 
         metric_dir_name = os.path.join(dir_name, "metrics")
 

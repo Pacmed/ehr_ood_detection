@@ -49,7 +49,7 @@ def plot_umap(data_origin: str,
 
     # TODO: Change
     # Load the table of outliers for each model and metric
-    outliers_path = os.path.join(tables_dir, data_origin, "novelty_scores", outliers_filename)
+    outliers_path = os.path.join(tables_dir, data_origin, "novelty_scores_aggreg_feats", outliers_filename)
     outliers = pd.read_csv(outliers_path, index_col=0)
 
     test_data = test_data.sort_index(axis=0)

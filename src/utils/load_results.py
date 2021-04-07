@@ -125,7 +125,7 @@ def load_novelty_scores_from_origin(
         result_dir: str,
         data_origin: str
 ):
-    novelty_dir_name = os.path.join(result_dir, data_origin, "novelty_scores")
+    novelty_dir_name = os.path.join(result_dir, data_origin, "novelty_scores_aggreg_feats")
 
     metric_dict = defaultdict(dict)
     novelty_dict = defaultdict(dict)
