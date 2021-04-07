@@ -4,7 +4,6 @@ Module defining functions to plot the results of experiments.
 
 # STD
 import os
-import sys
 import pickle
 from collections import defaultdict
 from typing import List, Optional, Dict, Tuple
@@ -21,16 +20,14 @@ from src.experiments.perturbation import SCALES
 # PROJECT
 from src.models.info import (
     NEURAL_PREDICTORS,
-    AVAILABLE_SCORING_FUNCS,
-    DISCRIMINATOR_BASELINES,
-    AVAILABLE_MODELS
+    DISCRIMINATOR_BASELINES
 )
 from src.utils.types import ResultDict
-from src.visualizing.load_results import (load_ood_results_from_origin,
-                                          load_rel_sizes,
-                                          load_percentage_sig)
+from src.utils.load_results import (load_ood_results_from_origin,
+                                    load_rel_sizes,
+                                    load_percentage_sig)
 
-from src.visualizing.load_results import load_perturbation
+from src.utils.load_results import load_perturbation
 
 N_SEEDS = 5
 

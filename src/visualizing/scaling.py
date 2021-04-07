@@ -12,7 +12,7 @@ import seaborn as sns
 from src.models.info import (
     AVAILABLE_MODELS
 )
-from src.visualizing.load_results import load_perturbation
+from src.utils.load_results import load_perturbation
 
 RESULT_DIR = "../../data/scaling"
 PLOT_DIR = "../../img/scaling"

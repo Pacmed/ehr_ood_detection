@@ -83,7 +83,8 @@ EICU_KEYS = DataKey(data_folder="/data/processed/eicu_processed/data/adult_data_
                     )
 
 VUMC_KEYS = DataKey(data_folder="/data/interim/VUmc/df_model_combined.csv",
-                    feature_names_path="/data/interim/VUmc/MLflow/columns_to_use.pkl",
+                    # TODO: Last 24h
+                    feature_names_path="/data/interim/VUmc/MLflow/columns_to_use_last_24h.pkl",
                     target_name='readmission_or_mortality_after_discharge',
                     )
 

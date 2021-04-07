@@ -47,6 +47,7 @@ def plot_umap(data_origin: str,
     _, test_data, _ = dh.load_data_splits()
     test_data = test_data[dh.load_feature_names()]
 
+    # TODO: Change
     # Load the table of outliers for each model and metric
     outliers_path = os.path.join(tables_dir, data_origin, "novelty_scores", outliers_filename)
     outliers = pd.read_csv(outliers_path, index_col=0)
