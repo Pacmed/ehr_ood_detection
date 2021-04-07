@@ -12,7 +12,7 @@ from src.models.info import (
     AVAILABLE_MODELS,
 )
 from src.utils.datahandler import DataHandler, load_data_from_origin
-from src.visualizing.load_results import load_novelty_scores_from_origin, load_rel_sizes, load_percentage_sig
+from src.utils.load_results import load_novelty_scores_from_origin, load_rel_sizes, load_percentage_sig
 
 # PROJECT
 from src.visualizing.ood_plots import (

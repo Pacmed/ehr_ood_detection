@@ -1,5 +1,5 @@
 # STD
-from typing import List, Optional
+from typing import List
 from collections import defaultdict
 
 import numpy as np
@@ -7,7 +7,7 @@ import pandas as pd
 
 from src.models.info import AVAILABLE_MODELS
 from src.utils.datahandler import DataHandler, load_data_from_origin
-from src.visualizing.load_results import load_novelty_scores_from_origin
+from src.utils.load_results import load_novelty_scores_from_origin
 
 
 class NoveltyScoresHandler:
@@ -40,14 +40,13 @@ class NoveltyScoresHandler:
 
         self.models = models
 
+        self.index_available = True
         self.scores_test = self._get_scores("test")
         self.scores_train = self._get_scores("train")
 
         assert 1 >= threshold >= 0, "Invalid threshold provided."
         self.threshold = threshold
         self.thresholds = self._get_thresholds(scores=self.scores_train)
-
-        self.outliers = self._get_outliers()
 
     def _get_scores(self,
                     result_type: str = "test"):
@@ -78,7 +77,9 @@ class NoveltyScoresHandler:
 
         novelty_df = pd.DataFrame(novelty_selected)
 
-        # If data available on the machine, get patients ID from the training and testing data
+        # If data is available on the machine, get sample's ID from the training and testing data. Allows to compare
+        # features of the samples later.
+
         try:
             data_loader = load_data_from_origin(self.data_origin)
             dh = DataHandler(**data_loader)
@@ -86,11 +87,13 @@ class NoveltyScoresHandler:
 
             if result_type == "test":
                 novelty_df.index = test_data[dh.load_feature_names()].index
+
             else:
                 novelty_df.index = train_data[dh.load_feature_names()].index
 
         except:
             print(f"When loading {result_type} novelty scores, could not set patients ID. Continuing without IDs.")
+            self.index_available = False
 
         return novelty_df
 
@@ -128,78 +131,39 @@ class NoveltyScoresHandler:
 
         return thresholds
 
-    def _get_outliers(self):
-        """
-        Return a dataframe with boolean values that indicate whether a patient is above the specified threshold of
-        OOD-ness.
-        """
-        outliers = dict()
-        for col in self.scores_test.columns:
-            outliers[col] = self.scores_test[col] > self.thresholds[col]
-
-        return pd.DataFrame(outliers)
-
-    def get_union(self,
-                  multiindex=False):
+    def get_boolean_outliers(self,
+                             multiindex=False):
         """
         Returns
         -------
         union: pd.DataFrame
-            Returns a dataframe with all the samples that are flagged as outliers in at least on of the models.
+            Returns a dataframe with a boolean value for each patient and each model according to whether the
+            model flagged a sample as an outlier (using the selected threshold).
             Samples are sorted according to the number of models that flagged the sample as an outlier.
         """
+        if self.index_available is False:
+            raise Warning("No IDs available for patients. Aborting export of the table.")
 
-        union = self.outliers.copy()
-        union["Number of models"] = union.sum(axis=1)
-        union = union.sort_values("Number of models", ascending=False)
+        bool_outliers = dict()
+        for col in self.scores_test.columns:
+            bool_outliers[col] = self.scores_test[col] > self.thresholds[col]
+
+        bool_outliers = pd.DataFrame(bool_outliers)
+        bool_outliers["Number of models"] = bool_outliers.sum(axis=1)
+        bool_outliers = bool_outliers.sort_values("Number of models", ascending=False)
+        bool_outliers = bool_outliers.reindex(sorted(bool_outliers.columns[:-1]) + ["Number of models"], axis=1)
 
         if multiindex:
-            union.columns = pd.MultiIndex.from_tuples(
-                [(c.split(' ')[0], ' '.join(c.split(' ')[1:])) for c in union.columns])
+            bool_outliers.columns = pd.MultiIndex.from_tuples(
+                [(c.split(' ')[0], ' '.join(c.split(' ')[1:])) for c in bool_outliers.columns])
 
-        # union = union[union["Number of models"] > 0]
-
-        return union
-
-    def get_intersection(self,
-                         N: Optional[int] = None):
-        """
-        Parameters
-        ----------
-        N: Optional(int)
-            Number of models that are required to intersect. Default is set to all models provided.
-
-        Returns
-        -------
-        intersection: pd.DataFrame
-            Returns a dataframe of all the samples that are flagged as outliers in all the models.
-        """
-
-        intersection = self.outliers.copy()
-        intersection["Number of models"] = intersection.sum(axis=1)
-
-        if N is None:
-            n_intersect = len(intersection.columns)
-        else:
-            n_intersect = N
-
-        intersection = intersection[intersection["Number of models"] >= n_intersect]
-
-        if len(intersection) == 0:
-            if N is None:
-                raise Warning(f"No samples are marked as outliers in all models: {self.models}. "
-                              f"Consider picking a subset of models.")
-            else:
-                max_intersction = max(intersection["Number of models"])
-                raise Warning(f"No samples are marked in all {N} models. "
-                              f"There at most {max_intersction} intersections.")
-
-        return intersection
+        return bool_outliers
 
     def get_top_outliers(self,
-                         N: int = 50,
+                         N: int = 10,
                          multiindex: bool = False):
         """
+        Returns a dataframe with the IDs of the top outliers according to the score they received by the models.
 
         Parameters
         ----------
@@ -213,6 +177,9 @@ class NoveltyScoresHandler:
         IDs: pd.Dataframe
             Pandas dataframe with the N most OOD patient IDs for each model and each metric.
         """
+
+        if self.index_available is False:
+            raise Warning("No IDs available for patients. Aborting export of the table.")
 
         top_outliers = defaultdict(lambda: defaultdict(list))
 
