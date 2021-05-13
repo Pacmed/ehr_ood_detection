@@ -15,6 +15,7 @@ from src.models.info import (
     DISCRIMINATOR_BASELINES,
     NEURAL_PREDICTORS,
     AUTOENCODERS,
+    DEEP_KERNELS
 )
 
 # CONST
@@ -148,6 +149,10 @@ class NoveltyEstimator:
             self.model.train(
                 X_train, y_train, X_val, y_val, training_params=self.train_params
             )
+
+        elif self.name in DEEP_KERNELS:
+            self.model = self.model_type(**self.model_params)
+            self.model.train(X_train, y_train.values, **self.train_params)
 
         elif self.name in NEURAL_PREDICTORS:
             self.model = self.model_type(**self.model_params)
