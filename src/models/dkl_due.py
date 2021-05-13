@@ -11,7 +11,6 @@ from due.fc_resnet import FCResNet
 from gpytorch.likelihoods import SoftmaxLikelihood
 from gpytorch.mlls import VariationalELBO
 
-
 EARLY_STOPPING_LIMIT = 2
 NUM_OUTPUTS = 2
 
@@ -28,6 +27,7 @@ class DUE:
     DUE consists of two parts - distance-preserving Feature Extractor (ResNet) and Gaussian Process.
     Here, DUE is implemeted for binary classification.
     """
+
     def __init__(self,
                  n_inducing_points: int = 20,
                  kernel: str = "Matern12",
@@ -64,7 +64,7 @@ class DUE:
         self.features = features
         self.depth = depth
 
-    def train(self,
+    def fit(self,
               X_train: np.ndarray,
               y_train: np.ndarray,
               X_val: Optional[np.ndarray] = None,
