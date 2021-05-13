@@ -22,6 +22,7 @@ from src.models.mlp import (
     PlattScalingMLP,
 )
 from src.models.dkl_due import DUE
+from src.models.lof import LOF
 # from src.models.bbb import BBBMLP
 from src.models.ppca import PPCA
 from src.models.novelty_estimator import NoveltyEstimator
@@ -41,6 +42,7 @@ MODEL_CLASSES = {
     "LogReg": LogisticRegression,
     # "SVM": OneClassSVM,
     "DUE": DUE,
+    "LOF": LOF,
     "AE": AE,
     "VAE": VAE,
     "HI-VAE": HIVAE,
