@@ -21,6 +21,8 @@ from src.models.info import (
 # CONST
 # Define all combination of possible models and scoring funcs
 SCORING_FUNCS = {
+    ("DUE", "entropy"): lambda model, data: model.get_entropy(data),
+    ("DUE", "std"): lambda model, data: model.get_std(data),
     ("PPCA", "log_prob"): lambda model, data: -model.score_samples(data),
     ("AE", "reconstr_err"): lambda model, data: model.get_reconstr_error(data),
     ("HI-VAE", "reconstr_err"): lambda model, data: model.get_reconstr_error(data),
