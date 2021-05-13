@@ -12,7 +12,7 @@ from sklearn.linear_model import LogisticRegression
 
 # PROJECT
 from src.models.nn_ensemble import NNEnsemble
-from models.anchored_ensemble import AnchoredNNEnsemble
+from src.models.anchored_ensemble import AnchoredNNEnsemble
 from src.models.autoencoder import AE
 from src.models.vae import VAE
 from src.models.hi_vae import HIVAE
@@ -21,7 +21,7 @@ from src.models.mlp import (
     MCDropoutMLP,
     PlattScalingMLP,
 )
-from models.bbb import BBBMLP
+# from src.models.bbb import BBBMLP
 from src.models.ppca import PPCA
 from src.models.novelty_estimator import NoveltyEstimator
 from src.models.info import (
@@ -44,7 +44,7 @@ MODEL_CLASSES = {
     "HI-VAE": HIVAE,
     "NN": MLP,
     "PlattScalingNN": PlattScalingMLP,
-    "BBB": BBBMLP,
+    # "BBB": BBBMLP,
     "MCDropout": MCDropoutMLP,
     "NNEnsemble": NNEnsemble,
     "BootstrappedNNEnsemble": NNEnsemble,

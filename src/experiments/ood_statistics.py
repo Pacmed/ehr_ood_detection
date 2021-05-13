@@ -13,7 +13,7 @@ import pandas as pd
 
 # PROJECT
 import src.utils.ood as ood_utils
-from src.utils.datahandler import DataHandler, BASE_ORIGINS
+from src.utils.datahandler import DataHandler, BASE_ORIGINS, load_data_from_origin
 
 # CONST
 STATS_DIR = "../../data/stats"
@@ -36,7 +36,8 @@ if __name__ == "__main__":
     data_origin = args.data_origin
 
     for data_origin in BASE_ORIGINS:
-        dh = DataHandler(data_origin)
+        data_loader = load_data_from_origin(args.data_origin)
+        dh = DataHandler(**data_loader)
         feature_names = dh.load_feature_names()
         train_data, test_data, val_data = dh.load_data_splits()
         y_name = dh.load_target_name()
