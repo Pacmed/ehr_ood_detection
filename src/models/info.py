@@ -12,24 +12,14 @@ import numpy as np
 from sklearn.utils.fixes import loguniform
 from scipy.stats import uniform
 
-# CONST
-FEAT_TYPES_DIR = "../../data/feature_types"
-
-# Load feat types for HI-VAE
-with open(f"{FEAT_TYPES_DIR}/feat_types_eICU.json", "rb") as ft_eicu_file:
-    feat_types_eicu = list(
-        json.load(ft_eicu_file, object_pairs_hook=OrderedDict).values()
-    )
-
-with open(f"{FEAT_TYPES_DIR}/feat_types_MIMIC.json", "rb") as ft_mimic_file:
-    feat_types_mimic = list(
-        json.load(ft_mimic_file, object_pairs_hook=OrderedDict).values()
-    )
 
 # ### Models and novelty scoring functions ###
 
+DENSITY_ESTIMATORS = {"AE", "VAE", "PPCA", "LOF", "DUE"}
+
 DENSITY_BASELINES = {
     "PPCA",  # Probabilistic PCA for density estimation
+    "LOF",
 }
 
 DISCRIMINATOR_BASELINES = {
@@ -52,31 +42,36 @@ ENSEMBLE_MODELS = {
 
 SINGLE_INST_MULTIPLE_PRED_NN_MODELS = {
     "MCDropout",  # Single neural discriminator using MC Dropout for uncertainty estimation
-    "BBB",  # Bayesian Neural Network
+    # "BBB",  # Bayesian Neural Network
 }
 
-VARIATIONAL_AUTOENCODERS = {"VAE", "HI-VAE"}
+DEEP_KERNELS = {"DUE"}
+
+VARIATIONAL_AUTOENCODERS = {"VAE"}  # , "HI-VAE"}
 AUTOENCODERS = {"AE"} | VARIATIONAL_AUTOENCODERS
 
 NO_ENSEMBLE_NN_MODELS = (
-    SINGLE_PRED_NN_MODELS | AUTOENCODERS | SINGLE_INST_MULTIPLE_PRED_NN_MODELS
+        SINGLE_PRED_NN_MODELS | AUTOENCODERS | SINGLE_INST_MULTIPLE_PRED_NN_MODELS
 )
 
 MULTIPLE_PRED_NN_MODELS = SINGLE_INST_MULTIPLE_PRED_NN_MODELS | ENSEMBLE_MODELS
 
 SINGLE_PRED_MODELS = (
-    DENSITY_BASELINES | SINGLE_PRED_NN_MODELS
+        DENSITY_BASELINES | SINGLE_PRED_NN_MODELS
 )  # All models only making a single prediction
 
 NEURAL_PREDICTORS = (
-    SINGLE_PRED_NN_MODELS | MULTIPLE_PRED_NN_MODELS
+        SINGLE_PRED_NN_MODELS | MULTIPLE_PRED_NN_MODELS
 )  # All neural network-based discriminators
 
-NEURAL_MODELS = NEURAL_PREDICTORS | AUTOENCODERS  # All neural models
+NEURAL_MODELS = NEURAL_PREDICTORS | AUTOENCODERS | DEEP_KERNELS  # All neural models
 AVAILABLE_MODELS = NEURAL_MODELS | BASELINES  # All available models in this project
+
+############################################################################################
 
 # Available novelty scoring functions for models
 AVAILABLE_SCORING_FUNCS = {
+    "DUE": ("entropy", "std"),
     "PPCA": ("log_prob",),  # Default: log-prob
     "AE": ("reconstr_err",),  # Default: Reconstruction error
     "HI-VAE": (
@@ -105,6 +100,11 @@ AVAILABLE_SCORING_FUNCS = {
 # ### Hyperparameters ###
 
 MODEL_PARAMS = {
+    "DUE": {"MIMIC": {"n_inducing_points": 20, "kernel": "Matern12",
+                      "coeff": 0.5, "features": 256, "depth": 4, "lr": 0.004508},
+            "eICU": {"n_inducing_points": 20, "kernel": "Matern12",
+                     "coeff": 0.5, "features": 256, "depth": 4, "lr": 0.004508}
+            },
     "PPCA": {"MIMIC": {"n_components": 15}, "eICU": {"n_components": 15}},
     "AE": {
         "MIMIC": {"hidden_sizes": [75], "latent_dim": 15, "lr": 0.006897},
@@ -128,28 +128,28 @@ MODEL_PARAMS = {
             "reconstr_error_weight": 0.183444,
         },
     },
-    "HI-VAE": {
-        "MIMIC": {
-            "anneal": False,
-            "beta": 2.138636,
-            "hidden_sizes": [75],
-            "latent_dim": 20,
-            "lr": 0.00278,
-            "n_mix_components": 5,
-            "reconstr_error_weight": 0.065363,
-            "feat_types": feat_types_mimic,
-        },
-        "eICU": {
-            "anneal": False,
-            "beta": 1.457541,
-            "hidden_sizes": [30],
-            "latent_dim": 10,
-            "lr": 0.002141,
-            "n_mix_components": 7,
-            "reconstr_error_weight": 0.045573,
-            "feat_types": feat_types_eicu,
-        },
-    },
+    # "HI-VAE": {
+    #     "MIMIC": {
+    #         "anneal": False,
+    #         "beta": 2.138636,
+    #         "hidden_sizes": [75],
+    #         "latent_dim": 20,
+    #         "lr": 0.00278,
+    #         "n_mix_components": 5,
+    #         "reconstr_error_weight": 0.065363,
+    #         "feat_types": feat_types_mimic,
+    #     },
+    #     "eICU": {
+    #         "anneal": False,
+    #         "beta": 1.457541,
+    #         "hidden_sizes": [30],
+    #         "latent_dim": 10,
+    #         "lr": 0.002141,
+    #         "n_mix_components": 7,
+    #         "reconstr_error_weight": 0.045573,
+    #         "feat_types": feat_types_eicu,
+    #     },
+    # },
     "SVM": {},
     "LogReg": {"MIMIC": {"C": 10}, "eICU": {"C": 1000}},
     "NN": {
@@ -290,6 +290,7 @@ MODEL_PARAMS = {
 
 TRAIN_PARAMS = {
     "PPCA": {},
+    "DUE": {"n_epochs": 5, "batch_size": 64},
     "AE": {"n_epochs": 10, "batch_size": 64},
     "VAE": {"n_epochs": 6, "batch_size": 64},
     "HI-VAE": {"n_epochs": 6, "batch_size": 64},
@@ -341,6 +342,9 @@ TRAIN_PARAMS = {
 
 # Hyperparameter ranges / distributions that should be considered during the random search
 PARAM_SEARCH = {
+    "kernel": ["RFB", "Matern12", "Matern32", "Matern52", "RQ"],
+    "n_inducing_points": range(10,20),
+    "coeff": np.linspace(0.5, 4, 10),
     "n_components": range(2, 20),
     "hidden_sizes": [
         [hidden_size] * num_layers
@@ -374,6 +378,7 @@ NUM_EVALS = {
     "BBB": 100,
     "PPCA": 30,
     "LogReg": 5,
+    "DUE": 15,
 }
 
 
@@ -385,3 +390,19 @@ DEFAULT_EARLY_STOPPING_PAT: int = 2
 
 DEFAULT_RECONSTR_ERROR_WEIGHT: float = 1e20
 DEFAULT_N_VAE_SAMPLES: int = 100
+
+
+# HI-VAE
+# # CONST
+# FEAT_TYPES_DIR = "../../data/feature_types"
+#
+# # Load feat types for HI-VAE
+# with open(f"{FEAT_TYPES_DIR}/feat_types_eICU.json", "rb") as ft_eicu_file:
+#     feat_types_eicu = list(
+#         json.load(ft_eicu_file, object_pairs_hook=OrderedDict).values()
+#     )
+#
+# with open(f"{FEAT_TYPES_DIR}/feat_types_MIMIC.json", "rb") as ft_mimic_file:
+#     feat_types_mimic = list(
+#         json.load(ft_mimic_file, object_pairs_hook=OrderedDict).values()
+#     )
