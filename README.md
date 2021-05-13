@@ -60,6 +60,7 @@ The repo also contains the following density-estimation models:
 * Autoencoder (`AE`, `models.autoencoder.py`)
 * Variational Autoencoder (Kingma & Welling, 2014; `VAE`, `models.vae.py`)
 * Heterogenous-Incomplete Variational Autoencoder (Nazabal et al., 2020; `HI-VAE`, `models.hi_vae.py`)
+* Deep Kernel Learning - Deterministic Uncertainty Estimation (Amersfoort et al., 2021, `DUE`, `models.dkl_due.py`)
 
 **All** **actually** **used** **hyperparameters**, **hyperparameter** **search** **ranges**, **metrics** **and** 
 **model** **hierarchies** **are** **defined** **in** **`src.models.info.py`**.
