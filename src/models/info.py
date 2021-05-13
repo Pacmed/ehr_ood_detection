@@ -12,7 +12,6 @@ import numpy as np
 from sklearn.utils.fixes import loguniform
 from scipy.stats import uniform
 
-
 # ### Models and novelty scoring functions ###
 
 DENSITY_ESTIMATORS = {"AE", "VAE", "PPCA", "LOF", "DUE"}
@@ -73,6 +72,7 @@ AVAILABLE_MODELS = NEURAL_MODELS | BASELINES  # All available models in this pro
 AVAILABLE_SCORING_FUNCS = {
     "DUE": ("entropy", "std"),
     "PPCA": ("log_prob",),  # Default: log-prob
+    "LOF": ("outlier_score",),
     "AE": ("reconstr_err",),  # Default: Reconstruction error
     "HI-VAE": (
         "reconstr_err",
@@ -103,7 +103,10 @@ MODEL_PARAMS = {
     "DUE": {"MIMIC": {"n_inducing_points": 20, "kernel": "Matern12",
                       "coeff": 0.5, "features": 256, "depth": 4, "lr": 0.004508},
             "eICU": {"n_inducing_points": 20, "kernel": "Matern12",
-                     "coeff": 0.5, "features": 256, "depth": 4, "lr": 0.004508}
+                     "coeff": 0.5, "features": 256, "depth": 4, "lr": 0.004508},
+            },
+    "LOF": {"MIMIC": {"n_neighbors": 20, "algorithm": "auto"},
+            "eICU": {"n_neighbors": 5, "algorithm": "brute"},
             },
     "PPCA": {"MIMIC": {"n_components": 15}, "eICU": {"n_components": 15}},
     "AE": {
@@ -290,6 +293,7 @@ MODEL_PARAMS = {
 
 TRAIN_PARAMS = {
     "PPCA": {},
+    "LOF": {},
     "DUE": {"n_epochs": 5, "batch_size": 64},
     "AE": {"n_epochs": 10, "batch_size": 64},
     "VAE": {"n_epochs": 6, "batch_size": 64},
@@ -343,7 +347,7 @@ TRAIN_PARAMS = {
 # Hyperparameter ranges / distributions that should be considered during the random search
 PARAM_SEARCH = {
     "kernel": ["RFB", "Matern12", "Matern32", "Matern52", "RQ"],
-    "n_inducing_points": range(10,20),
+    "n_inducing_points": range(10, 20),
     "coeff": np.linspace(0.5, 4, 10),
     "n_components": range(2, 20),
     "hidden_sizes": [
@@ -374,13 +378,13 @@ NUM_EVALS = {
     "VAE": 400,
     "HI-VAE": 200,
     "NN": 40,
+    "LOF": 50,
     "MCDropout": 40,
     "BBB": 100,
     "PPCA": 30,
     "LogReg": 5,
     "DUE": 15,
 }
-
 
 # Default training hyperparameters
 DEFAULT_LEARNING_RATE: float = 1e-2
@@ -390,7 +394,6 @@ DEFAULT_EARLY_STOPPING_PAT: int = 2
 
 DEFAULT_RECONSTR_ERROR_WEIGHT: float = 1e20
 DEFAULT_N_VAE_SAMPLES: int = 100
-
 
 # HI-VAE
 # # CONST
