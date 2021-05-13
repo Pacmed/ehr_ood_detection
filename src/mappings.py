@@ -1,7 +1,7 @@
 from typing import List, Dict, Tuple, Union, Optional
-from typing_extensions import TypedDict
 
-from utils.types import DataKey
+
+from src.utils.types import DataKey
 
 MIMIC_ORIGINS = {"MIMIC", "MIMIC_for_DA"}
 EICU_ORIGINS = {"eICU", "eICU_for_DA"}
