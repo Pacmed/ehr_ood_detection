@@ -29,6 +29,7 @@ from src.models.info import (
     NEURAL_MODELS,
     TRAIN_PARAMS,
     AUTOENCODERS,
+    DEEP_KERNELS
 )
 from src.utils.model_init import MODEL_CLASSES
 
@@ -91,7 +92,7 @@ def perform_hyperparameter_search(
 
             for run, param_set in enumerate(sampled_params):
 
-                if model_name in NEURAL_MODELS:
+                if model_name in NEURAL_MODELS - DEEP_KERNELS:
                     param_set.update(input_size=len(feat_names))
 
                 model = model_type(**param_set)
@@ -221,13 +222,13 @@ if __name__ == "__main__":
     torch.manual_seed(SEED)
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--data-origin", type=str, default="eICU", help="Which data to use"
+        "--data-origin", type=str, default="VUmc", help="Which data to use"
     )
     parser.add_argument(
         "--models",
         type=str,
         nargs="+",
-        default=AVAILABLE_MODELS,
+        default={"DUE"},
         choices=AVAILABLE_MODELS,
         help="Determine the models which are being used for this experiment.",
     )

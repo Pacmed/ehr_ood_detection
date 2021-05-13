@@ -31,14 +31,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--data-origin",
         type=str,
-        default="MIMIC",
+        default="VUmc",
         help="Which data to use",
     )
     parser.add_argument(
         "--models",
         type=str,
         nargs="+",
-        default=AVAILABLE_MODELS,
+        default={"LOF"},
         choices=AVAILABLE_MODELS,
         help="Determine the models which are being used for this experiment.",
     )
