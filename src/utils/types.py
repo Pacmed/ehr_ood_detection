@@ -3,7 +3,8 @@ Define custom types for me readable type annotations.
 """
 
 # STD
-from typing import Optional, Tuple, Dict, List
+from typing import Optional, Tuple, Dict, List, Union
+from typing_extensions import TypedDict
 
 # PROJECT
 from src.models.novelty_estimator import NoveltyEstimator
