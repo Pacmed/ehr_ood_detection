@@ -1,14 +1,11 @@
 from typing import List, Dict, Tuple, Union, Optional
-
-
 from src.utils.types import DataKey
 
 MIMIC_ORIGINS = {"MIMIC", "MIMIC_for_DA"}
 EICU_ORIGINS = {"eICU", "eICU_for_DA"}
-VUMC_ORIGINS = {"VUmc"}
 BASE_ORIGINS = {"MIMIC", "eICU", "VUmc"}
 
-ALL_ORIGINS = MIMIC_ORIGINS | EICU_ORIGINS | VUMC_ORIGINS
+ALL_ORIGINS = MIMIC_ORIGINS | EICU_ORIGINS
 
 
 # Define OOD mappings
@@ -47,14 +44,6 @@ EICU_OOD_MAPPINGS = {
     ),
 }
 
-VUMC_OOD_MAPPING = {
-    "Mortuary without autopsy": ("destination", "Mortuarium zonder obductie"),
-    "Mortuary with autopsy": ("destination", "Mortuarium met obductie"),
-    "CCU/ICU other hospital": ("destination", "CCU/ICU ander ziekenhuis"),
-    "Other department": ("destination", "Afdeling ander ziekenhuis"),
-}
-
-
 # Specify Data Keys that contain paths to the datasets
 
 MIMIC_KEYS = DataKey(data_folder="/data/processed/benchmark/inhospitalmortality/not_scaled",
@@ -76,15 +65,9 @@ EICU_KEYS = DataKey(data_folder="/data/processed/eicu_processed/data/adult_data_
                     sep="",
                     )
 
-VUMC_KEYS = DataKey(data_folder='/data/processed/vumc_pc/df_models/20210429_combined/df_model_imputed.csv',
-                    feature_names_path='/data/processed/vumc_pc/df_models/20210429_combined/columns_to_use.pkl',
-                    target_name="readmission_or_mortality_after_discharge_7d",
-                    ood_mapping=VUMC_OOD_MAPPING,
-                    sep='\t',
-                    )
 
 MAPPING_KEYS = {"MIMIC": MIMIC_KEYS,
                 "MIMIC_for_DA": MIMIC_KEYS,
                 "eICU": EICU_KEYS,
-                "eICU_for_DA": EICU_KEYS,
-                "VUmc": VUMC_KEYS}
+                "eICU_for_DA": EICU_KEYS
+                }

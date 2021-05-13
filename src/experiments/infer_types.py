@@ -9,7 +9,7 @@ import json
 
 # PROJECT
 from src.models.hi_vae import infer_types
-from src.utils.datahandler import DataHandler, BASE_ORIGINS
+from src.utils.datahandler import DataHandler, BASE_ORIGINS, load_data_from_origin
 
 # CONST
 FEAT_TYPES_DIR = "../../data/feature_types"
@@ -26,7 +26,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     for data_origin in BASE_ORIGINS:
-        dh = DataHandler(data_origin)
+        data_loader = load_data_from_origin(args.data_origin)
+        dh = DataHandler(**data_loader)
         feature_names = dh.load_feature_names()
         train_data, _, _ = dh.load_data_splits()
 

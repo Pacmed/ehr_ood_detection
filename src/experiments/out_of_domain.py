@@ -18,18 +18,21 @@ from src.utils.ood import (
     split_by_ood_name,
 )
 from src.utils.model_init import init_models
-from src.utils.datahandler import DataHandler, MIMIC_ORIGINS
+from src.utils.datahandler import DataHandler, load_data_from_origin
+from src.mappings import MIMIC_ORIGINS
 from src.models.info import AVAILABLE_MODELS
 
 # CONST
-N_SEEDS = 3
 N_SEEDS = 5
 RESULT_DIR = "../../data/results"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--data-origin", type=str, default="MIMIC", help="Which data to use",
+        "--data-origin",
+        type=str,
+        default="MIMIC",
+        help="Which data to use",
     )
     parser.add_argument(
         "--models",
@@ -48,7 +51,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Loading the data
-    dh = DataHandler(args.data_origin)
+    data_loader = load_data_from_origin(args.data_origin)
+    dh = DataHandler(**data_loader)
     feature_names = dh.load_feature_names()
 
     train_data, test_data, val_data = dh.load_data_splits()
