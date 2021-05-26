@@ -59,7 +59,7 @@ if __name__ == "__main__":
     y_name = dh.load_target_name()
 
     if args.data_origin in MIMIC_ORIGINS:
-        train_newborns, test_newborns, val_newborns = dh.load_newborns()
+        train_newborns, test_newborns, val_newborns = dh.load_other_groups("newborns")
 
     ood_mappings = dh.load_ood_mappings()
 

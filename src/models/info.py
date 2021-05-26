@@ -17,7 +17,7 @@ DENSITY_BASELINES = { "PPCA", "LOF",}
 DISCRIMINATOR_BASELINES = {"LogReg"}  # "SVM",
 SINGLE_PRED_NN_MODELS = { "NN", "PlattScalingNN", }
 ENSEMBLE_MODELS = {"NNEnsemble", "BootstrappedNNEnsemble",  "AnchoredNNEnsemble",}
-SINGLE_INST_MULTIPLE_PRED_NN_MODELS = { "MCDropout",} # "BBB"
+SINGLE_INST_MULTIPLE_PRED_NN_MODELS = { "MCDropout"} #, "BBB"} # "BBB"
 DEEP_KERNELS = {"DUE"}
 VARIATIONAL_AUTOENCODERS = {"VAE"}  # , "HI-VAE"}
 
@@ -94,8 +94,12 @@ SCORING_FUNCS = {
 
 # ### Hyperparameters ###
 MODEL_PARAMS = {
-    "DUE": {"MIMIC": {"n_inducing_points": 20, "kernel": "Matern12",
-                      "coeff": 0.5, "features": 256, "depth": 4, "lr": 0.004508},
+    "DUE": {"MIMIC": {"n_inducing_points": 50,
+                      "kernel": "Matern12",
+                      "coeff": 0.5,
+                      "features": 256,
+                      "depth": 4,
+                      "lr": 0.002069},
             "eICU": {"n_inducing_points": 20, "kernel": "Matern12",
                      "coeff": 0.5, "features": 256, "depth": 4, "lr": 0.004508},
             },
