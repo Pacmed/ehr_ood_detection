@@ -1,10 +1,10 @@
-numpy==1.16.0
-jupyter
-gpytorch
 git+https://github.com/y0ast/DUE.git
-scipy==1.4.1
-pandas==0.25.0
+gpytorch
+jupyter
 matplotlib==3.1.2
+numpy
+pandas==0.25.0
+scipy
 seaborn==0.10.1
 sklearn==0.0
 torch
