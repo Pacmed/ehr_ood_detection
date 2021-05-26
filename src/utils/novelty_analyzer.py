@@ -44,12 +44,12 @@ class NoveltyAnalyzer:
     def __init__(
         self,
         novelty_estimator: NoveltyEstimator,
-        X_train: np.array,
-        X_test: np.array,
-        X_val: Optional[np.array] = None,
-        y_train: Optional[np.array] = None,
-        y_test: Optional[np.array] = None,
-        y_val: Optional[np.array] = None,
+        X_train: pd.DataFrame,
+        X_test: pd.DataFrame,
+        X_val: Optional[pd.DataFrame] = None,
+        y_train: Optional[pd.DataFrame] = None,
+        y_test: Optional[pd.DataFrame] = None,
+        y_val: Optional[pd.DataFrame] = None,
         impute_and_scale: bool = True,
     ):
         self.ne = novelty_estimator
@@ -66,23 +66,24 @@ class NoveltyAnalyzer:
         self.id_novelty = None
         self.ood_novelty = None
 
-        if self.impute_and_scale and novelty_estimator.name != "HI-VAE":
-            self._impute_and_scale()
+        self._process_data()
 
-    def _impute_and_scale(self):
+    def _process_data(self):
         """
         Impute and scale, using the train data to fit the (mean) imputer and scaler.
         """
-        self.pipe = pipeline.Pipeline(
-            [("scaler", StandardScaler()), ("imputer", SimpleImputer())]
-        )
+        if self.impute_and_scale and self.ne.name != "HI-VAE":
+            self.X_train, self.X_test, self.X_val = tuple(map(lambda X: scale_impute(X),
+                                                              [self.X_train, self.X_test, self.X_val]))
+        else:
+            self.X_train, self.X_test, self.X_val = tuple(map(lambda X: X.values
+                                                              [self.X_train, self.X_test, self.X_val]))
 
-        self.pipe.fit(self.X_train)
-        self.X_train = self.pipe.transform(self.X_train)
-        self.X_test = self.pipe.transform(self.X_test)
-        self.X_val = self.pipe.transform(self.X_val)
+        self.y_train, self.y_test, self.y_val = tuple(map(lambda X: X.values,
+                                                              [self.y_train, self.y_test, self.y_val]))
 
-    def set_ood(self, new_X_ood: np.array, impute_and_scale: bool = True):
+
+    def set_ood(self, new_X_ood: pd.DataFrame, impute_and_scale: bool = True):
         """
         Set the ood data for the experiment.
 
@@ -94,7 +95,7 @@ class NoveltyAnalyzer:
             Whether to impute and scale the data before fitting the novelty estimator.
         """
         if impute_and_scale and self.ne.name != "HI-VAE":
-            self.X_ood = self.pipe.transform(new_X_ood)
+            self.X_ood = scale_impute(new_X_ood)
         else:
             if type(new_X_ood) == pd.DataFrame:
                 new_X_ood = new_X_ood.to_numpy()
@@ -105,7 +106,7 @@ class NoveltyAnalyzer:
 
     def set_test(self, new_test_data):
         if self.impute_and_scale and self.ne.name != "HI-VAE":
-            self.X_test = self.pipe.transform(new_test_data)
+            self.X_test = scale_impute(new_test_data)
 
         else:
             self.X_test = new_test_data
@@ -176,3 +177,34 @@ class NoveltyAnalyzer:
         reconstr_lim = np.quantile(self.id_novelty, threshold_fraction)
 
         return (self.ood_novelty > reconstr_lim).mean()
+
+
+def scale_impute(X: pd.DataFrame,
+                 )->np.ndarray:
+    """
+    Performs standard scaling. Imputes mean for continuous data and most-frequent for categorical data.
+    """
+    pipe = pipeline.Pipeline(
+        [("scaler", StandardScaler()), ("imputer", SimpleImputer())]
+    )
+    # Categorical values are only booleans in the this dataset and none are missing
+    continuous = [column for column in X.columns if len(np.unique(X[column].values)) > 2]
+    categorical = list(set(X.columns) ^ set(continuous))
+
+    if len(continuous) != 0:
+        X_cont_ = pipe.fit_transform(X[continuous])
+        X_cont = pd.DataFrame(X_cont_, columns=continuous, index=X.index)
+    else:
+        X_cont = pd.DataFrame(None, index=X.index)
+
+    if len(categorical) != 0:
+        categ_imputer = SimpleImputer(strategy="most_frequent")
+        X_cat_ = categ_imputer.fit_transform(X[categorical])
+        X_cat = pd.DataFrame(X_cat_, columns=categorical, index=X.index)
+    else:
+        X_cat = pd.DataFrame(None, index=X.index)
+
+    X_proc = pd.concat([X_cont, X_cat], axis=1, join='inner')
+    X_proc = X_proc.reindex(sorted(X_proc.columns), axis=1)
+
+    return X_proc.values

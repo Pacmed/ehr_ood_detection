@@ -13,6 +13,7 @@ from typing import Tuple, Dict, List
 import numpy as np
 from tqdm import tqdm
 import torch
+import pandas as pd
 
 # PROJECT
 from src.utils.model_init import AVAILABLE_MODELS
@@ -27,7 +28,7 @@ RESULT_DIR = "../../data/results"
 
 
 def run_perturbation_experiment(
-    nov_an: NoveltyAnalyzer, X_test: np.ndarray, scoring_func: str = None
+    nov_an: NoveltyAnalyzer, X_test: pd.DataFrame, scoring_func: str = None
 ) -> Tuple[Dict[str, List[float]], Dict[str, List[float]]]:
     """Runs the perturbation experiment for a single novelty estimator.
 
@@ -83,7 +84,7 @@ if __name__ == "__main__":
         "--models",
         type=str,
         nargs="+",
-        default=AVAILABLE_MODELS,
+        default={"LOF","DUE"},
         choices=AVAILABLE_MODELS,
         help="Determine the models which are being used for this experiment.",
     )
@@ -108,12 +109,12 @@ if __name__ == "__main__":
         print(name)
         nov_an = NoveltyAnalyzer(
             ne,
-            train_data[feature_names].values,
-            test_data[feature_names].values,
-            val_data[feature_names].values,
-            train_data[y_name].values,
-            test_data[y_name].values,
-            val_data[y_name].values,
+            train_data[feature_names],
+            test_data[feature_names],
+            val_data[feature_names],
+            train_data[y_name],
+            test_data[y_name],
+            val_data[y_name],
         )
         nov_an.train()
 

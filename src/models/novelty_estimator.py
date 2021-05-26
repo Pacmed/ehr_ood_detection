@@ -76,7 +76,7 @@ class NoveltyEstimator:
 
         elif self.name in DEEP_KERNELS:
             self.model = self.model_type(**self.model_params)
-            self.model.train(X_train, y_train.values, **self.train_params)
+            self.model.train(X_train, y_train, **self.train_params)
 
         elif self.name in NEURAL_PREDICTORS:
             self.model = self.model_type(**self.model_params)
