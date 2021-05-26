@@ -3,89 +3,44 @@ Module to be the single place to bundle all the information about models: Availa
 hyperparameters, etc.
 """
 
-# STD
-from collections import OrderedDict
-import json
-
 # EXT
 import numpy as np
 from sklearn.utils.fixes import loguniform
 from scipy.stats import uniform
 
-# ### Models and novelty scoring functions ###
+# PROJECT
+from src.utils.metrics import entropy, max_prob
 
+# Define models and classes they belong to
 DENSITY_ESTIMATORS = {"AE", "VAE", "PPCA", "LOF", "DUE"}
+DENSITY_BASELINES = { "PPCA", "LOF",}
+DISCRIMINATOR_BASELINES = {"LogReg"}  # "SVM",
+SINGLE_PRED_NN_MODELS = { "NN", "PlattScalingNN", }
+ENSEMBLE_MODELS = {"NNEnsemble", "BootstrappedNNEnsemble",  "AnchoredNNEnsemble",}
+SINGLE_INST_MULTIPLE_PRED_NN_MODELS = { "MCDropout",} # "BBB"
+DEEP_KERNELS = {"DUE"}
+VARIATIONAL_AUTOENCODERS = {"VAE"}  # , "HI-VAE"}
 
-DENSITY_BASELINES = {
-    "PPCA",  # Probabilistic PCA for density estimation
-    "LOF",
-}
-
-DISCRIMINATOR_BASELINES = {
-    "LogReg",  # Logistic Regression
-    # "SVM",  # One-class SVM for outlier detection
-}
 
 BASELINES = DENSITY_BASELINES | DISCRIMINATOR_BASELINES
-
-SINGLE_PRED_NN_MODELS = {
-    "NN",  # Single neural discriminator
-    "PlattScalingNN",  # Single neural discriminator with platt scaling
-}
-
-ENSEMBLE_MODELS = {
-    "NNEnsemble",  # Ensemble of neural discriminators
-    "BootstrappedNNEnsemble",  # Ensemble of neural discriminators, each trained on a different subset of the data
-    "AnchoredNNEnsemble",  # Bayesian ensemble of neural discriminators with special regularization
-}
-
-SINGLE_INST_MULTIPLE_PRED_NN_MODELS = {
-    "MCDropout",  # Single neural discriminator using MC Dropout for uncertainty estimation
-    # "BBB",  # Bayesian Neural Network
-}
-
-DEEP_KERNELS = {"DUE"}
-
-VARIATIONAL_AUTOENCODERS = {"VAE"}  # , "HI-VAE"}
 AUTOENCODERS = {"AE"} | VARIATIONAL_AUTOENCODERS
-
-NO_ENSEMBLE_NN_MODELS = (
-        SINGLE_PRED_NN_MODELS | AUTOENCODERS | SINGLE_INST_MULTIPLE_PRED_NN_MODELS
-)
-
+NO_ENSEMBLE_NN_MODELS = ( SINGLE_PRED_NN_MODELS | AUTOENCODERS | SINGLE_INST_MULTIPLE_PRED_NN_MODELS)
 MULTIPLE_PRED_NN_MODELS = SINGLE_INST_MULTIPLE_PRED_NN_MODELS | ENSEMBLE_MODELS
+SINGLE_PRED_MODELS = ( DENSITY_BASELINES | SINGLE_PRED_NN_MODELS)
+NEURAL_PREDICTORS = (  SINGLE_PRED_NN_MODELS | MULTIPLE_PRED_NN_MODELS | DEEP_KERNELS)
+NEURAL_MODELS = NEURAL_PREDICTORS | AUTOENCODERS
+AVAILABLE_MODELS = NEURAL_MODELS | BASELINES
 
-SINGLE_PRED_MODELS = (
-        DENSITY_BASELINES | SINGLE_PRED_NN_MODELS
-)  # All models only making a single prediction
 
-NEURAL_PREDICTORS = (
-        SINGLE_PRED_NN_MODELS | MULTIPLE_PRED_NN_MODELS
-)  # All neural network-based discriminators
-
-NEURAL_MODELS = NEURAL_PREDICTORS | AUTOENCODERS | DEEP_KERNELS  # All neural models
-AVAILABLE_MODELS = NEURAL_MODELS | BASELINES  # All available models in this project
-
-############################################################################################
 
 # Available novelty scoring functions for models
 AVAILABLE_SCORING_FUNCS = {
     "DUE": ("entropy", "std"),
-    "PPCA": ("log_prob",),  # Default: log-prob
+    "PPCA": ("log_prob",),
     "LOF": ("outlier_score",),
-    "AE": ("reconstr_err",),  # Default: Reconstruction error
-    "HI-VAE": (
-        "reconstr_err",
-        "latent_prob",
-        "latent_prior_prob",
-        "reconstr_err_grad",
-    ),  # Default: Reconstruction error
-    "VAE": (
-        "reconstr_err",
-        "latent_prob",
-        "latent_prior_prob",
-        "reconstr_err_grad",
-    ),  # Default: Reconstruction error
+    "AE": ("reconstr_err",),
+    "HI-VAE": ( "reconstr_err", "latent_prob", "latent_prior_prob", "reconstr_err_grad", ),
+    "VAE": ( "reconstr_err", "latent_prob", "latent_prior_prob", "reconstr_err_grad",),
     # "SVM": ("dist",),  # Default: Distance to decision boundary
     "LogReg": ("entropy", "max_prob"),
     "NN": ("entropy", "max_prob"),
@@ -97,16 +52,55 @@ AVAILABLE_SCORING_FUNCS = {
     "AnchoredNNEnsemble": ("entropy", "std", "mutual_information"),
 }
 
-# ### Hyperparameters ###
 
+# Define all combination of possible models and scoring funcs
+SCORING_FUNCS = {
+    ("DUE", "entropy"): lambda model, data: model.get_entropy(data),
+    ("DUE", "std"): lambda model, data: model.get_std(data),
+    ("LOF", "outlier_score"): lambda model, data: -model.score_samples(data),
+    ("PPCA", "log_prob"): lambda model, data: -model.score_samples(data),
+    ("AE", "reconstr_err"): lambda model, data: model.get_reconstr_error(data),
+    ("HI-VAE", "reconstr_err"): lambda model, data: model.get_reconstr_error(data),
+    ("HI-VAE", "latent_prob"): lambda model, data: -model.get_latent_prob(data),
+    ("HI-VAE", "latent_prior_prob"): lambda model, data: -model.get_latent_prior_prob(data),
+    ("HI-VAE", "reconstr_err_grad"): lambda model, data: model.get_reconstruction_grad_magnitude(data),
+    ("VAE", "reconstr_err"): lambda model, data: model.get_reconstr_error(data),
+    ("VAE", "latent_prob"): lambda model, data: -model.get_latent_prob(data),
+    ("VAE", "latent_prior_prob"): lambda model, data: -model.get_latent_prior_prob(data),
+    ("VAE","reconstr_err_grad",): lambda model, data: model.get_reconstruction_grad_magnitude(data),
+    ("LogReg", "entropy"): lambda model, data: entropy(model.predict_proba(data), axis=1),
+    ("LogReg", "max_prob"): lambda model, data: max_prob(model.predict_proba(data), axis=1),
+    ("NN", "entropy"): lambda model, data: entropy(model.predict_proba(data), axis=1),
+    ("NN", "max_prob"): lambda model, data: max_prob(model.predict_proba(data), axis=1),
+    ("PlattScalingNN", "entropy"): lambda model, data: entropy( model.predict_proba(data), axis=1),
+    ("PlattScalingNN", "max_prob"): lambda model, data: max_prob(model.predict_proba(data), axis=1),
+    ("MCDropout", "entropy"): lambda model, data: entropy(model.predict_proba(data), axis=1),
+    ("MCDropout", "std"): lambda model, data: model.get_std(data),
+    ("MCDropout","mutual_information",): lambda model, data: model.get_mutual_information(data),
+    ("BBB", "entropy"): lambda model, data: entropy(model.predict_proba(data), axis=1),
+    ("BBB", "std"): lambda model, data: model.get_std(data),
+    ("BBB", "mutual_information"): lambda model, data: model.get_mutual_information(data),
+    ("NNEnsemble", "entropy"): lambda model, data: entropy(model.predict_proba(data), axis=1 ),
+    ("NNEnsemble", "std"): lambda model, data: model.get_std(data),
+    ("NNEnsemble",  "mutual_information",): lambda model, data: model.get_mutual_information(data),
+    ("BootstrappedNNEnsemble", "entropy"): lambda model, data: entropy( model.predict_proba(data), axis=1),
+    ("BootstrappedNNEnsemble", "std"): lambda model, data: model.get_std(data),
+    ("BootstrappedNNEnsemble", "mutual_information",): lambda model, data: model.get_mutual_information(data),
+    ("AnchoredNNEnsemble", "entropy"): lambda model, data: entropy( model.predict_proba(data), axis=1),
+    ("AnchoredNNEnsemble", "std"): lambda model, data: model.get_std(data),
+    ("AnchoredNNEnsemble","mutual_information",): lambda model, data: model.get_mutual_information(data),
+}
+
+
+# ### Hyperparameters ###
 MODEL_PARAMS = {
     "DUE": {"MIMIC": {"n_inducing_points": 20, "kernel": "Matern12",
                       "coeff": 0.5, "features": 256, "depth": 4, "lr": 0.004508},
             "eICU": {"n_inducing_points": 20, "kernel": "Matern12",
                      "coeff": 0.5, "features": 256, "depth": 4, "lr": 0.004508},
             },
-    "LOF": {"MIMIC": {"n_neighbors": 20, "algorithm": "auto"},
-            "eICU": {"n_neighbors": 5, "algorithm": "brute"},
+    "LOF": {"MIMIC": {"n_neighbors": 20, "algorithm": "auto", "novelty": True},
+            "eICU": {"n_neighbors": 20, "algorithm": "brute", "novelty": True},
             },
     "PPCA": {"MIMIC": {"n_components": 15}, "eICU": {"n_components": 15}},
     "AE": {
@@ -131,28 +125,6 @@ MODEL_PARAMS = {
             "reconstr_error_weight": 0.183444,
         },
     },
-    # "HI-VAE": {
-    #     "MIMIC": {
-    #         "anneal": False,
-    #         "beta": 2.138636,
-    #         "hidden_sizes": [75],
-    #         "latent_dim": 20,
-    #         "lr": 0.00278,
-    #         "n_mix_components": 5,
-    #         "reconstr_error_weight": 0.065363,
-    #         "feat_types": feat_types_mimic,
-    #     },
-    #     "eICU": {
-    #         "anneal": False,
-    #         "beta": 1.457541,
-    #         "hidden_sizes": [30],
-    #         "latent_dim": 10,
-    #         "lr": 0.002141,
-    #         "n_mix_components": 7,
-    #         "reconstr_error_weight": 0.045573,
-    #         "feat_types": feat_types_eicu,
-    #     },
-    # },
     "SVM": {},
     "LogReg": {"MIMIC": {"C": 10}, "eICU": {"C": 1000}},
     "NN": {
@@ -347,7 +319,8 @@ TRAIN_PARAMS = {
 # Hyperparameter ranges / distributions that should be considered during the random search
 PARAM_SEARCH = {
     "kernel": ["RFB", "Matern12", "Matern32", "Matern52", "RQ"],
-    "n_inducing_points": range(10, 20),
+    "n_neighbors": np.arange(5, 50, 5),
+    "n_inducing_points": np.arange(10, 100, 10),
     "coeff": np.linspace(0.5, 4, 10),
     "n_components": range(2, 20),
     "hidden_sizes": [
@@ -394,18 +367,3 @@ DEFAULT_EARLY_STOPPING_PAT: int = 2
 
 DEFAULT_RECONSTR_ERROR_WEIGHT: float = 1e20
 DEFAULT_N_VAE_SAMPLES: int = 100
-
-# HI-VAE
-# # CONST
-# FEAT_TYPES_DIR = "../../data/feature_types"
-#
-# # Load feat types for HI-VAE
-# with open(f"{FEAT_TYPES_DIR}/feat_types_eICU.json", "rb") as ft_eicu_file:
-#     feat_types_eicu = list(
-#         json.load(ft_eicu_file, object_pairs_hook=OrderedDict).values()
-#     )
-#
-# with open(f"{FEAT_TYPES_DIR}/feat_types_MIMIC.json", "rb") as ft_mimic_file:
-#     feat_types_mimic = list(
-#         json.load(ft_mimic_file, object_pairs_hook=OrderedDict).values()
-#     )

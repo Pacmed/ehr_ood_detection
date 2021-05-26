@@ -7,7 +7,6 @@ sample. The way that novelty is scored depends on the model type and scoring fun
 import numpy as np
 
 # PROJECT
-from src.utils.metrics import entropy, max_prob
 from src.models.info import (
     AVAILABLE_MODELS,
     ENSEMBLE_MODELS,
@@ -15,87 +14,9 @@ from src.models.info import (
     DISCRIMINATOR_BASELINES,
     NEURAL_PREDICTORS,
     AUTOENCODERS,
-    DEEP_KERNELS
+    DEEP_KERNELS,
+    SCORING_FUNCS
 )
-
-# CONST
-# Define all combination of possible models and scoring funcs
-SCORING_FUNCS = {
-    ("DUE", "entropy"): lambda model, data: model.get_entropy(data),
-    ("DUE", "std"): lambda model, data: model.get_std(data),
-    ("LOF", "outlier_score"): lambda model, data: model.get_scores(data),
-    ("PPCA", "log_prob"): lambda model, data: -model.score_samples(data),
-    ("AE", "reconstr_err"): lambda model, data: model.get_reconstr_error(data),
-    ("HI-VAE", "reconstr_err"): lambda model, data: model.get_reconstr_error(data),
-    ("HI-VAE", "latent_prob"): lambda model, data: -model.get_latent_prob(data),
-    ("HI-VAE", "latent_prior_prob"): lambda model, data: -model.get_latent_prior_prob(
-        data
-    ),
-    (
-        "HI-VAE",
-        "reconstr_err_grad",
-    ): lambda model, data: model.get_reconstruction_grad_magnitude(data),
-    ("VAE", "reconstr_err"): lambda model, data: model.get_reconstr_error(data),
-    ("VAE", "latent_prob"): lambda model, data: -model.get_latent_prob(data),
-    ("VAE", "latent_prior_prob"): lambda model, data: -model.get_latent_prior_prob(
-        data
-    ),
-    (
-        "VAE",
-        "reconstr_err_grad",
-    ): lambda model, data: model.get_reconstruction_grad_magnitude(data),
-    ("LogReg", "entropy"): lambda model, data: entropy(
-        model.predict_proba(data), axis=1
-    ),
-    ("LogReg", "max_prob"): lambda model, data: max_prob(
-        model.predict_proba(data), axis=1
-    ),
-    ("NN", "entropy"): lambda model, data: entropy(model.predict_proba(data), axis=1),
-    ("NN", "max_prob"): lambda model, data: max_prob(model.predict_proba(data), axis=1),
-    ("PlattScalingNN", "entropy"): lambda model, data: entropy(
-        model.predict_proba(data), axis=1
-    ),
-    ("PlattScalingNN", "max_prob"): lambda model, data: max_prob(
-        model.predict_proba(data), axis=1
-    ),
-    ("MCDropout", "entropy"): lambda model, data: entropy(
-        model.predict_proba(data), axis=1
-    ),
-    ("MCDropout", "std"): lambda model, data: model.get_std(data),
-    (
-        "MCDropout",
-        "mutual_information",
-    ): lambda model, data: model.get_mutual_information(data),
-    ("BBB", "entropy"): lambda model, data: entropy(model.predict_proba(data), axis=1),
-    ("BBB", "std"): lambda model, data: model.get_std(data),
-    ("BBB", "mutual_information"): lambda model, data: model.get_mutual_information(
-        data
-    ),
-    ("NNEnsemble", "entropy"): lambda model, data: entropy(
-        model.predict_proba(data), axis=1
-    ),
-    ("NNEnsemble", "std"): lambda model, data: model.get_std(data),
-    (
-        "NNEnsemble",
-        "mutual_information",
-    ): lambda model, data: model.get_mutual_information(data),
-    ("BootstrappedNNEnsemble", "entropy"): lambda model, data: entropy(
-        model.predict_proba(data), axis=1
-    ),
-    ("BootstrappedNNEnsemble", "std"): lambda model, data: model.get_std(data),
-    (
-        "BootstrappedNNEnsemble",
-        "mutual_information",
-    ): lambda model, data: model.get_mutual_information(data),
-    ("AnchoredNNEnsemble", "entropy"): lambda model, data: entropy(
-        model.predict_proba(data), axis=1
-    ),
-    ("AnchoredNNEnsemble", "std"): lambda model, data: model.get_std(data),
-    (
-        "AnchoredNNEnsemble",
-        "mutual_information",
-    ): lambda model, data: model.get_mutual_information(data),
-}
 
 
 class NoveltyEstimator:
