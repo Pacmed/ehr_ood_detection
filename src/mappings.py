@@ -55,14 +55,14 @@ MIMIC_KEYS = DataKey(data_folder="/data/processed/benchmark/inhospitalmortality/
                      split_paths=["train_data_processed_w_static.csv",
                                   "test_data_processed_w_static.csv",
                                   "val_data_processed_w_static.csv", ],
-                     sep="",
+                     sep=",",
                      )
 
 EICU_KEYS = DataKey(data_folder="/data/processed/eicu_processed/data/adult_data_nan.csv",
                     feature_names_path="../../data/feature_names/common_eicu_params.pkl",
                     target_name="hospitaldischargestatus",
                     ood_mapping=EICU_OOD_MAPPINGS,
-                    sep="",
+                    sep=",",
                     )
 
 
