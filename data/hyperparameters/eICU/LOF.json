@@ -1,0 +1,74 @@
+{
+    "8": {
+        "score": 1.4661852527380772,
+        "hyperparameters": {
+            "n_neighbors": "45",
+            "algorithm": "brute",
+            "novelty": true
+        }
+    },
+    "7": {
+        "score": 1.4586677874241767,
+        "hyperparameters": {
+            "n_neighbors": "40",
+            "algorithm": "brute",
+            "novelty": true
+        }
+    },
+    "6": {
+        "score": 1.4503377828750343,
+        "hyperparameters": {
+            "n_neighbors": "35",
+            "algorithm": "brute",
+            "novelty": true
+        }
+    },
+    "5": {
+        "score": 1.4417770247688726,
+        "hyperparameters": {
+            "n_neighbors": "30",
+            "algorithm": "brute",
+            "novelty": true
+        }
+    },
+    "4": {
+        "score": 1.4325947116700373,
+        "hyperparameters": {
+            "n_neighbors": "25",
+            "algorithm": "brute",
+            "novelty": true
+        }
+    },
+    "3": {
+        "score": 1.422035729145649,
+        "hyperparameters": {
+            "n_neighbors": "20",
+            "algorithm": "brute",
+            "novelty": true
+        }
+    },
+    "2": {
+        "score": 1.408800029869474,
+        "hyperparameters": {
+            "n_neighbors": "15",
+            "algorithm": "brute",
+            "novelty": true
+        }
+    },
+    "1": {
+        "score": 1.3901633253536703,
+        "hyperparameters": {
+            "n_neighbors": "10",
+            "algorithm": "brute",
+            "novelty": true
+        }
+    },
+    "0": {
+        "score": 1.3607104789559463,
+        "hyperparameters": {
+            "n_neighbors": "5",
+            "algorithm": "brute",
+            "novelty": true
+        }
+    }
+}

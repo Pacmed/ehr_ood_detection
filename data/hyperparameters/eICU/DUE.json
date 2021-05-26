@@ -1,0 +1,101 @@
+{
+    "1": {
+        "score": 0.8138247037506213,
+        "hyperparameters": {
+            "coeff": 1.666667,
+            "kernel": "Matern32",
+            "lr": 0.001859,
+            "n_inducing_points": "70",
+            "features": 256,
+            "depth": 4
+        }
+    },
+    "3": {
+        "score": 0.812036250126945,
+        "hyperparameters": {
+            "coeff": 0.5,
+            "kernel": "Matern12",
+            "lr": 0.002069,
+            "n_inducing_points": "50",
+            "features": 256,
+            "depth": 4
+        }
+    },
+    "0": {
+        "score": 0.8002488120627083,
+        "hyperparameters": {
+            "coeff": 1.277778,
+            "kernel": "RQ",
+            "lr": 0.011821,
+            "n_inducing_points": "20",
+            "features": 256,
+            "depth": 4
+        }
+    },
+    "5": {
+        "score": 0.7895282459150457,
+        "hyperparameters": {
+            "coeff": 1.666667,
+            "kernel": "Matern32",
+            "lr": 0.000178,
+            "n_inducing_points": "30",
+            "features": 256,
+            "depth": 4
+        }
+    },
+    "7": {
+        "score": 0.7674852610255013,
+        "hyperparameters": {
+            "coeff": 4.0,
+            "kernel": "Matern52",
+            "lr": 0.006809,
+            "n_inducing_points": "50",
+            "features": 256,
+            "depth": 4
+        }
+    },
+    "8": {
+        "score": 0.7558945207895708,
+        "hyperparameters": {
+            "coeff": 2.833333,
+            "kernel": "Matern12",
+            "lr": 0.009208,
+            "n_inducing_points": "30",
+            "features": 256,
+            "depth": 4
+        }
+    },
+    "2": {
+        "score": -Infinity,
+        "hyperparameters": {
+            "coeff": 0.888889,
+            "kernel": "RFB",
+            "lr": 0.005484,
+            "n_inducing_points": "10",
+            "features": 256,
+            "depth": 4
+        }
+    },
+    "4": {
+        "score": -Infinity,
+        "hyperparameters": {
+            "coeff": 0.5,
+            "kernel": "RFB",
+            "lr": 0.016368,
+            "n_inducing_points": "80",
+            "features": 256,
+            "depth": 4
+        }
+    },
+    "6": {
+        "score": -Infinity,
+        "hyperparameters": {
+            "coeff": 2.055556,
+            "kernel": "RFB",
+            "lr": 0.000782,
+            "n_inducing_points": "80",
+            "features": 256,
+            "depth": 4
+        }
+    }
+}
